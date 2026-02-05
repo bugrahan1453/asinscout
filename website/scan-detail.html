@@ -85,9 +85,13 @@
         </div>
 
         <div class="actions">
-            <a href="#" id="downloadTxt" class="btn btn-primary" data-i18n="scan_download_txt">📄 Download TXT</a>
-            <a href="#" id="downloadExcel" class="btn btn-outline" data-i18n="scan_download_excel">📊 Download Excel</a>
-            <button class="btn btn-outline" onclick="copyAsins()" data-i18n="scan_copy">📋 Copy All ASINs</button>
+            <a href="#" id="downloadTxt" class="btn btn-primary" data-i18n="scan_download_txt">📄 TXT İndir</a>
+            <a href="#" id="downloadExcel" class="btn btn-outline" data-i18n="scan_download_excel">📊 Excel İndir</a>
+            <button class="btn btn-outline" onclick="copyAsins()" data-i18n="scan_copy">📋 Tüm ASIN'leri Kopyala</button>
+        </div>
+
+        <div class="actions" id="chunkButtons" style="margin-top:10px;flex-wrap:wrap;">
+            <!-- 5000'lik kopyalama butonları buraya gelecek -->
         </div>
 
         <div class="card">
@@ -135,9 +139,35 @@
                     h+=`<div class="asin-item"><a href="https://www.amazon.com/dp/${asin}" target="_blank">${asin}</a></div>`;
                 }
                 document.getElementById('asinsGrid').innerHTML=h;
+
+                // 5000'lik kopyalama butonları oluştur
+                createChunkButtons(allAsins.length);
             }else{
                 document.getElementById('asinsGrid').innerHTML='<div class="empty">'+t('scan_no_asins')+'</div>';
             }
+        }
+
+        function createChunkButtons(total){
+            const chunkSize = 5000;
+            if(total <= chunkSize){
+                document.getElementById('chunkButtons').style.display='none';
+                return;
+            }
+            let html = '<span style="color:var(--text2);font-size:13px;margin-right:10px;">5K Kopyala:</span>';
+            const chunks = Math.ceil(total / chunkSize);
+            for(let i = 0; i < chunks; i++){
+                const start = i * chunkSize;
+                const end = Math.min((i + 1) * chunkSize, total);
+                html += `<button class="btn btn-outline" style="padding:6px 12px;font-size:12px;margin:2px;" onclick="copyChunk(${start},${end})">${fmt(start)}-${fmt(end)}</button>`;
+            }
+            document.getElementById('chunkButtons').innerHTML = html;
+            document.getElementById('chunkButtons').style.display='flex';
+        }
+
+        function copyChunk(start, end){
+            const chunk = allAsins.slice(start, end);
+            navigator.clipboard.writeText(chunk.join('\n'));
+            alert(chunk.length + ' ASIN kopyalandı! (' + start + '-' + end + ')');
         }
 
         function copyAsins(){

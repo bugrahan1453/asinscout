@@ -37,20 +37,30 @@
     else if (msg.action === 'scanThisPage') { send({ asins: extractAsinsFromDOM() }); }
     else if (msg.action === 'startFetchScan') {
       scanning = true; stopRequested = false;
-      runMaxScan(msg.baseUrl, msg.mode);
+      runMaxScan(msg.baseUrl, msg.mode, msg.scanLimit || 999999);
       send({ ok: true });
     }
     else if (msg.action === 'stopFetchScan') { stopRequested = true; scanning = false; send({ ok: true }); }
     return true;
   });
 
-  async function runMaxScan(baseUrl, mode) {
+  async function runMaxScan(baseUrl, mode, scanLimit) {
     const allAsins = new Set();
     let scanned = 0;
     const keywords = {};
     const brands = new Set();
     let captchaHits = 0;
     throttle.reset();
+
+    // Limit kontrolü fonksiyonu
+    function checkLimit() {
+      if (allAsins.size >= scanLimit) {
+        report(allAsins, scanned, `✅ Limite ulaşıldı: ${scanLimit} ASIN`);
+        stopRequested = true;
+        return true;
+      }
+      return false;
+    }
 
     if (mode === 'single') {
       for (let p = 1; p <= 30 && !stopRequested; p++) {
@@ -59,6 +69,7 @@
         if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Waiting... (${captchaHits}x)`); await sleep(throttle.delay); continue; }
         r.asins.forEach(a => allAsins.add(a));
         report(allAsins, scanned, `${allAsins.size} ASIN | s.${p}`);
+        if (checkLimit()) break;
         if (r.asins.length < 3) break;
         await throttle.wait();
       }
@@ -71,7 +82,7 @@
     // ============================================
     report(allAsins, scanned, `🚀 FAZ 1: Sort varyasyonları...`);
     for (const sort of SORTS) {
-      if (stopRequested) break;
+      if (stopRequested || checkLimit()) break;
       const url = sort ? addSort(baseUrl, sort) : baseUrl;
       let emptyStreak = 0;
       for (let p = 1; p <= 25 && !stopRequested; p++) {
@@ -83,6 +94,7 @@
         r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
         if (nc === 0) emptyStreak++; else emptyStreak = 0;
         if (p % 5 === 1) report(allAsins, scanned, `${allAsins.size} | Sort:${sort||'def'} s.${p} +${nc}`);
+        if (checkLimit()) break;
         if (r.asins.length < 2 && p > 8) break;
         if (emptyStreak > 3) break;
         await throttle.wait();
@@ -99,7 +111,7 @@
     async function scanPriceRange(ranges, step, maxPages, label) {
       let emptyRanges = 0;
       for (const [lo, hi] of ranges) {
-        if (stopRequested) break;
+        if (stopRequested || checkLimit()) break;
         if (emptyRanges > 15) break; // Skip if too many empty ranges in a row
         const url = addPriceFilter(baseUrl, lo, hi);
         let rangeNew = 0;
@@ -110,6 +122,7 @@
           let nc = 0;
           r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; rangeNew++; } });
           if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo}${hi < 1000 ? '-$' + hi : '-$' + hi} s.${p} +${nc}`);
+          if (checkLimit()) break;
           if (r.asins.length < 2) break;
           await throttle.wait();
         }
@@ -134,14 +147,15 @@
     // ============================================
     // FAZ 3: KATEGORİ × FİYAT × SORT (Üçlü Kombo)
     // ============================================
+    if (checkLimit()) { finish(allAsins, scanned, captchaHits); return; }
     report(allAsins, scanned, `📂 FAZ 3: Kategori keşfi...`);
     const cats = await discoverCategories(baseUrl);
     report(allAsins, scanned, `📂 ${cats.length} kategori bulundu`);
 
     const priceRanges = [[0,5],[5,10],[10,20],[20,35],[35,50],[50,75],[75,100],[100,200],[200,500],[500,2000]];
-    
+
     for (const cat of cats) {
-      if (stopRequested) break;
+      if (stopRequested || checkLimit()) break;
 
       // Önce kategorinin kendisi
       for (const sort of SORTS.slice(0, 3)) {
@@ -183,12 +197,12 @@
     // ============================================
     // FAZ 4: MARKA BAZLI TARAMA
     // ============================================
-    if (!stopRequested && brands.size > 0) {
+    if (!stopRequested && !checkLimit() && brands.size > 0) {
       const brandList = Array.from(brands).slice(0, 50);
       report(allAsins, scanned, `🏷️ FAZ 4: ${brandList.length} marka taranıyor...`);
-      
+
       for (const brand of brandList) {
-        if (stopRequested) break;
+        if (stopRequested || checkLimit()) break;
         const brandUrl = addBrand(baseUrl, brand);
 
         for (const sort of SORTS.slice(0, 2)) {
@@ -214,10 +228,11 @@
     // ============================================
     // FAZ 5: RATING + REVIEW COUNT
     // ============================================
+    if (checkLimit()) { finish(allAsins, scanned, captchaHits); return; }
     report(allAsins, scanned, `⭐ FAZ 5: Rating & Review filtreleri...`);
-    
+
     for (const stars of ['4', '3', '2', '1']) {
-      if (stopRequested) break;
+      if (stopRequested || checkLimit()) break;
 
       for (const sort of SORTS.slice(0, 3)) {
         if (stopRequested) break;
@@ -243,16 +258,17 @@
     // ============================================
     // FAZ 6: MEGA SPIDER CRAWL (3000+ ASIN)
     // ============================================
+    if (checkLimit()) { finish(allAsins, scanned, captchaHits); return; }
     const phase5Count = allAsins.size;
     report(allAsins, scanned, `🕷️ FAZ 6: MEGA Spider Crawl başlıyor...`);
-    
+
     const crawled = new Set();
     const toCrawl = Array.from(allAsins);
     let crawlIndex = 0;
     let newFromCrawl = 0;
     const maxCrawl = 3500;
-    
-    while (crawlIndex < Math.min(toCrawl.length, maxCrawl) && !stopRequested) {
+
+    while (crawlIndex < Math.min(toCrawl.length, maxCrawl) && !stopRequested && !checkLimit()) {
       const asin = toCrawl[crawlIndex++];
       if (crawled.has(asin)) continue;
       crawled.add(asin);
@@ -293,14 +309,15 @@
     // ============================================
     // FAZ 7: KEYWORDS (genişletilmiş)
     // ============================================
+    if (checkLimit()) { finish(allAsins, scanned, captchaHits); return; }
     const kws = getTopKw(keywords, 100);
     if (kws.length > 0 && !stopRequested) {
       report(allAsins, scanned, `🔤 FAZ 7: ${kws.length} keyword...`);
       const seller = extractSeller(baseUrl);
       const origin = getOrigin(baseUrl);
-      
+
       for (const kw of kws) {
-        if (stopRequested) break;
+        if (stopRequested || checkLimit()) break;
         const kwUrl = `${origin}/s?k=${encodeURIComponent(kw)}${seller ? '&me=' + seller : ''}`;
 
         for (const sort of SORTS.slice(0, 2)) {
@@ -326,7 +343,7 @@
     // ============================================
     // FAZ 8: DEAL/DISCOUNT FİLTRESİ
     // ============================================
-    if (!stopRequested) {
+    if (!stopRequested && !checkLimit()) {
       report(allAsins, scanned, `🏷️ FAZ 8: Deal/Discount filtreleri...`);
       
       const dealFilters = [

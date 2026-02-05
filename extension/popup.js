@@ -21,7 +21,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (user.package_name && scanLimit > 0) {
       $('pkgBadge').textContent = user.package_name;
       $('pkgBadge').className = 'pkg-badge';
-      $('limitInfo').innerHTML = 'Scan limit: <strong>' + fmtNum(scanLimit) + '</strong> ASINs';
+      let limitText = 'Scan limit: <strong>' + fmtNum(scanLimit) + '</strong> ASINs';
+      // Günlük tarama hakkı göster
+      if (user.daily_scan_limit && user.daily_scan_limit > 0) {
+        const remaining = user.daily_remaining >= 0 ? user.daily_remaining : (user.daily_scan_limit - (user.daily_scans_used || 0));
+        limitText += '<br><span style="color:' + (remaining > 0 ? '#22c97a' : '#ff4d5e') + '">Daily: ' + remaining + '/' + user.daily_scan_limit + ' scans</span>';
+      }
+      $('limitInfo').innerHTML = limitText;
     } else {
       $('pkgBadge').textContent = 'No Package';
       $('pkgBadge').className = 'pkg-badge none';
