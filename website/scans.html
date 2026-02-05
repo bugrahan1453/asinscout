@@ -18,7 +18,7 @@
         .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--bg3);color:var(--text)}
         .sidebar-menu a.active{color:var(--orange)}
         .sidebar-user{border-top:1px solid var(--border);padding-top:20px;display:flex;align-items:center;gap:12px}
-        .sidebar-user .avatar{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
+        .sidebar-user .avatar{width:36px;height:36px;min-width:36px;min-height:36px;flex-shrink:0;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
         .sidebar-user .name{font-size:13px;font-weight:600}
         .sidebar-user .email{font-size:11px;color:var(--text3)}
         .lang-switch{display:flex;gap:6px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)}
@@ -137,6 +137,8 @@
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         function esc(s){return String(s||'').replace(/</g,'&lt;');}
+        // Re-render on language change
+        window.addEventListener('languageChanged',()=>{loadScans(currentPage);});
         loadScans();
     </script>
 </body>

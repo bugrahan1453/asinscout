@@ -1068,6 +1068,8 @@ function setLanguage(lang) {
     document.documentElement.lang = lang;
     applyTranslations(lang);
     updateLanguageSelector(lang);
+    // Dispatch event for pages with dynamic content to re-render
+    window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
 }
 
 // Apply translations to page
