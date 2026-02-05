@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const $ = id => document.getElementById(id);
   let allAsins = [], storeName = '', tabId = null, scanLimit = 0, currentMarketplace = 'amazon.com';
 
+  // Loading ekranı başta gösteriliyor, auth kontrolü sonrası değişecek
   chrome.runtime.sendMessage({ action: 'getAuthState' }, state => {
     if (state && state.isLoggedIn) {
       // Profili yenile, güncel daily scan bilgisi için
@@ -9,7 +10,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (resp && resp.ok && resp.user) showApp(resp.user);
         else showApp(state.user);
       });
-    } else showScreen('login');
+    } else {
+      showScreen('login');
+    }
   });
 
   function showScreen(name) {
