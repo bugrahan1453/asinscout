@@ -56,7 +56,15 @@ switch ($action) {
 
         $token = Auth::createToken($userId, $data['email']);
         Api::log($userId, 'register', ['ip' => Api::getIp(), 'ref' => $data['ref'] ?? null]);
-        
+
+        // Hoşgeldin emaili gönder
+        try {
+            Mailer::sendWelcome($data['email'], trim($data['name']), 0);
+        } catch (Exception $e) {
+            // Email hatası kayıt işlemini engellemesin
+            error_log("Welcome email failed: " . $e->getMessage());
+        }
+
         Api::success([
             'token' => $token,
             'user' => [

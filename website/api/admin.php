@@ -397,6 +397,29 @@ try {
             Api::success(null, 'Testimonial deleted');
             break;
 
+        case 'test_smtp':
+            $data = Api::getPostData();
+            $testEmail = $data['email'] ?? $admin['email'];
+
+            try {
+                $mailer = new Mailer();
+                $result = $mailer->send(
+                    $testEmail,
+                    'SMTP Test - ' . SITE_NAME,
+                    '<h2>SMTP Test Başarılı! ✅</h2><p>Bu email SMTP ayarlarınızın doğru çalıştığını gösterir.</p><p>Tarih: ' . date('Y-m-d H:i:s') . '</p>',
+                    true
+                );
+
+                if ($result) {
+                    Api::success(['sent_to' => $testEmail], 'Test email sent successfully!');
+                } else {
+                    Api::error('Email sending failed. Check SMTP settings and server logs.', 500);
+                }
+            } catch (Exception $e) {
+                Api::error('SMTP Error: ' . $e->getMessage(), 500);
+            }
+            break;
+
         default:
             Api::error('Invalid action', 400);
     }
