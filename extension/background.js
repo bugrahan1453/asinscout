@@ -9,7 +9,17 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
   if (msg.action === 'login') { handleLogin(msg.email, msg.password).then(send); return true; }
   if (msg.action === 'register') { handleRegister(msg.email, msg.password, msg.name).then(send); return true; }
   if (msg.action === 'logout') { S.token = null; S.user = null; S.isLoggedIn = false; chrome.storage.local.remove(['token', 'user']); send({ ok: true }); }
-  if (msg.action === 'getAuthState') { send({ isLoggedIn: S.isLoggedIn, user: S.user }); }
+  if (msg.action === 'getAuthState') {
+    // Service worker uyandıysa storage'dan yükle
+    if (!S.isLoggedIn && !S.token) {
+      chrome.storage.local.get(['token', 'user'], (d) => {
+        if (d.token) { S.token = d.token; S.user = d.user; S.isLoggedIn = true; }
+        send({ isLoggedIn: S.isLoggedIn, user: S.user });
+      });
+      return true;
+    }
+    send({ isLoggedIn: S.isLoggedIn, user: S.user });
+  }
   if (msg.action === 'refreshProfile') { refreshProfile().then(send); return true; }
   if (msg.action === 'startScan') {
     if (!S.isLoggedIn || !S.user?.scan_limit) { send({ error: 'No package' }); return; }
