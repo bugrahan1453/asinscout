@@ -57,13 +57,18 @@ body{width:380px;font-family:'Inter',system-ui,sans-serif;background:var(--bg);c
 .links a{font-size:11px;color:var(--t2);text-decoration:none}.links a:hover{color:var(--or)}
 .toast{position:fixed;bottom:10px;left:50%;transform:translateX(-50%) translateY(60px);padding:8px 16px;background:var(--gn);color:#fff;border-radius:8px;font-size:12px;font-weight:600;transition:transform .3s;z-index:99}
 .toast.show{transform:translateX(-50%) translateY(0)}
+.preloader{display:flex;justify-content:center;align-items:center}
+.preloader-logo{width:60px;height:60px;background:linear-gradient(135deg,#ff2c6b,var(--or));border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;color:#fff;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,107,44,0.4)}50%{transform:scale(1.05);box-shadow:0 0 20px 10px rgba(255,107,44,0)}}
 </style>
 </head>
 <body>
 <div class="hdr"><div class="logo">A</div><div class="hdr-txt"><h1>ASIN<span>Scout</span> Pro</h1><p>Amazon Store Scanner</p></div></div>
-<div class="screen active" id="loadingScreen" style="text-align:center;padding:60px 20px;">
-  <div style="font-size:24px;margin-bottom:10px;">⏳</div>
-  <div style="color:var(--t2);font-size:12px;">Yükleniyor...</div>
+<div class="screen active" id="loadingScreen" style="text-align:center;padding:50px 20px;">
+  <div class="preloader">
+    <div class="preloader-logo">A</div>
+  </div>
+  <div style="color:var(--t2);font-size:11px;margin-top:15px;">Yükleniyor...</div>
 </div>
 <div class="screen" id="loginScreen">
   <div class="auth-title">Welcome Back</div><div class="auth-sub">Login to continue</div>
