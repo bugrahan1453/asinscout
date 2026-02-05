@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;--text:#f0f0f5;--text2:#9898a8;--text3:#5a5a6e;--orange:#ff6b2c;--green:#22c97a;--border:#2a2a35}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;background:var(--bg2);border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column}
+        .sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;margin-bottom:40px;text-decoration:none;color:var(--text)}
+        .sidebar-logo span{color:var(--orange)}
+        .sidebar-logo .icon{width:36px;height:36px;background:linear-gradient(135deg,#ff2c6b,var(--orange));border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .sidebar-menu{list-style:none;flex:1}
+        .sidebar-menu a{display:block;padding:12px 16px;color:var(--text2);text-decoration:none;border-radius:10px;margin-bottom:4px;font-size:14px}
+        .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--bg3);color:var(--text)}
+        .sidebar-menu a.active{color:var(--orange)}
+        .sidebar-user{border-top:1px solid var(--border);padding-top:20px;display:flex;align-items:center;gap:12px}
+        .sidebar-user .avatar{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
+        .sidebar-user .name{font-size:13px;font-weight:600}
+        .sidebar-user .email{font-size:11px;color:var(--text3)}
+        .main{margin-left:250px;padding:30px}
+        .page-title{font-size:28px;font-weight:700;margin-bottom:10px}
+        .page-subtitle{color:var(--text2);margin-bottom:30px}
+        .current-pkg{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:center}
+        .current-pkg .label{color:var(--text2);font-size:14px}
+        .current-pkg .value{font-size:20px;font-weight:700;color:var(--green)}
+        .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+        .price-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;position:relative}
+        .price-card:hover{border-color:var(--orange)}
+        .price-card.popular{border-color:var(--orange)}
+        .price-card.popular::before{content:'BEST VALUE';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--orange),#ff2c6b);color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700}
+        .price-name{font-size:22px;font-weight:700;margin-bottom:8px}
+        .price-limit{font-size:14px;color:var(--green);margin-bottom:20px}
+        .price-amount{font-size:48px;font-weight:800;margin-bottom:4px}
+        .price-amount span{font-size:16px;color:var(--text2);font-weight:400}
+        .price-duration{font-size:13px;color:var(--text3);margin-bottom:24px}
+        .price-features{list-style:none;margin-bottom:24px}
+        .price-features li{padding:8px 0;color:var(--text2);font-size:14px;display:flex;align-items:center;gap:10px}
+        .price-features li::before{content:'✓';color:var(--green);font-weight:700}
+        .btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+        .btn-primary{background:linear-gradient(135deg,var(--orange),#ff2c6b);color:#fff}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+        .btn:hover{transform:translateY(-2px)}
+        .message{padding:16px;border-radius:12px;margin-bottom:24px;display:none;text-align:center}
+        .message.error{display:block;background:rgba(255,77,94,0.1);color:#ff4d5e}
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <ul class="sidebar-menu">
+            <a href="dashboard.html">📊 Dashboard</a>
+            <a href="scans.html">📁 My Scans</a>
+            <a href="pricing.html" class="active">💳 Buy Package</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+        <div class="sidebar-user">
+            <div class="avatar" id="userAvatar">U</div>
+            <div><div class="name" id="userName">User</div><div class="email" id="userEmail">...</div></div>
+        </div>
+    </aside>
+    <main class="main">
+        <h1 class="page-title">Buy Package</h1>
+        <p class="page-subtitle">Unlimited daily scans. Pay once, use for 30 days.</p>
+        
+        <div class="current-pkg">
+            <div><div class="label">Your Current Package</div><div class="value" id="currentPkg">No Package</div></div>
+            <div id="pkgExpires" style="font-size:13px;color:var(--text3)"></div>
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="pricing-grid" id="pricingGrid"></div>
+    </main>
+    <script>
+        const API='/api',token=localStorage.getItem('token');
+        if(!token)location.href='login.html';
+        const user=JSON.parse(localStorage.getItem('user')||'{}');
+        document.getElementById('userName').textContent=user.name||'User';
+        document.getElementById('userEmail').textContent=user.email||'';
+        document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
+        
+        if(user.package_name&&user.scan_limit>0){
+            document.getElementById('currentPkg').textContent=user.package_name+' ('+fmt(user.scan_limit)+' limit)';
+            document.getElementById('pkgExpires').textContent='Expires: '+new Date(user.package_expires).toLocaleDateString();
+        }
+        
+        async function loadPackages(){
+            const r=await fetch(API+'/packages.php?action=list');
+            const d=await r.json();
+            if(d.success){
+                let h='';
+                for(const p of d.data.packages){
+                    h+=`<div class="price-card ${p.is_popular?'popular':''}">
+                        <div class="price-name">${p.name}</div>
+                        <div class="price-limit">Up to ${fmt(p.scan_limit)} ASINs per scan</div>
+                        <div class="price-amount">$${p.price.toFixed(2)}</div>
+                        <div class="price-duration">${p.duration_days} days access</div>
+                        <ul class="price-features">
+                            ${p.features.map(f=>`<li>${f}</li>`).join('')}
+                        </ul>
+                        <button class="btn ${p.is_popular?'btn-primary':'btn-outline'}" onclick="buyPackage(${p.id})">Buy Now</button>
+                    </div>`;
+                }
+                document.getElementById('pricingGrid').innerHTML=h;
+            }
+        }
+        
+        async function buyPackage(id){
+            const msg=document.getElementById('message');
+            msg.className='message';
+            try{
+                const r=await fetch(API+'/packages.php?action=checkout',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+                    body:JSON.stringify({package_id:id})
+                });
+                const d=await r.json();
+                if(d.success&&d.data.checkout_url){
+                    location.href=d.data.checkout_url;
+                }else{
+                    msg.className='message error';
+                    msg.textContent=d.message||'Error';
+                }
+            }catch(e){
+                msg.className='message error';
+                msg.textContent='Connection error';
+            }
+        }
+        
+        function logout(){localStorage.clear();location.href='login.html';}
+        function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
+        loadPackages();
+    </script>
+</body>
+</html>

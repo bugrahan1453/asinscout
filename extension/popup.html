@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0f12;--bg2:#18181d;--bg3:#1f1f26;--brd:#2a2a35;--t:#f0f0f5;--t2:#9898a8;--t3:#5a5a6e;--or:#ff6b2c;--gn:#22c97a;--bl:#4d8eff;--rd:#ff4d5e}
+body{width:380px;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t)}
+.hdr{padding:14px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,#ff2c6b,var(--or));border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff}
+.hdr-txt h1{font-size:16px;font-weight:700}.hdr-txt h1 span{color:var(--or)}
+.hdr-txt p{font-size:10px;color:var(--t2)}
+.screen{display:none;padding:20px}.screen.active{display:block}
+.auth-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.auth-sub{font-size:12px;color:var(--t2);margin-bottom:16px}
+.inp-grp{margin-bottom:12px}
+.inp-grp label{display:block;font-size:10px;color:var(--t2);margin-bottom:4px;text-transform:uppercase}
+.inp-grp input{width:100%;padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;color:var(--t);font-size:13px}
+.inp-grp input:focus{outline:none;border-color:var(--or)}
+.btn{width:100%;padding:11px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-or{background:linear-gradient(135deg,var(--or),#ff8f5c);color:#fff}
+.btn-gray{background:var(--bg3);color:var(--t);border:1px solid var(--brd);margin-top:8px}
+.auth-link{text-align:center;margin-top:14px;font-size:12px;color:var(--t2)}
+.auth-link a{color:var(--or);cursor:pointer}
+.msg{padding:10px;border-radius:8px;font-size:12px;margin-bottom:12px;display:none}
+.msg.err{display:block;background:#ff4d5e20;border:1px solid #ff4d5e40;color:var(--rd)}
+.msg.ok{display:block;background:#22c97a20;border:1px solid #22c97a40;color:var(--gn)}
+.user-bar{padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+.user-info{display:flex;align-items:center;gap:8px}
+.avatar{width:30px;height:30px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:#fff}
+.user-name{font-size:12px;font-weight:600}.user-email{font-size:9px;color:var(--t3)}
+.pkg-badge{background:#22c97a20;border:1px solid #22c97a40;padding:5px 10px;border-radius:16px;font-size:10px;font-weight:600;color:var(--gn)}
+.pkg-badge.none{background:#ff4d5e20;border-color:#ff4d5e40;color:var(--rd)}
+.sec{padding:10px 16px;border-bottom:1px solid var(--brd)}
+.badge{display:inline-flex;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600}
+.badge.store{background:#22c97a20;color:var(--gn)}
+.badge.no{background:#ff4d5e20;color:var(--rd)}
+.sname{font-size:13px;font-weight:600;color:var(--or);margin-top:5px}
+.pgurl{font-size:9px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--brd)}
+.st{flex:1;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:8px;text-align:center}
+.st-n{font-size:18px;font-weight:700;color:var(--or)}.st-n.gn{color:var(--gn)}.st-n.bl{color:var(--bl)}
+.st-l{font-size:8px;color:var(--t2);margin-top:2px;text-transform:uppercase}
+.acts{padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.btn-scan{background:linear-gradient(135deg,var(--or),#ff8f5c);color:#fff;padding:14px;font-size:14px}
+.btn-stop{background:var(--bg3);color:var(--rd);border:1px solid #ff4d5e40}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:6px}.row .btn{flex:1}
+.btn-dl{background:var(--bg3);color:var(--gn);border:1px solid #22c97a30;font-size:11px}
+.btn-cp{background:var(--bg3);color:var(--bl);border:1px solid #4d8eff30;font-size:11px}
+.btn-clr{background:var(--bg3);color:var(--t3);border:1px solid var(--brd);font-size:11px}
+.status{padding:8px 16px;border-bottom:1px solid var(--brd);display:none}
+.status.on{display:block}
+.status-txt{font-size:10px;color:var(--or);background:var(--bg2);border-radius:6px;padding:8px;text-align:center}
+.limit-info{padding:8px 16px;font-size:11px;color:var(--t3);text-align:center;background:var(--bg2);border-bottom:1px solid var(--brd)}
+.links{padding:10px 16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.links a{font-size:11px;color:var(--t2);text-decoration:none}.links a:hover{color:var(--or)}
+.toast{position:fixed;bottom:10px;left:50%;transform:translateX(-50%) translateY(60px);padding:8px 16px;background:var(--gn);color:#fff;border-radius:8px;font-size:12px;font-weight:600;transition:transform .3s;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="hdr"><div class="logo">A</div><div class="hdr-txt"><h1>ASIN<span>Scout</span> Pro</h1><p>Amazon Store Scanner</p></div></div>
+<div class="screen" id="loginScreen">
+  <div class="auth-title">Welcome Back</div><div class="auth-sub">Login to continue</div>
+  <div class="msg" id="loginMsg"></div>
+  <div class="inp-grp"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+  <div class="inp-grp"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+  <button class="btn btn-or" id="loginBtn">Login</button>
+  <button class="btn btn-gray" onclick="showScreen('register')">Create Account</button>
+</div>
+<div class="screen" id="registerScreen">
+  <div class="auth-title">Create Account</div><div class="auth-sub">Start scanning Amazon stores</div>
+  <div class="msg" id="regMsg"></div>
+  <div class="inp-grp"><label>Name</label><input type="text" id="regName" placeholder="John Doe"></div>
+  <div class="inp-grp"><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
+  <div class="inp-grp"><label>Password</label><input type="password" id="regPass" placeholder="Min 6 characters"></div>
+  <button class="btn btn-or" id="regBtn">Create Account</button>
+  <div class="auth-link">Have account? <a onclick="showScreen('login')">Login</a></div>
+</div>
+<div class="screen" id="appScreen">
+  <div class="user-bar"><div class="user-info"><div class="avatar" id="userAvatar">U</div><div><div class="user-name" id="userName">User</div><div class="user-email" id="userEmail">...</div></div></div><div class="pkg-badge" id="pkgBadge">No Package</div></div>
+  <div class="limit-info" id="limitInfo">Scan limit: <strong>0</strong> ASINs</div>
+  <div class="sec"><div class="badge no" id="badge"><span id="badgeTxt">Loading...</span></div><div class="sname" id="sname" style="display:none"></div><div class="pgurl" id="pgurl"></div></div>
+  <div class="stats"><div class="st"><div class="st-n" id="stPage">0</div><div class="st-l">This Page</div></div><div class="st"><div class="st-n gn" id="stTotal">0</div><div class="st-l">Total</div></div><div class="st"><div class="st-n bl" id="stScanned">0</div><div class="st-l">Pages</div></div></div>
+  <div class="acts">
+    <button class="btn btn-scan" id="bScan" disabled>🔍 Start Scan</button>
+    <button class="btn btn-stop" id="bStop" style="display:none">⏹ Stop</button>
+    <div class="row"><button class="btn btn-dl" id="bTxt" disabled>📄 TXT</button><button class="btn btn-dl" id="bExcel" disabled>📊 Excel</button><button class="btn btn-cp" id="bCp" disabled>📋 Copy</button></div>
+    <button class="btn btn-clr" id="bClr" style="display:none">🗑️ Clear</button>
+  </div>
+  <div class="status" id="statusBox"><div class="status-txt" id="statusTxt"></div></div>
+  <div class="links"><a href="https://yourdomain.com/dashboard.html" target="_blank">📊 Dashboard</a><a href="https://yourdomain.com/pricing.html" target="_blank">💳 Buy Package</a><a href="#" id="logoutLink">🚪 Logout</a></div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="popup.js"></script>
+</body>
+</html>

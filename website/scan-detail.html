@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Details - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;--text:#f0f0f5;--text2:#9898a8;--text3:#5a5a6e;--orange:#ff6b2c;--green:#22c97a;--blue:#4d8eff;--red:#ff4d5e;--border:#2a2a35}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;background:var(--bg2);border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column}
+        .sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;margin-bottom:40px;text-decoration:none;color:var(--text)}
+        .sidebar-logo span{color:var(--orange)}
+        .sidebar-logo .icon{width:36px;height:36px;background:linear-gradient(135deg,#ff2c6b,var(--orange));border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .sidebar-menu{list-style:none;flex:1}
+        .sidebar-menu a{display:block;padding:12px 16px;color:var(--text2);text-decoration:none;border-radius:10px;margin-bottom:4px;font-size:14px}
+        .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--bg3);color:var(--text)}
+        .sidebar-user{border-top:1px solid var(--border);padding-top:20px;display:flex;align-items:center;gap:12px}
+        .sidebar-user .avatar{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
+        .sidebar-user .name{font-size:13px;font-weight:600}
+        .sidebar-user .email{font-size:11px;color:var(--text3)}
+        .main{margin-left:250px;padding:30px}
+        .back-link{color:var(--text2);text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px}
+        .back-link:hover{color:var(--orange)}
+        .page-title{font-size:28px;font-weight:700;margin-bottom:10px}
+        .page-subtitle{color:var(--text2);margin-bottom:30px}
+        .stats-row{display:flex;gap:20px;margin-bottom:30px;flex-wrap:wrap}
+        .stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;min-width:150px}
+        .stat-box .label{font-size:12px;color:var(--text2);margin-bottom:4px}
+        .stat-box .value{font-size:24px;font-weight:700}
+        .stat-box .value.green{color:var(--green)}
+        .stat-box .value.blue{color:var(--blue)}
+        .actions{margin-bottom:30px;display:flex;gap:10px;flex-wrap:wrap}
+        .btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+        .btn-primary{background:linear-gradient(135deg,var(--orange),#ff2c6b);color:#fff}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+        .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+        .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px}
+        .card-title{font-size:18px;font-weight:600;margin-bottom:20px}
+        .asins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;max-height:500px;overflow-y:auto}
+        .asin-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;font-family:monospace;text-align:center}
+        .asin-item a{color:var(--text);text-decoration:none}
+        .asin-item a:hover{color:var(--orange)}
+        .empty{text-align:center;padding:40px;color:var(--text2)}
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <ul class="sidebar-menu">
+            <a href="dashboard.html">📊 Dashboard</a>
+            <a href="scans.html" class="active">📁 My Scans</a>
+            <a href="pricing.html">💳 Buy Package</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+        <div class="sidebar-user">
+            <div class="avatar" id="userAvatar">U</div>
+            <div><div class="name" id="userName">User</div><div class="email" id="userEmail">...</div></div>
+        </div>
+    </aside>
+    <main class="main">
+        <a href="scans.html" class="back-link">← Back to Scans</a>
+        <h1 class="page-title" id="storeName">Loading...</h1>
+        <p class="page-subtitle" id="scanInfo">...</p>
+        
+        <div class="stats-row">
+            <div class="stat-box"><div class="label">Total ASINs</div><div class="value green" id="asinCount">0</div></div>
+            <div class="stat-box"><div class="label">Pages Scanned</div><div class="value blue" id="pagesScanned">0</div></div>
+            <div class="stat-box"><div class="label">Duration</div><div class="value" id="duration">-</div></div>
+            <div class="stat-box"><div class="label">Status</div><div class="value" id="status">-</div></div>
+        </div>
+        
+        <div class="actions">
+            <a href="#" id="downloadTxt" class="btn btn-primary">📄 Download TXT</a>
+            <a href="#" id="downloadExcel" class="btn btn-outline">📊 Download Excel</a>
+            <button class="btn btn-outline" onclick="copyAsins()">📋 Copy All ASINs</button>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">ASINs (<span id="asinTotal">0</span>)</div>
+            <div class="asins-grid" id="asinsGrid"><div class="empty">Loading...</div></div>
+        </div>
+    </main>
+    <script>
+        const API='/api',token=localStorage.getItem('token');
+        if(!token)location.href='login.html';
+        const user=JSON.parse(localStorage.getItem('user')||'{}');
+        document.getElementById('userName').textContent=user.name||'User';
+        document.getElementById('userEmail').textContent=user.email||'';
+        document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
+        
+        const params=new URLSearchParams(window.location.search);
+        const scanId=params.get('id');
+        let allAsins=[];
+        
+        if(!scanId){location.href='scans.html';}
+        
+        async function loadScan(){
+            const r=await fetch(API+`/scans.php?action=detail&id=${scanId}`,{headers:{'Authorization':'Bearer '+token}});
+            const d=await r.json();
+            if(!d.success){alert('Scan not found');location.href='scans.html';return;}
+            
+            const s=d.data.scan;
+            allAsins=s.asins||[];
+            
+            document.getElementById('storeName').textContent=s.store_name||'Unknown Store';
+            document.getElementById('scanInfo').textContent=`${s.marketplace||'Amazon'} • Scanned on ${new Date(s.created_at).toLocaleString()}`;
+            document.getElementById('asinCount').textContent=fmt(s.asin_count);
+            document.getElementById('pagesScanned').textContent=s.pages_scanned||0;
+            document.getElementById('duration').textContent=s.duration_seconds?Math.round(s.duration_seconds/60)+'m':'-';
+            document.getElementById('status').textContent=s.status;
+            document.getElementById('asinTotal').textContent=allAsins.length;
+            
+            document.getElementById('downloadTxt').href=API+`/scans.php?action=download&id=${scanId}&format=txt&token=${token}`;
+            document.getElementById('downloadExcel').href=API+`/scans.php?action=download&id=${scanId}&format=excel&token=${token}`;
+            
+            if(allAsins.length>0){
+                let h='';
+                for(const asin of allAsins){
+                    h+=`<div class="asin-item"><a href="https://www.amazon.com/dp/${asin}" target="_blank">${asin}</a></div>`;
+                }
+                document.getElementById('asinsGrid').innerHTML=h;
+            }else{
+                document.getElementById('asinsGrid').innerHTML='<div class="empty">No ASINs found</div>';
+            }
+        }
+        
+        function copyAsins(){
+            if(allAsins.length===0)return;
+            navigator.clipboard.writeText(allAsins.join('\n'));
+            alert(allAsins.length+' ASINs copied to clipboard!');
+        }
+        
+        function logout(){localStorage.clear();location.href='login.html';}
+        function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
+        loadScan();
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - Admin - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;--text:#f0f0f5;--text2:#9898a8;--text3:#5a5a6e;--orange:#ff6b2c;--pink:#ff2c6b;--green:#22c97a;--blue:#4d8eff;--red:#ff4d5e;--border:#2a2a35}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--bg2);border-right:1px solid var(--border);padding:20px}
+        .sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;margin-bottom:10px;color:var(--text);text-decoration:none}
+        .sidebar-logo span{color:var(--orange)}
+        .sidebar-logo .icon{width:36px;height:36px;background:linear-gradient(135deg,var(--pink),var(--orange));border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .admin-badge{font-size:10px;background:var(--red);color:#fff;padding:2px 8px;border-radius:4px;margin-bottom:30px;display:inline-block}
+        .sidebar-menu{list-style:none}
+        .sidebar-menu a{display:block;padding:12px 16px;color:var(--text2);text-decoration:none;border-radius:10px;margin-bottom:4px;font-size:14px}
+        .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--bg3);color:var(--text)}
+        .sidebar-menu a.active{background:linear-gradient(135deg,rgba(255,107,44,0.2),rgba(255,44,107,0.1));color:var(--orange)}
+        .main{margin-left:260px;padding:30px}
+        .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+        .page-title{font-size:28px;font-weight:700}
+        .search-box{display:flex;gap:10px}
+        .search-box input{padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);width:250px}
+        .search-box input:focus{outline:none;border-color:var(--orange)}
+        .search-box button{padding:10px 20px;background:var(--orange);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:600}
+        .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px}
+        table{width:100%;border-collapse:collapse}
+        th,td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--border);font-size:13px}
+        th{color:var(--text2);font-size:11px;text-transform:uppercase}
+        tr:hover{background:var(--bg3)}
+        .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .badge.green{background:rgba(34,201,122,0.15);color:var(--green)}
+        .badge.red{background:rgba(255,77,94,0.15);color:var(--red)}
+        .badge.blue{background:rgba(77,142,255,0.15);color:var(--blue)}
+        .badge.orange{background:rgba(255,107,44,0.15);color:var(--orange)}
+        .btn{padding:6px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+        .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+        .btn-primary{background:var(--orange);color:#fff}
+        .pagination{display:flex;justify-content:center;gap:8px;margin-top:20px}
+        .pagination button{padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer}
+        .pagination button:disabled{opacity:0.5}
+        .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;z-index:100}
+        .modal.show{display:flex}
+        .modal-content{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:30px;width:100%;max-width:500px}
+        .modal-title{font-size:20px;font-weight:700;margin-bottom:20px}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-size:13px;margin-bottom:6px;color:var(--text2)}
+        .form-group input,.form-group select{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px}
+        .form-group select{cursor:pointer}
+        .modal-actions{display:flex;gap:10px;margin-top:24px}
+        .modal-actions button{flex:1;padding:12px;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+        .btn-cancel{background:var(--bg3);color:var(--text)}
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <div class="admin-badge">ADMIN</div>
+        <ul class="sidebar-menu">
+            <a href="index.html">📊 Dashboard</a>
+            <a href="users.html" class="active">👥 Users</a>
+            <a href="packages.html">📦 Packages</a>
+            <a href="orders.html">💳 Orders</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+    </aside>
+    <main class="main">
+        <div class="page-header">
+            <h1 class="page-title">👥 Users</h1>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by email or name...">
+                <button onclick="searchUsers()">Search</button>
+            </div>
+        </div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>User</th><th>Package</th><th>Scan Limit</th><th>Total Scans</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="usersTable"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text2)">Loading...</td></tr></tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </main>
+    
+    <!-- Assign Package Modal -->
+    <div class="modal" id="packageModal">
+        <div class="modal-content">
+            <div class="modal-title">📦 Assign Package</div>
+            <div class="form-group">
+                <label>User</label>
+                <input type="text" id="modalUserEmail" readonly style="background:var(--bg3)">
+            </div>
+            <div class="form-group">
+                <label>Select Package</label>
+                <select id="packageSelect">
+                    <option value="">-- Select Package --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Or Set Custom Scan Limit</label>
+                <input type="number" id="customLimit" placeholder="e.g. 50000">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-primary" onclick="assignPackage()">Assign Package</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API = '/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token || user.role !== 'admin') window.location.href = '../login.html';
+        
+        let currentPage = 1, currentSearch = '', selectedUserId = null, packages = [];
+        
+        // Load packages for dropdown
+        async function loadPackages() {
+            try {
+                const r = await fetch(API + '/admin.php?action=packages', {headers:{'Authorization':'Bearer '+token}});
+                const d = await r.json();
+                if (d.success && d.data.packages) {
+                    packages = d.data.packages;
+                    let html = '<option value="">-- Select Package --</option>';
+                    for (const p of packages) {
+                        const limit = p.scan_limit >= 1000 ? (p.scan_limit/1000)+'K' : p.scan_limit;
+                        html += `<option value="${p.id}">${p.name} (${limit} ASIN/scan - $${p.price})</option>`;
+                    }
+                    document.getElementById('packageSelect').innerHTML = html;
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function loadUsers(page = 1, search = '') {
+            try {
+                let url = API + `/admin.php?action=users&page=${page}`;
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                
+                const r = await fetch(url, {headers:{'Authorization':'Bearer '+token}});
+                const d = await r.json();
+                
+                if (d.success) {
+                    let html = '';
+                    for (const u of d.data.users) {
+                        const statusCls = u.status === 'active' ? 'green' : 'red';
+                        const pkgName = u.package_name || 'No Package';
+                        const pkgCls = u.package_name ? 'blue' : 'red';
+                        const limit = u.scan_limit >= 1000 ? (u.scan_limit/1000)+'K' : (u.scan_limit || 0);
+                        
+                        html += `
+                            <tr>
+                                <td><strong>${esc(u.name || 'No Name')}</strong><br><span style="color:var(--text3);font-size:11px">${esc(u.email)}</span></td>
+                                <td><span class="badge ${pkgCls}">${pkgName}</span></td>
+                                <td><strong style="color:var(--green)">${limit}</strong> ASIN</td>
+                                <td>${u.total_scans || 0}</td>
+                                <td><span class="badge ${statusCls}">${u.status}</span></td>
+                                <td>${fmtDate(u.created_at)}</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="openPackageModal(${u.id}, '${esc(u.email)}')">📦 Assign</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    document.getElementById('usersTable').innerHTML = html || '<tr><td colspan="7" style="text-align:center;padding:40px">No users found</td></tr>';
+                    
+                    const p = d.data;
+                    let pagHtml = `<button onclick="loadUsers(${p.page-1}, '${currentSearch}')" ${p.page<=1?'disabled':''}>← Prev</button>`;
+                    pagHtml += `<span style="padding:8px 14px;color:var(--text2)">Page ${p.page} of ${p.pages || 1}</span>`;
+                    pagHtml += `<button onclick="loadUsers(${p.page+1}, '${currentSearch}')" ${p.page>=(p.pages||1)?'disabled':''}>Next →</button>`;
+                    document.getElementById('pagination').innerHTML = pagHtml;
+                    currentPage = p.page;
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        function searchUsers() {
+            currentSearch = document.getElementById('searchInput').value;
+            loadUsers(1, currentSearch);
+        }
+        
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') searchUsers();
+        });
+        
+        function openPackageModal(userId, email) {
+            selectedUserId = userId;
+            document.getElementById('modalUserEmail').value = email;
+            document.getElementById('packageSelect').value = '';
+            document.getElementById('customLimit').value = '';
+            document.getElementById('packageModal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('packageModal').classList.remove('show');
+        }
+        
+        async function assignPackage() {
+            const packageId = document.getElementById('packageSelect').value;
+            const customLimit = document.getElementById('customLimit').value;
+            
+            if (!packageId && !customLimit) {
+                alert('Please select a package or enter a custom limit');
+                return;
+            }
+            
+            try {
+                const body = { user_id: selectedUserId };
+                if (packageId) {
+                    body.package_id = parseInt(packageId);
+                } else if (customLimit) {
+                    body.scan_limit = parseInt(customLimit);
+                }
+                
+                const r = await fetch(API + '/admin.php?action=assign_package', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+                    body: JSON.stringify(body)
+                });
+                const d = await r.json();
+                
+                if (d.success) {
+                    closeModal();
+                    loadUsers(currentPage, currentSearch);
+                    alert('Package assigned successfully!');
+                } else {
+                    alert('Error: ' + (d.message || 'Failed to assign'));
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Connection error');
+            }
+        }
+        
+        function logout() { localStorage.clear(); window.location.href = '../login.html'; }
+        function esc(s) { return String(s||'').replace(/</g,'&lt;').replace(/'/g,'&#39;'); }
+        function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '-'; }
+        
+        loadPackages();
+        loadUsers();
+    </script>
+</body>
+</html>

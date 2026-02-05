@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Admin - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a25; --text: #f0f0f5; --text2: #9898a8; --text3: #5a5a6e; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --red: #ff4d5e; --border: #2a2a35; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: var(--bg2); border-right: 1px solid var(--border); padding: 20px; }
+        .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text); text-decoration: none; }
+        .sidebar-logo span { color: var(--orange); }
+        .sidebar-logo .icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .admin-badge { font-size: 10px; background: var(--red); color: #fff; padding: 2px 8px; border-radius: 4px; margin-bottom: 30px; display: inline-block; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text2); text-decoration: none; border-radius: 10px; margin-bottom: 4px; font-size: 14px; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--bg3); color: var(--text); }
+        .sidebar-menu a.active { background: linear-gradient(135deg, rgba(255,107,44,0.2), rgba(255,44,107,0.1)); color: var(--orange); }
+        .main { margin-left: 260px; padding: 30px; max-width: 900px; }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 30px; }
+        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .card-title .icon { font-size: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text2); }
+        .form-group input { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; }
+        .form-group input:focus { outline: none; border-color: var(--orange); }
+        .form-group .hint { font-size: 11px; color: var(--text3); margin-top: 6px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--orange), var(--pink)); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,107,44,0.3); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .message { padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; display: none; }
+        .message.success { display: block; background: rgba(34,201,122,0.1); border: 1px solid rgba(34,201,122,0.3); color: var(--green); }
+        .message.error { display: block; background: rgba(255,77,94,0.1); border: 1px solid rgba(255,77,94,0.3); color: var(--red); }
+        .toggle { display: flex; align-items: center; gap: 12px; }
+        .toggle input[type="checkbox"] { width: 50px; height: 26px; appearance: none; background: var(--bg3); border-radius: 13px; position: relative; cursor: pointer; transition: background 0.2s; }
+        .toggle input[type="checkbox"]::before { content: ''; position: absolute; width: 22px; height: 22px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s; }
+        .toggle input[type="checkbox"]:checked { background: var(--green); }
+        .toggle input[type="checkbox"]:checked::before { transform: translateX(24px); }
+        @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <div class="admin-badge">ADMIN PANEL</div>
+        <ul class="sidebar-menu">
+            <a href="index.html">📊 Dashboard</a>
+            <a href="users.html">👥 Users</a>
+            <a href="packages.html">📦 Packages</a>
+            <a href="orders.html">💳 Orders</a>
+            <a href="settings.html" class="active">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+    </aside>
+    <main class="main">
+        <h1 class="page-title">Settings</h1>
+        
+        <div class="message" id="message"></div>
+        
+        <!-- Site Settings -->
+        <div class="card">
+            <div class="card-title"><span class="icon">🌐</span> Site Settings</div>
+            <div class="form-group">
+                <label>Site Name</label>
+                <input type="text" id="site_name" placeholder="ASIN Scout Pro">
+            </div>
+            <div class="form-group">
+                <label>Site URL</label>
+                <input type="url" id="site_url" placeholder="https://yourdomain.com">
+                <div class="hint">Include https:// - No trailing slash</div>
+            </div>
+        </div>
+        
+        <!-- Extension Settings -->
+        <div class="card">
+            <div class="card-title"><span class="icon">🧩</span> Chrome Extension</div>
+            <div class="form-group">
+                <label>Extension Download URL</label>
+                <input type="text" id="extension_url" placeholder="https://yourdomain.com/downloads/extension.zip">
+                <div class="hint">Direct download link. Upload your extension ZIP to /downloads/ folder, then enter the URL here.</div>
+            </div>
+            <div class="form-group">
+                <label>Chrome Web Store URL (optional)</label>
+                <input type="text" id="chrome_store_url" placeholder="https://chrome.google.com/webstore/detail/...">
+                <div class="hint">If published on Chrome Web Store</div>
+            </div>
+            <div class="form-group">
+                <label>Extension Version</label>
+                <input type="text" id="extension_version" placeholder="1.0.0">
+            </div>
+        </div>
+        
+        <!-- Stripe Settings -->
+        <div class="card">
+            <div class="card-title"><span class="icon">💳</span> Stripe Settings</div>
+            <div class="form-group">
+                <label>Stripe Public Key</label>
+                <input type="text" id="stripe_public_key" placeholder="pk_live_...">
+                <div class="hint">Get from Stripe Dashboard → Developers → API Keys</div>
+            </div>
+            <div class="form-group">
+                <label>Stripe Secret Key</label>
+                <input type="password" id="stripe_secret_key" placeholder="sk_live_...">
+                <div class="hint">Keep this secret! Never share it.</div>
+            </div>
+            <div class="form-group">
+                <label>Stripe Webhook Secret</label>
+                <input type="password" id="stripe_webhook_secret" placeholder="whsec_...">
+                <div class="hint">Webhook URL: <code>https://yourdomain.com/api/packages.php?action=webhook</code></div>
+            </div>
+        </div>
+        
+        <!-- SMTP Settings -->
+        <div class="card">
+            <div class="card-title"><span class="icon">📧</span> Email (SMTP) Settings</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SMTP Host</label>
+                    <input type="text" id="smtp_host" placeholder="mail.yourdomain.com">
+                </div>
+                <div class="form-group">
+                    <label>SMTP Port</label>
+                    <input type="number" id="smtp_port" placeholder="587">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SMTP Username</label>
+                    <input type="text" id="smtp_user" placeholder="noreply@yourdomain.com">
+                </div>
+                <div class="form-group">
+                    <label>SMTP Password</label>
+                    <input type="password" id="smtp_pass" placeholder="••••••••">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>From Email</label>
+                <input type="email" id="smtp_from" placeholder="noreply@yourdomain.com">
+            </div>
+            <button class="btn btn-outline" onclick="testEmail()" style="margin-top:10px">📤 Send Test Email</button>
+        </div>
+        
+        <!-- Maintenance -->
+        <div class="card">
+            <div class="card-title"><span class="icon">🔧</span> Maintenance</div>
+            <div class="form-group">
+                <div class="toggle">
+                    <input type="checkbox" id="maintenance_mode">
+                    <label for="maintenance_mode">Maintenance Mode</label>
+                </div>
+                <div class="hint">When enabled, only admins can access the site</div>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Save All Settings</button>
+    </main>
+    
+    <script>
+        const API_BASE = '/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token || user.role !== 'admin') { window.location.href = '../login.html'; }
+        
+        const settingFields = ['site_name', 'site_url', 'extension_url', 'chrome_store_url', 'extension_version',
+            'stripe_public_key', 'stripe_secret_key', 'stripe_webhook_secret',
+            'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from', 'maintenance_mode'];
+        
+        async function loadSettings() {
+            try {
+                const resp = await fetch(API_BASE + '/admin.php?action=settings', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    for (const key of settingFields) {
+                        const el = document.getElementById(key);
+                        const setting = data.data.settings[key];
+                        if (el && setting) {
+                            if (el.type === 'checkbox') {
+                                el.checked = setting.value === '1' || setting.value === 'true';
+                            } else {
+                                el.value = setting.value || '';
+                            }
+                        }
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+        
+        async function saveSettings() {
+            const settings = {};
+            for (const key of settingFields) {
+                const el = document.getElementById(key);
+                if (el) {
+                    settings[key] = el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value;
+                }
+            }
+            
+            try {
+                const resp = await fetch(API_BASE + '/admin.php?action=settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify(settings)
+                });
+                const data = await resp.json();
+                
+                const msg = document.getElementById('message');
+                if (data.success) {
+                    msg.className = 'message success';
+                    msg.textContent = 'Settings saved successfully!';
+                } else {
+                    msg.className = 'message error';
+                    msg.textContent = data.message || 'Error saving settings';
+                }
+                
+                setTimeout(() => msg.className = 'message', 3000);
+            } catch (err) {
+                document.getElementById('message').className = 'message error';
+                document.getElementById('message').textContent = 'Error saving settings';
+            }
+        }
+        
+        function testEmail() {
+            alert('Test email feature coming soon. For now, save settings and test by registering a new user.');
+        }
+        
+        function logout() { localStorage.clear(); window.location.href = '../login.html'; }
+        loadSettings();
+    </script>
+</body>
+</html>

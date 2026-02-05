@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packages - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;--text:#f0f0f5;--text2:#9898a8;--orange:#ff6b2c;--pink:#ff2c6b;--green:#22c97a;--red:#ff4d5e;--border:#2a2a35}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--bg2);border-right:1px solid var(--border);padding:20px}
+        .sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;margin-bottom:10px;color:var(--text);text-decoration:none}
+        .sidebar-logo span{color:var(--orange)}
+        .sidebar-logo .icon{width:36px;height:36px;background:linear-gradient(135deg,var(--pink),var(--orange));border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .admin-badge{font-size:10px;background:var(--red);color:#fff;padding:2px 8px;border-radius:4px;margin-bottom:30px;display:inline-block}
+        .sidebar-menu{list-style:none}
+        .sidebar-menu a{display:block;padding:12px 16px;color:var(--text2);text-decoration:none;border-radius:10px;margin-bottom:4px}
+        .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--bg3);color:var(--text)}
+        .sidebar-menu a.active{background:linear-gradient(135deg,rgba(255,107,44,0.2),rgba(255,44,107,0.1));color:var(--orange)}
+        .main{margin-left:260px;padding:30px}
+        .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+        .page-title{font-size:28px;font-weight:700}
+        .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px}
+        table{width:100%;border-collapse:collapse}
+        th,td{text-align:left;padding:14px;border-bottom:1px solid var(--border)}
+        th{color:var(--text2);font-size:12px;text-transform:uppercase}
+        tr:hover{background:var(--bg3)}
+        .btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.2s}
+        .btn-primary{background:var(--orange);color:#fff}
+        .btn-primary:hover{background:#ff8550}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+        .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+        .btn-sm{padding:6px 12px;font-size:12px}
+        .btn-danger{background:var(--red);color:#fff}
+        .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .badge.green{background:rgba(34,201,122,0.15);color:var(--green)}
+        .badge.red{background:rgba(255,77,94,0.15);color:var(--red)}
+        .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center}
+        .modal.active{display:flex}
+        .modal-content{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:30px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+        .modal-title{font-size:22px;font-weight:700;margin-bottom:24px}
+        .form-group{margin-bottom:20px}
+        .form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px}
+        .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--orange)}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .form-check{display:flex;align-items:center;gap:10px}
+        .form-check input{width:auto}
+        .modal-actions{display:flex;gap:12px;margin-top:24px}
+        .modal-actions .btn{flex:1}
+        .empty{text-align:center;padding:60px;color:var(--text2)}
+        .loading{text-align:center;padding:40px;color:var(--text2)}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <div class="admin-badge">ADMIN</div>
+        <ul class="sidebar-menu">
+            <a href="index.html">📊 Dashboard</a>
+            <a href="users.html">👥 Users</a>
+            <a href="packages.html" class="active">📦 Packages</a>
+            <a href="orders.html">💳 Orders</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+    </aside>
+    
+    <main class="main">
+        <div class="page-header">
+            <h1 class="page-title">📦 Packages</h1>
+            <button class="btn btn-primary" onclick="openModal()">+ Add Package</button>
+        </div>
+        
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Scan Limit</th>
+                        <th>Price</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Popular</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="packagesTable">
+                    <tr><td colspan="7" class="loading">Loading packages...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Add/Edit Package Modal -->
+    <div class="modal" id="packageModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle">Add Package</h2>
+            <form id="packageForm" onsubmit="savePackage(event)">
+                <input type="hidden" id="packageId">
+                
+                <div class="form-group">
+                    <label>Package Name *</label>
+                    <input type="text" id="packageName" placeholder="e.g. Starter, Pro, Business" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Scan Limit (ASIN per scan) *</label>
+                        <input type="number" id="scanLimit" placeholder="20000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Price ($) *</label>
+                        <input type="number" id="price" step="0.01" placeholder="9.99" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Duration (days)</label>
+                        <input type="number" id="duration" value="30" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Sort Order</label>
+                        <input type="number" id="sortOrder" value="0" placeholder="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" rows="2" placeholder="Package description..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-check">
+                            <input type="checkbox" id="isActive" checked>
+                            <span>Active</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-check">
+                            <input type="checkbox" id="isPopular">
+                            <span>Popular (show badge)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Package</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || user.role !== 'admin') {
+            window.location.href = '../login.html';
+        }
+
+        // Load packages
+        async function loadPackages() {
+            try {
+                const r = await fetch(API + '/admin.php?action=packages', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await r.json();
+                
+                if (data.success && data.data.packages) {
+                    const packages = data.data.packages;
+                    
+                    if (packages.length === 0) {
+                        document.getElementById('packagesTable').innerHTML = 
+                            '<tr><td colspan="7" class="empty">No packages yet. Click "Add Package" to create one.</td></tr>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    for (const p of packages) {
+                        const limit = p.scan_limit >= 1000 ? (p.scan_limit/1000) + 'K' : p.scan_limit;
+                        html += `
+                            <tr>
+                                <td><strong>${esc(p.name)}</strong></td>
+                                <td>${limit} ASIN</td>
+                                <td>$${parseFloat(p.price).toFixed(2)}</td>
+                                <td>${p.duration_days} days</td>
+                                <td><span class="badge ${p.is_active ? 'green' : 'red'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+                                <td>${p.is_popular ? '⭐ Popular' : '-'}</td>
+                                <td>
+                                    <button class="btn btn-outline btn-sm" onclick="editPackage(${p.id})">Edit</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    document.getElementById('packagesTable').innerHTML = html;
+                    
+                    // Store packages for editing
+                    window.packagesData = packages;
+                } else {
+                    document.getElementById('packagesTable').innerHTML = 
+                        '<tr><td colspan="7" class="empty">Error loading packages: ' + (data.message || 'Unknown error') + '</td></tr>';
+                }
+            } catch (e) {
+                console.error('Load error:', e);
+                document.getElementById('packagesTable').innerHTML = 
+                    '<tr><td colspan="7" class="empty">Connection error. Check your network.</td></tr>';
+            }
+        }
+
+        // Open modal for new package
+        function openModal() {
+            document.getElementById('modalTitle').textContent = 'Add Package';
+            document.getElementById('packageForm').reset();
+            document.getElementById('packageId').value = '';
+            document.getElementById('isActive').checked = true;
+            document.getElementById('duration').value = '30';
+            document.getElementById('sortOrder').value = '0';
+            document.getElementById('packageModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('packageModal').classList.remove('active');
+        }
+
+        // Edit package
+        function editPackage(id) {
+            const pkg = window.packagesData.find(p => p.id == id);
+            if (!pkg) return;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Package';
+            document.getElementById('packageId').value = pkg.id;
+            document.getElementById('packageName').value = pkg.name;
+            document.getElementById('scanLimit').value = pkg.scan_limit;
+            document.getElementById('price').value = pkg.price;
+            document.getElementById('duration').value = pkg.duration_days || 30;
+            document.getElementById('sortOrder').value = pkg.sort_order || 0;
+            document.getElementById('description').value = pkg.description || '';
+            document.getElementById('isActive').checked = pkg.is_active == 1;
+            document.getElementById('isPopular').checked = pkg.is_popular == 1;
+            
+            document.getElementById('packageModal').classList.add('active');
+        }
+
+        // Save package
+        async function savePackage(e) {
+            e.preventDefault();
+            
+            const data = {
+                id: document.getElementById('packageId').value || null,
+                name: document.getElementById('packageName').value.trim(),
+                scan_limit: parseInt(document.getElementById('scanLimit').value),
+                price: parseFloat(document.getElementById('price').value),
+                duration_days: parseInt(document.getElementById('duration').value) || 30,
+                sort_order: parseInt(document.getElementById('sortOrder').value) || 0,
+                description: document.getElementById('description').value.trim(),
+                is_active: document.getElementById('isActive').checked ? 1 : 0,
+                is_popular: document.getElementById('isPopular').checked ? 1 : 0
+            };
+            
+            try {
+                const r = await fetch(API + '/admin.php?action=package_save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await r.json();
+                
+                if (result.success) {
+                    closeModal();
+                    loadPackages();
+                    alert('Package saved successfully!');
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to save'));
+                }
+            } catch (e) {
+                console.error('Save error:', e);
+                alert('Connection error: ' + e.message);
+            }
+        }
+
+        // Escape HTML
+        function esc(s) {
+            return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Logout
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../login.html';
+        }
+
+        // Close modal on outside click
+        document.getElementById('packageModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Load on start
+        loadPackages();
+    </script>
+</body>
+</html>

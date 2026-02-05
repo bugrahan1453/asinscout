@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;--text:#f0f0f5;--text2:#9898a8;--text3:#5a5a6e;--orange:#ff6b2c;--green:#22c97a;--blue:#4d8eff;--red:#ff4d5e;--border:#2a2a35}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;background:var(--bg2);border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column}
+        .sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;margin-bottom:40px;text-decoration:none;color:var(--text)}
+        .sidebar-logo span{color:var(--orange)}
+        .sidebar-logo .icon{width:36px;height:36px;background:linear-gradient(135deg,#ff2c6b,var(--orange));border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .sidebar-menu{list-style:none;flex:1}
+        .sidebar-menu a{display:block;padding:12px 16px;color:var(--text2);text-decoration:none;border-radius:10px;margin-bottom:4px;font-size:14px}
+        .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--bg3);color:var(--text)}
+        .sidebar-menu a.active{color:var(--orange)}
+        .sidebar-user{border-top:1px solid var(--border);padding-top:20px;display:flex;align-items:center;gap:12px}
+        .sidebar-user .avatar{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
+        .sidebar-user .name{font-size:13px;font-weight:600}
+        .sidebar-user .email{font-size:11px;color:var(--text3)}
+        .lang-switch{display:flex;gap:6px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)}
+        .lang-btn{flex:1;background:transparent;border:1px solid var(--border);color:var(--text2);padding:8px;border-radius:6px;cursor:pointer;font-size:12px}
+        .lang-btn:hover,.lang-btn.active{border-color:var(--orange);color:var(--orange)}
+        .main{margin-left:250px;padding:30px}
+        .page-title{font-size:28px;font-weight:700;margin-bottom:30px}
+        .package-box{background:linear-gradient(135deg,rgba(255,107,44,0.1),rgba(255,44,107,0.1));border:1px solid rgba(255,107,44,0.3);border-radius:16px;padding:24px;margin-bottom:24px}
+        .package-box.none{background:rgba(255,77,94,0.1);border-color:rgba(255,77,94,0.3)}
+        .package-box h3{font-size:20px;margin-bottom:8px}
+        .package-box .limit{font-size:14px;color:var(--text2)}
+        .package-box .limit strong{color:var(--green);font-size:18px}
+        .package-box .expires{font-size:12px;color:var(--text3);margin-top:8px}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:30px}
+        .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px}
+        .stat-card .label{font-size:13px;color:var(--text2);margin-bottom:8px}
+        .stat-card .value{font-size:32px;font-weight:800}
+        .stat-card .value.orange{color:var(--orange)}
+        .stat-card .value.blue{color:var(--blue)}
+        .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px}
+        .card-title{font-size:18px;font-weight:600;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+        table{width:100%;border-collapse:collapse}
+        th,td{text-align:left;padding:14px;border-bottom:1px solid var(--border);font-size:14px}
+        th{color:var(--text2);font-size:12px;text-transform:uppercase}
+        .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .badge.green{background:rgba(34,201,122,0.15);color:var(--green)}
+        .btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+        .btn-sm{padding:6px 12px;font-size:12px}
+        .empty{text-align:center;padding:60px 20px;color:var(--text2)}
+        .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.5}
+        .empty-title{font-size:18px;color:var(--text);margin-bottom:8px}
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <ul class="sidebar-menu">
+            <a href="dashboard.html" class="active" data-i18n="sidebar_dashboard">📊 Dashboard</a>
+            <a href="scans.html" data-i18n="sidebar_scans">📁 My Scans</a>
+            <a href="pricing.html" data-i18n="sidebar_buy">💳 Buy Package</a>
+            <a href="settings.html" data-i18n="sidebar_settings">⚙️ Settings</a>
+            <a href="#" onclick="logout()" data-i18n="sidebar_logout">🚪 Logout</a>
+        </ul>
+        <div class="sidebar-user">
+            <div class="avatar" id="userAvatar">U</div>
+            <div><div class="name" id="userName">User</div><div class="email" id="userEmail"></div></div>
+        </div>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
+    </aside>
+    <main class="main">
+        <h1 class="page-title" data-i18n="dash_title">Dashboard</h1>
+        <div class="package-box" id="packageBox">
+            <h3 id="packageName">-</h3>
+            <div class="limit"><span data-i18n="dash_scan_limit">Scan Limit</span>: <strong id="scanLimit">0</strong></div>
+            <div class="expires" id="packageExpires"></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="label" data-i18n="dash_total_scans">Total Scans</div><div class="value orange" id="totalScans">0</div></div>
+            <div class="stat-card"><div class="label" data-i18n="dash_total_asins">Total ASINs</div><div class="value blue" id="totalAsins">0</div></div>
+        </div>
+        <div class="card">
+            <div class="card-title"><span data-i18n="dash_recent_scans">Recent Scans</span><a href="scans.html" class="btn btn-outline btn-sm" data-i18n="dash_view_all">View All</a></div>
+            <div id="recentScans"><div class="empty"><div class="empty-icon">📁</div><div class="empty-title" data-i18n="dash_no_scans">No scans yet</div></div></div>
+        </div>
+    </main>
+    <script src="assets/js/i18n.js"></script>
+    <script>
+        const API='/api',token=localStorage.getItem('token');
+        if(!token)location.href='login.html';
+        const user=JSON.parse(localStorage.getItem('user')||'{}');
+        document.getElementById('userName').textContent=user.name||'User';
+        document.getElementById('userEmail').textContent=user.email||'';
+        document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
+        
+        async function load(){
+            try{
+                const r=await fetch(API+'/auth.php?action=profile',{headers:{'Authorization':'Bearer '+token}});
+                const d=await r.json();
+                if(d.success){
+                    const u=d.data.user,s=d.data.stats;
+                    document.getElementById('totalScans').textContent=s.total_scans||0;
+                    document.getElementById('totalAsins').textContent=fmt(s.total_asins||0);
+                    if(u.package_name&&u.scan_limit>0){
+                        document.getElementById('packageName').textContent=u.package_name+' Package';
+                        document.getElementById('scanLimit').textContent=fmt(u.scan_limit);
+                        document.getElementById('packageExpires').textContent=t('dash_expires')+': '+new Date(u.package_expires).toLocaleDateString();
+                    }else{
+                        document.getElementById('packageBox').className='package-box none';
+                        document.getElementById('packageName').textContent=t('dash_no_package');
+                        document.getElementById('packageExpires').innerHTML='<a href="pricing.html" style="color:var(--orange)">'+t('dash_buy_package')+'</a>';
+                    }
+                }
+            }catch(e){}
+            try{
+                const sr=await fetch(API+'/scans.php?action=list&limit=5',{headers:{'Authorization':'Bearer '+token}});
+                const sd=await sr.json();
+                if(sd.success&&sd.data.scans&&sd.data.scans.length>0){
+                    let h='<table><thead><tr><th>'+t('dash_store')+'</th><th>'+t('dash_asins')+'</th><th>'+t('dash_status')+'</th><th>'+t('dash_date')+'</th><th></th></tr></thead><tbody>';
+                    for(const sc of sd.data.scans){
+                        h+=`<tr><td>${esc(sc.store_name)}</td><td><strong>${fmt(sc.asin_count)}</strong></td><td><span class="badge green">${sc.status}</span></td><td>${new Date(sc.created_at).toLocaleDateString()}</td><td><a href="scan-detail.html?id=${sc.id}" class="btn btn-outline btn-sm">${t('dash_view')}</a></td></tr>`;
+                    }
+                    document.getElementById('recentScans').innerHTML=h+'</tbody></table>';
+                }
+            }catch(e){}
+        }
+        function logout(){localStorage.clear();location.href='login.html';}
+        function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
+        function esc(s){return String(s||'').replace(/</g,'&lt;');}
+        load();
+    </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --text: #f0f0f5; --text2: #9898a8; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --border: #2a2a35; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { max-width: 500px; text-align: center; }
+        .success-icon { width: 100px; height: 100px; background: linear-gradient(135deg, var(--green), #17a566); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 30px; animation: pop 0.5s ease; }
+        @keyframes pop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        h1 { font-size: 32px; margin-bottom: 16px; }
+        p { color: var(--text2); font-size: 16px; margin-bottom: 30px; line-height: 1.6; }
+        .credits-added { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px; }
+        .credits-added .label { color: var(--text2); font-size: 14px; margin-bottom: 8px; }
+        .credits-added .value { font-size: 48px; font-weight: 800; color: var(--green); }
+        .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, var(--orange), var(--pink)); color: #fff; text-decoration: none; border-radius: 10px; font-size: 16px; font-weight: 600; transition: all 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,107,44,0.3); }
+        .loading { display: none; }
+        .error { color: #ff4d5e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>Payment Successful!</h1>
+        <p id="message">Your credits have been added to your account.</p>
+        <div class="credits-added">
+            <div class="label">Credits Added</div>
+            <div class="value" id="creditsAdded">...</div>
+        </div>
+        <a href="dashboard.html" class="btn">Go to Dashboard →</a>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+        
+        if (sessionId) {
+            fetch('/api/packages.php?action=success&session_id=' + sessionId)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('creditsAdded').textContent = new Intl.NumberFormat().format(data.data.credits_added);
+                        // Refresh user data
+                        const token = localStorage.getItem('token');
+                        if (token) {
+                            fetch('/api/auth.php?action=profile', {
+                                headers: { 'Authorization': 'Bearer ' + token }
+                            }).then(r => r.json()).then(d => {
+                                if (d.success) localStorage.setItem('user', JSON.stringify(d.data.user));
+                            });
+                        }
+                    } else {
+                        document.getElementById('message').textContent = data.message || 'Error verifying payment';
+                        document.getElementById('message').className = 'error';
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('message').textContent = 'Error verifying payment. Please contact support.';
+                    document.getElementById('message').className = 'error';
+                });
+        } else {
+            document.getElementById('message').textContent = 'Invalid session. Please contact support.';
+            document.getElementById('message').className = 'error';
+        }
+    </script>
+</body>
+</html>
