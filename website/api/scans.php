@@ -216,8 +216,8 @@ switch ($action) {
             Api::error('Scan not found', 404);
         }
 
-        // ASIN'leri de getir
-        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ? LIMIT 10000", [$scanId]) ?: [];
+        // ASIN'leri de getir (limit yok - tüm ASIN'ler)
+        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ?", [$scanId]) ?: [];
         $scan['asins'] = array_column($asins, 'asin');
 
         Api::success(['scan' => $scan]);
