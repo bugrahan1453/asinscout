@@ -54,6 +54,9 @@
         .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2,#12121a);border:1px solid var(--border,#2a2a35);border-radius:8px;padding:8px 12px;color:var(--text,#f0f0f5);font-size:18px;cursor:pointer}
         .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
         @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
+        .lang-switch{position:absolute;top:20px;right:20px;display:flex;gap:6px}
+        .lang-btn{padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text2);cursor:pointer;font-size:12px}
+        .lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
     </style>
 </head>
 <body>
@@ -63,38 +66,42 @@
         <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
         <div class="admin-badge">ADMIN</div>
         <ul class="sidebar-menu">
-            <a href="index.html">📊 Dashboard</a>
-            <a href="users.html">👥 Users</a>
-            <a href="packages.html" class="active">📦 Packages</a>
-            <a href="orders.html">💳 Orders</a>
-            <a href="affiliates.html">🤝 Affiliates</a>
-            <a href="settings.html">⚙️ Settings</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="index.html">📊 <span data-i18n="admin_dashboard">Dashboard</span></a>
+            <a href="users.html">👥 <span data-i18n="admin_users">Users</span></a>
+            <a href="packages.html" class="active">📦 <span data-i18n="admin_packages">Packages</span></a>
+            <a href="orders.html">💳 <span data-i18n="admin_orders">Orders</span></a>
+            <a href="affiliates.html">🤝 <span data-i18n="admin_affiliates">Affiliates</span></a>
+            <a href="settings.html">⚙️ <span data-i18n="admin_settings">Settings</span></a>
+            <a href="#" onclick="logout()">🚪 <span data-i18n="admin_logout">Logout</span></a>
         </ul>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
     </aside>
-    
+
     <main class="main">
         <div class="page-header">
-            <h1 class="page-title">📦 Packages</h1>
-            <button class="btn btn-primary" onclick="openModal()">+ Add Package</button>
+            <h1 class="page-title">📦 <span data-i18n="admin_pkg_title">Packages</span></h1>
+            <button class="btn btn-primary" onclick="openModal()" data-i18n="admin_pkg_add">+ Add Package</button>
         </div>
-        
+
         <div class="card">
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Scan Limit</th>
-                        <th>Daily Limit</th>
-                        <th>Price</th>
-                        <th>Duration</th>
-                        <th>Status</th>
-                        <th>Popular</th>
-                        <th>Actions</th>
+                        <th data-i18n="admin_pkg_name">Name</th>
+                        <th data-i18n="admin_pkg_scan_limit">Scan Limit</th>
+                        <th data-i18n="admin_pkg_daily_limit">Daily Limit</th>
+                        <th data-i18n="admin_pkg_price">Price</th>
+                        <th data-i18n="admin_pkg_duration">Duration</th>
+                        <th data-i18n="admin_status">Status</th>
+                        <th data-i18n="admin_pkg_popular">Popular</th>
+                        <th data-i18n="admin_actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="packagesTable">
-                    <tr><td colspan="8" class="loading">Loading packages...</td></tr>
+                    <tr><td colspan="8" class="loading" data-i18n="admin_loading">Loading packages...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -103,76 +110,77 @@
     <!-- Add/Edit Package Modal -->
     <div class="modal" id="packageModal">
         <div class="modal-content">
-            <h2 class="modal-title" id="modalTitle">Add Package</h2>
+            <h2 class="modal-title" id="modalTitle" data-i18n="admin_pkg_modal_add">Add Package</h2>
             <form id="packageForm" onsubmit="savePackage(event)">
                 <input type="hidden" id="packageId">
-                
+
                 <div class="form-group">
-                    <label>Package Name *</label>
-                    <input type="text" id="packageName" placeholder="e.g. Starter, Pro, Business" required>
+                    <label data-i18n="admin_pkg_name_label">Package Name *</label>
+                    <input type="text" id="packageName" data-i18n-placeholder="admin_pkg_name_placeholder" placeholder="e.g. Starter, Pro, Business" required>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Scan Limit (ASIN per scan) *</label>
+                        <label data-i18n="admin_pkg_limit_label">Scan Limit (ASIN per scan) *</label>
                         <input type="number" id="scanLimit" placeholder="20000" required>
                     </div>
                     <div class="form-group">
-                        <label>Daily Scan Limit (0 = unlimited)</label>
+                        <label data-i18n="admin_pkg_daily_label">Daily Scan Limit (0 = unlimited)</label>
                         <input type="number" id="dailyScanLimit" value="0" placeholder="0" min="0">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Price ($) *</label>
+                        <label data-i18n="admin_pkg_price_label">Price ($) *</label>
                         <input type="number" id="price" step="0.01" placeholder="9.99" required>
                     </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Duration (days)</label>
+                        <label data-i18n="admin_pkg_duration_label">Duration (days)</label>
                         <input type="number" id="duration" value="30" placeholder="30">
                     </div>
                     <div class="form-group">
-                        <label>Sort Order</label>
+                        <label data-i18n="admin_pkg_sort_label">Sort Order</label>
                         <input type="number" id="sortOrder" value="0" placeholder="0">
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label>Description</label>
+                    <label data-i18n="admin_pkg_desc_label">Description</label>
                     <textarea id="description" rows="2" placeholder="Package description..."></textarea>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-check">
                             <input type="checkbox" id="isActive" checked>
-                            <span>Active</span>
+                            <span data-i18n="admin_pkg_active_label">Active</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="form-check">
                             <input type="checkbox" id="isPopular">
-                            <span>Popular (show badge)</span>
+                            <span data-i18n="admin_pkg_popular_label">Popular (show badge)</span>
                         </label>
                     </div>
                 </div>
-                
+
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Package</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal()" data-i18n="admin_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="admin_pkg_save">Save Package</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <script src="../assets/js/i18n.js"></script>
     <script>
         const API = '/api';
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        
+
         if (!token || user.role !== 'admin') {
             window.location.href = '../login.html';
         }
@@ -184,53 +192,54 @@
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await r.json();
-                
+
                 if (data.success && data.data.packages) {
                     const packages = data.data.packages;
-                    
+
                     if (packages.length === 0) {
-                        document.getElementById('packagesTable').innerHTML = 
-                            '<tr><td colspan="8" class="empty">No packages yet. Click "Add Package" to create one.</td></tr>';
+                        document.getElementById('packagesTable').innerHTML =
+                            `<tr><td colspan="8" class="empty">${t('admin_pkg_no_packages')}</td></tr>`;
                         return;
                     }
-                    
+
                     let html = '';
                     for (const p of packages) {
                         const limit = p.scan_limit >= 1000 ? (p.scan_limit/1000) + 'K' : p.scan_limit;
                         const dailyLimit = parseInt(p.daily_scan_limit) || 0;
+                        const statusText = p.is_active ? t('admin_active') : t('admin_inactive');
                         html += `
                             <tr>
                                 <td><strong>${esc(p.name)}</strong></td>
                                 <td>${limit} ASIN</td>
-                                <td>${dailyLimit > 0 ? dailyLimit + '/day' : 'Unlimited'}</td>
+                                <td>${dailyLimit > 0 ? dailyLimit + '/day' : t('admin_pkg_unlimited')}</td>
                                 <td>$${parseFloat(p.price).toFixed(2)}</td>
-                                <td>${p.duration_days} days</td>
-                                <td><span class="badge ${p.is_active ? 'green' : 'red'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
-                                <td>${p.is_popular ? '⭐ Popular' : '-'}</td>
+                                <td>${p.duration_days} ${t('admin_pkg_days')}</td>
+                                <td><span class="badge ${p.is_active ? 'green' : 'red'}">${statusText}</span></td>
+                                <td>${p.is_popular ? '⭐' : '-'}</td>
                                 <td>
-                                    <button class="btn btn-outline btn-sm" onclick="editPackage(${p.id})">Edit</button>
+                                    <button class="btn btn-outline btn-sm" onclick="editPackage(${p.id})">${t('admin_edit')}</button>
                                 </td>
                             </tr>
                         `;
                     }
                     document.getElementById('packagesTable').innerHTML = html;
-                    
+
                     // Store packages for editing
                     window.packagesData = packages;
                 } else {
-                    document.getElementById('packagesTable').innerHTML = 
+                    document.getElementById('packagesTable').innerHTML =
                         '<tr><td colspan="8" class="empty">Error loading packages: ' + (data.message || 'Unknown error') + '</td></tr>';
                 }
             } catch (e) {
                 console.error('Load error:', e);
-                document.getElementById('packagesTable').innerHTML = 
+                document.getElementById('packagesTable').innerHTML =
                     '<tr><td colspan="8" class="empty">Connection error. Check your network.</td></tr>';
             }
         }
 
         // Open modal for new package
         function openModal() {
-            document.getElementById('modalTitle').textContent = 'Add Package';
+            document.getElementById('modalTitle').textContent = t('admin_pkg_modal_add');
             document.getElementById('packageForm').reset();
             document.getElementById('packageId').value = '';
             document.getElementById('isActive').checked = true;
@@ -248,8 +257,8 @@
         function editPackage(id) {
             const pkg = window.packagesData.find(p => p.id == id);
             if (!pkg) return;
-            
-            document.getElementById('modalTitle').textContent = 'Edit Package';
+
+            document.getElementById('modalTitle').textContent = t('admin_pkg_modal_edit');
             document.getElementById('packageId').value = pkg.id;
             document.getElementById('packageName').value = pkg.name;
             document.getElementById('scanLimit').value = pkg.scan_limit;
@@ -260,14 +269,14 @@
             document.getElementById('description').value = pkg.description || '';
             document.getElementById('isActive').checked = pkg.is_active == 1;
             document.getElementById('isPopular').checked = pkg.is_popular == 1;
-            
+
             document.getElementById('packageModal').classList.add('active');
         }
 
         // Save package
         async function savePackage(e) {
             e.preventDefault();
-            
+
             const data = {
                 id: document.getElementById('packageId').value || null,
                 name: document.getElementById('packageName').value.trim(),
@@ -280,7 +289,7 @@
                 is_active: document.getElementById('isActive').checked ? 1 : 0,
                 is_popular: document.getElementById('isPopular').checked ? 1 : 0
             };
-            
+
             try {
                 const r = await fetch(API + '/admin.php?action=package_save', {
                     method: 'POST',
@@ -290,9 +299,9 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await r.json();
-                
+
                 if (result.success) {
                     closeModal();
                     loadPackages();

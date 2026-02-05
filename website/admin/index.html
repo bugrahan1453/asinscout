@@ -42,6 +42,9 @@
         .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2,#12121a);border:1px solid var(--border,#2a2a35);border-radius:8px;padding:8px 12px;color:var(--text,#f0f0f5);font-size:18px;cursor:pointer}
         .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
         @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
+        .lang-switch{position:absolute;top:20px;right:20px;display:flex;gap:6px}
+        .lang-btn{padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text2);cursor:pointer;font-size:12px}
+        .lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
     </style>
 </head>
 <body>
@@ -49,59 +52,69 @@
 <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
     <aside class="sidebar">
         <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
-        <div class="admin-badge">ADMIN PANEL</div>
+        <div class="admin-badge">ADMIN</div>
         <ul class="sidebar-menu">
-            <a href="index.html" class="active">📊 Dashboard</a>
-            <a href="users.html">👥 Users</a>
-            <a href="packages.html">📦 Packages</a>
-            <a href="orders.html">💳 Orders</a>
-            <a href="affiliates.html">🤝 Affiliates</a>
-            <a href="settings.html">⚙️ Settings</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="index.html" class="active">📊 <span data-i18n="admin_dashboard">Dashboard</span></a>
+            <a href="users.html">👥 <span data-i18n="admin_users">Users</span></a>
+            <a href="packages.html">📦 <span data-i18n="admin_packages">Packages</span></a>
+            <a href="orders.html">💳 <span data-i18n="admin_orders">Orders</span></a>
+            <a href="affiliates.html">🤝 <span data-i18n="admin_affiliates">Affiliates</span></a>
+            <a href="settings.html">⚙️ <span data-i18n="admin_settings">Settings</span></a>
+            <a href="#" onclick="logout()">🚪 <span data-i18n="admin_logout">Logout</span></a>
         </ul>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
     </aside>
     <main class="main">
-        <h1 class="page-title">Admin Dashboard</h1>
+        <h1 class="page-title" data-i18n="admin_dash_title">Admin Dashboard</h1>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="label">Total Users</div>
+                <div class="label" data-i18n="admin_dash_total_users">Total Users</div>
                 <div class="value orange" id="totalUsers">0</div>
-                <div class="sub" id="todayUsers">+0 today</div>
+                <div class="sub"><span id="todayUsersNum">+0</span> <span data-i18n="admin_dash_today">today</span></div>
             </div>
             <div class="stat-card">
-                <div class="label">Total Revenue</div>
+                <div class="label" data-i18n="admin_dash_total_revenue">Total Revenue</div>
                 <div class="value green" id="totalRevenue">$0</div>
-                <div class="sub" id="monthRevenue">$0 this month</div>
+                <div class="sub"><span id="monthRevenueNum">$0</span> <span data-i18n="admin_dash_this_month">this month</span></div>
             </div>
             <div class="stat-card">
-                <div class="label">Total Scans</div>
+                <div class="label" data-i18n="admin_dash_total_scans">Total Scans</div>
                 <div class="value blue" id="totalScans">0</div>
             </div>
             <div class="stat-card">
-                <div class="label">Total ASINs</div>
+                <div class="label" data-i18n="admin_dash_total_asins">Total ASINs</div>
                 <div class="value orange" id="totalAsins">0</div>
             </div>
         </div>
         <div class="grid-2">
             <div class="card">
-                <div class="card-title">Recent Orders</div>
+                <div class="card-title" data-i18n="admin_dash_recent_orders">Recent Orders</div>
                 <table id="recentOrders">
-                    <thead><tr><th>User</th><th>Package</th><th>Amount</th><th>Date</th></tr></thead>
+                    <thead><tr>
+                        <th data-i18n="admin_dash_user">User</th>
+                        <th data-i18n="admin_dash_package">Package</th>
+                        <th data-i18n="admin_dash_amount">Amount</th>
+                        <th data-i18n="admin_date">Date</th>
+                    </tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
             <div class="card">
-                <div class="card-title">Weekly Scans</div>
+                <div class="card-title" data-i18n="admin_dash_weekly_scans">Weekly Scans</div>
                 <div id="weeklyChart" style="height: 200px; display: flex; align-items: flex-end; gap: 8px; padding-top: 20px;"></div>
             </div>
         </div>
     </main>
+    <script src="../assets/js/i18n.js"></script>
     <script>
         const API_BASE = '/api';
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (!token || user.role !== 'admin') { window.location.href = '../login.html'; }
-        
+
         async function loadDashboard() {
             try {
                 const resp = await fetch(API_BASE + '/admin.php?action=dashboard', {
@@ -111,19 +124,19 @@
                 if (data.success) {
                     const s = data.data;
                     document.getElementById('totalUsers').textContent = numFmt(s.total_users);
-                    document.getElementById('todayUsers').textContent = '+' + s.today_users + ' today';
+                    document.getElementById('todayUsersNum').textContent = '+' + s.today_users;
                     document.getElementById('totalRevenue').textContent = '$' + s.total_revenue.toFixed(2);
-                    document.getElementById('monthRevenue').textContent = '$' + s.month_revenue.toFixed(2) + ' this month';
+                    document.getElementById('monthRevenueNum').textContent = '$' + s.month_revenue.toFixed(2);
                     document.getElementById('totalScans').textContent = numFmt(s.total_scans);
                     document.getElementById('totalAsins').textContent = numFmt(s.total_asins);
-                    
+
                     // Recent orders
                     let ordersHtml = '';
                     for (const o of s.recent_orders || []) {
                         ordersHtml += `<tr><td>${esc(o.email)}</td><td>${esc(o.package_name)}</td><td>$${o.amount}</td><td>${fmtDate(o.completed_at)}</td></tr>`;
                     }
-                    document.querySelector('#recentOrders tbody').innerHTML = ordersHtml || '<tr><td colspan="4" style="text-align:center;color:var(--text3)">No orders yet</td></tr>';
-                    
+                    document.querySelector('#recentOrders tbody').innerHTML = ordersHtml || `<tr><td colspan="4" style="text-align:center;color:var(--text3)">${t('admin_dash_no_orders')}</td></tr>`;
+
                     // Weekly chart
                     const maxScans = Math.max(...(s.week_scans || []).map(d => d.count), 1);
                     let chartHtml = '';
@@ -131,11 +144,11 @@
                         const h = Math.max(10, (d.count / maxScans) * 150);
                         chartHtml += `<div style="flex:1;text-align:center"><div style="background:linear-gradient(var(--orange),var(--pink));height:${h}px;border-radius:4px 4px 0 0;margin-bottom:8px"></div><div style="font-size:10px;color:var(--text3)">${d.date.slice(5)}</div><div style="font-size:11px;font-weight:600">${d.count}</div></div>`;
                     }
-                    document.getElementById('weeklyChart').innerHTML = chartHtml || '<div style="color:var(--text3);text-align:center;width:100%">No data</div>';
+                    document.getElementById('weeklyChart').innerHTML = chartHtml || `<div style="color:var(--text3);text-align:center;width:100%">${t('admin_dash_no_data')}</div>`;
                 }
             } catch (err) { console.error(err); }
         }
-        
+
         function logout() { localStorage.clear(); window.location.href = '../login.html'; }
         function numFmt(n) { return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? Math.round(n/1000)+'K' : String(n); }
         function esc(s) { return String(s||'').replace(/</g,'&lt;'); }

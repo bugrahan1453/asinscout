@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a25; --text: #f0f0f5; --text2: #9898a8; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --border: #2a2a35; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a25; --text: #f0f0f5; --text2: #9898a8; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --border: #2a2a35; --red: #ff4d5e; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
         .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: var(--bg2); border-right: 1px solid var(--border); padding: 20px; }
         .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text); text-decoration: none; }
@@ -31,6 +31,9 @@
         .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2,#12121a);border:1px solid var(--border,#2a2a35);border-radius:8px;padding:8px 12px;color:var(--text,#f0f0f5);font-size:18px;cursor:pointer}
         .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
         @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
+        .lang-switch{position:absolute;top:20px;right:20px;display:flex;gap:6px}
+        .lang-btn{padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text2);cursor:pointer;font-size:12px}
+        .lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
     </style>
 </head>
 <body>
@@ -40,40 +43,67 @@
         <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
         <div class="admin-badge">ADMIN</div>
         <ul class="sidebar-menu">
-            <a href="index.html">📊 Dashboard</a>
-            <a href="users.html">👥 Users</a>
-            <a href="packages.html">📦 Packages</a>
-            <a href="orders.html" class="active">💳 Orders</a>
-            <a href="affiliates.html">🤝 Affiliates</a>
-            <a href="settings.html">⚙️ Settings</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="index.html">📊 <span data-i18n="admin_dashboard">Dashboard</span></a>
+            <a href="users.html">👥 <span data-i18n="admin_users">Users</span></a>
+            <a href="packages.html">📦 <span data-i18n="admin_packages">Packages</span></a>
+            <a href="orders.html" class="active">💳 <span data-i18n="admin_orders">Orders</span></a>
+            <a href="affiliates.html">🤝 <span data-i18n="admin_affiliates">Affiliates</span></a>
+            <a href="settings.html">⚙️ <span data-i18n="admin_settings">Settings</span></a>
+            <a href="#" onclick="logout()">🚪 <span data-i18n="admin_logout">Logout</span></a>
         </ul>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
     </aside>
     <main class="main">
-        <h1 class="page-title">Orders</h1>
+        <h1 class="page-title" data-i18n="admin_orders_title">Orders</h1>
         <div class="card">
             <table>
-                <thead><tr><th>ID</th><th>User</th><th>Package</th><th>Amount</th><th>Credits</th><th>Status</th><th>Date</th></tr></thead>
-                <tbody id="ordersTable"></tbody>
+                <thead><tr>
+                    <th data-i18n="admin_orders_id">ID</th>
+                    <th data-i18n="admin_orders_user">User</th>
+                    <th data-i18n="admin_orders_package">Package</th>
+                    <th data-i18n="admin_orders_amount">Amount</th>
+                    <th data-i18n="admin_orders_credits">Credits</th>
+                    <th data-i18n="admin_orders_status">Status</th>
+                    <th data-i18n="admin_orders_date">Date</th>
+                </tr></thead>
+                <tbody id="ordersTable"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text2)" data-i18n="admin_loading">Loading...</td></tr></tbody>
             </table>
         </div>
     </main>
+    <script src="../assets/js/i18n.js"></script>
     <script>
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (!token || user.role !== 'admin') window.location.href = '../login.html';
-        
+
         fetch('/api/admin.php?action=orders', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
                     let html = '';
                     for (const o of data.data.orders) {
-                        const cls = o.status === 'completed' ? 'green' : (o.status === 'pending' ? 'orange' : 'red');
-                        html += `<tr><td>#${o.id}</td><td>${o.email}</td><td>${o.package_name}</td><td>$${o.amount}</td><td>${(o.credits_added/1000)}K</td><td><span class="badge ${cls}">${o.status}</span></td><td>${new Date(o.created_at).toLocaleDateString()}</td></tr>`;
+                        let cls, statusText;
+                        if (o.status === 'completed') {
+                            cls = 'green';
+                            statusText = t('admin_orders_completed');
+                        } else if (o.status === 'pending') {
+                            cls = 'orange';
+                            statusText = t('admin_orders_pending');
+                        } else {
+                            cls = 'red';
+                            statusText = t('admin_orders_failed');
+                        }
+                        html += `<tr><td>#${o.id}</td><td>${o.email}</td><td>${o.package_name}</td><td>$${o.amount}</td><td>${(o.credits_added/1000)}K</td><td><span class="badge ${cls}">${statusText}</span></td><td>${new Date(o.created_at).toLocaleDateString()}</td></tr>`;
                     }
-                    document.getElementById('ordersTable').innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:var(--text2)">No orders yet</td></tr>';
+                    document.getElementById('ordersTable').innerHTML = html || `<tr><td colspan="7" style="text-align:center;color:var(--text2)">${t('admin_orders_no_orders')}</td></tr>`;
                 }
+            })
+            .catch(e => {
+                console.error(e);
+                document.getElementById('ordersTable').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--red)">Error loading orders</td></tr>`;
             });
         function logout() { localStorage.clear(); window.location.href = '../login.html'; }
     </script>
