@@ -4,27 +4,44 @@
  * Paket limiti bazlı (kredi yok)
  */
 
-require_once __DIR__ . '/../includes/bootstrap.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-$action = $_GET['action'] ?? '';
-$db = Database::getInstance();
-
-// Token kontrolü - download hariç
-if ($action !== 'download') {
-    $user = Auth::requireAuth();
-} else {
-    // Download için token query'den al
-    $token = $_GET['token'] ?? '';
-    if (!$token) {
-        Api::error('Token required', 401);
-    }
-    $payload = Auth::verifyToken($token);
-    if (!$payload) {
-        Api::error('Invalid token', 401);
-    }
-    $user = $db->fetch("SELECT * FROM users WHERE id = ?", [$payload['user_id']]);
+try {
+    require_once __DIR__ . '/../includes/bootstrap.php';
+} catch (Exception $e) {
+    die(json_encode(['error' => 'Bootstrap error: ' . $e->getMessage()]));
 }
 
+$action = $_GET['action'] ?? '';
+
+try {
+    $db = Database::getInstance();
+} catch (Exception $e) {
+    die(json_encode(['error' => 'Database error: ' . $e->getMessage()]));
+}
+
+// Token kontrolü - download hariç
+try {
+    if ($action !== 'download') {
+        $user = Auth::requireAuth();
+    } else {
+        // Download için token query'den al
+        $token = $_GET['token'] ?? '';
+        if (!$token) {
+            Api::error('Token required', 401);
+        }
+        $payload = Auth::verifyToken($token);
+        if (!$payload) {
+            Api::error('Invalid token', 401);
+        }
+        $user = $db->fetch("SELECT * FROM users WHERE id = ?", [$payload['user_id']]);
+    }
+} catch (Exception $e) {
+    die(json_encode(['error' => 'Auth error: ' . $e->getMessage()]));
+}
+
+try {
 switch ($action) {
     
     case 'start':
@@ -168,53 +185,54 @@ switch ($action) {
         $page = max(1, (int)($_GET['page'] ?? 1));
         $limit = min(50, max(10, (int)($_GET['limit'] ?? 20)));
         $offset = ($page - 1) * $limit;
-        
-        $total = $db->fetch("SELECT COUNT(*) as cnt FROM scans WHERE user_id = ?", [$user['id']])['cnt'];
-        
+
+        $row = $db->fetch("SELECT COUNT(*) as cnt FROM scans WHERE user_id = ?", [$user['id']]);
+        $total = $row ? (int)$row['cnt'] : 0;
+
         $scans = $db->fetchAll(
-            "SELECT id, store_name, store_url, marketplace, asin_count, pages_scanned, 
+            "SELECT id, store_name, store_url, marketplace, asin_count, pages_scanned,
                     duration_seconds, status, created_at, completed_at
-             FROM scans WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
-            [$user['id'], $limit, $offset]
-        );
-        
+             FROM scans WHERE user_id = ? ORDER BY created_at DESC LIMIT $limit OFFSET $offset",
+            [$user['id']]
+        ) ?: [];
+
         Api::success([
             'scans' => $scans,
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
-                'total' => (int)$total,
-                'pages' => ceil($total / $limit)
+                'total' => $total,
+                'pages' => max(1, ceil($total / $limit))
             ]
         ]);
         break;
     
     case 'detail':
         $scanId = (int)($_GET['id'] ?? 0);
-        
+
         $scan = $db->fetch("SELECT * FROM scans WHERE id = ? AND user_id = ?", [$scanId, $user['id']]);
-        
+
         if (!$scan) {
             Api::error('Scan not found', 404);
         }
-        
+
         // ASIN'leri de getir
-        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ? LIMIT 10000", [$scanId]);
+        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ? LIMIT 10000", [$scanId]) ?: [];
         $scan['asins'] = array_column($asins, 'asin');
-        
+
         Api::success(['scan' => $scan]);
         break;
     
     case 'asins':
         $scanId = (int)($_GET['id'] ?? 0);
-        
+
         $scan = $db->fetch("SELECT id, asin_count FROM scans WHERE id = ? AND user_id = ?", [$scanId, $user['id']]);
         if (!$scan) {
             Api::error('Scan not found', 404);
         }
-        
-        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ?", [$scanId]);
-        
+
+        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ?", [$scanId]) ?: [];
+
         Api::success([
             'asins' => array_column($asins, 'asin'),
             'total' => (int)$scan['asin_count']
@@ -224,14 +242,14 @@ switch ($action) {
     case 'download':
         $scanId = (int)($_GET['id'] ?? 0);
         $format = $_GET['format'] ?? 'txt';
-        
+
         $scan = $db->fetch("SELECT * FROM scans WHERE id = ? AND user_id = ?", [$scanId, $user['id']]);
         if (!$scan) {
             http_response_code(404);
             die('Scan not found');
         }
-        
-        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ?", [$scanId]);
+
+        $asins = $db->fetchAll("SELECT asin FROM scan_asins WHERE scan_id = ?", [$scanId]) ?: [];
         $asinList = array_column($asins, 'asin');
         
         $filename = preg_replace('/[^a-z0-9]/i', '_', $scan['store_name']) . '_' . count($asinList);
@@ -282,4 +300,7 @@ switch ($action) {
     
     default:
         Api::error('Invalid action', 400);
+}
+} catch (Exception $e) {
+    Api::error('Server error: ' . $e->getMessage(), 500);
 }
