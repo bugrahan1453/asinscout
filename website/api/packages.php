@@ -50,15 +50,28 @@ switch ($action) {
         $user = Auth::requireAuth();
         $data = Api::getPostData();
         Api::required($data, ['package_id']);
-        
+
         $package = $db->fetch("SELECT * FROM packages WHERE id = ? AND is_active = 1", [$data['package_id']]);
         if (!$package) {
             Api::error('Package not found', 404);
         }
-        
+
+        // Stripe key'i veritabanından al (admin panelden ayarlanır)
+        $stripeKey = $db->fetch("SELECT setting_value FROM settings WHERE setting_key = 'stripe_secret_key'");
+        if (!$stripeKey || empty($stripeKey['setting_value'])) {
+            // Fallback to config
+            $stripeSecretKey = defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '';
+        } else {
+            $stripeSecretKey = $stripeKey['setting_value'];
+        }
+
+        if (empty($stripeSecretKey) || $stripeSecretKey === 'sk_live_CHANGE_ME') {
+            Api::error('Payment system not configured. Please contact admin.', 500);
+        }
+
         require_once __DIR__ . '/../includes/stripe-php/init.php';
-        \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
-        
+        \Stripe\Stripe::setApiKey($stripeSecretKey);
+
         try {
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
@@ -132,9 +145,15 @@ switch ($action) {
             ]);
             break;
         }
-        
+
+        // Stripe key'i veritabanından al
+        $stripeKey = $db->fetch("SELECT setting_value FROM settings WHERE setting_key = 'stripe_secret_key'");
+        $stripeSecretKey = ($stripeKey && !empty($stripeKey['setting_value']))
+            ? $stripeKey['setting_value']
+            : (defined('STRIPE_SECRET_KEY') ? STRIPE_SECRET_KEY : '');
+
         require_once __DIR__ . '/../includes/stripe-php/init.php';
-        \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+        \Stripe\Stripe::setApiKey($stripeSecretKey);
         
         try {
             $session = \Stripe\Checkout\Session::retrieve($sessionId);
