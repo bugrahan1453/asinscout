@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a25; --text: #f0f0f5; --text2: #9898a8; --text3: #5a5a6e; --orange: #ff6b2c; --pink: #ff2c6b; --border: #2a2a35; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        nav { padding: 20px 0; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,15,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+        nav .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; text-decoration: none; color: var(--text); }
+        .logo span { color: var(--orange); }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+        .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; margin-left: 24px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--orange); }
+        .page-header { padding: 140px 0 60px; text-align: center; background: var(--bg2); border-bottom: 1px solid var(--border); }
+        .page-header h1 { font-size: 42px; font-weight: 800; margin-bottom: 12px; }
+        .page-header p { color: var(--text2); font-size: 16px; }
+        .content { padding: 60px 0 100px; }
+        .content h2 { font-size: 24px; font-weight: 700; margin: 40px 0 16px; color: var(--text); }
+        .content h2:first-child { margin-top: 0; }
+        .content h3 { font-size: 18px; font-weight: 600; margin: 28px 0 12px; }
+        .content p { color: var(--text2); font-size: 15px; margin-bottom: 16px; }
+        .content ul, .content ol { color: var(--text2); font-size: 15px; margin: 0 0 16px 24px; }
+        .content li { margin-bottom: 8px; }
+        .content a { color: var(--orange); text-decoration: none; }
+        .content a:hover { text-decoration: underline; }
+        .content strong { color: var(--text); }
+        footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: center; }
+        .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+        .footer-links a { color: var(--text2); text-decoration: none; font-size: 14px; }
+        .footer-links a:hover { color: var(--orange); }
+        .footer-copy { color: var(--text3); font-size: 13px; }
+        @media (max-width: 768px) { .page-header h1 { font-size: 28px; } .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="logo"><div class="logo-icon">A</div>ASIN<span>Scout</span> Pro</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#features">Features</a>
+                <a href="index.html#pricing">Pricing</a>
+                <a href="contact.html">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1>Privacy Policy</h1>
+            <p>Last updated: February 2025</p>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="container">
+            <h2>1. Introduction</h2>
+            <p>ASIN Scout Pro ("we", "our", or "us") operates the asinscout.com website and the ASIN Scout Pro Chrome Extension. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our services.</p>
+
+            <h2>2. Information We Collect</h2>
+
+            <h3>2.1 Personal Information</h3>
+            <p>When you create an account, we collect:</p>
+            <ul>
+                <li><strong>Name</strong> - Your full name as provided during registration</li>
+                <li><strong>Email address</strong> - Used for account access, communication, and support</li>
+                <li><strong>Password</strong> - Stored securely using industry-standard hashing</li>
+            </ul>
+
+            <h3>2.2 Payment Information</h3>
+            <p>Payment processing is handled entirely by <strong>Stripe</strong>, a PCI DSS Level 1 certified payment processor. We do not store your credit card numbers, CVV, or full card details on our servers. We only receive a transaction reference and confirmation status from Stripe.</p>
+
+            <h3>2.3 Usage Data</h3>
+            <p>We automatically collect certain data when you use our services:</p>
+            <ul>
+                <li>Scan history (number of scans, ASIN counts, timestamps)</li>
+                <li>Browser type and version (via the Chrome Extension)</li>
+                <li>IP address (for security and rate limiting purposes)</li>
+                <li>Pages visited and features used on our website</li>
+            </ul>
+
+            <h3>2.4 Chrome Extension Data</h3>
+            <p>Our Chrome Extension:</p>
+            <ul>
+                <li>Only activates on Amazon marketplace websites</li>
+                <li>Extracts publicly available product identifiers (ASINs) from Amazon pages</li>
+                <li>Does not collect personal browsing history outside of Amazon</li>
+                <li>Does not track or monitor your activity on non-Amazon websites</li>
+                <li>Communicates only with our servers (asinscout.com) and Amazon marketplace pages</li>
+            </ul>
+
+            <h2>3. How We Use Your Information</h2>
+            <p>We use the collected information for:</p>
+            <ul>
+                <li>Providing and maintaining our services</li>
+                <li>Processing your transactions and managing your account</li>
+                <li>Sending important service-related emails (account confirmations, password resets)</li>
+                <li>Improving and optimizing our products and services</li>
+                <li>Preventing fraud and ensuring security</li>
+                <li>Complying with legal obligations</li>
+            </ul>
+
+            <h2>4. Data Sharing and Disclosure</h2>
+            <p>We do <strong>not</strong> sell, trade, or rent your personal information to third parties. We may share data only with:</p>
+            <ul>
+                <li><strong>Stripe</strong> - For payment processing only</li>
+                <li><strong>Law enforcement</strong> - When required by law or to protect our legal rights</li>
+                <li><strong>Service providers</strong> - Who help us operate our services (hosting, email delivery), under strict confidentiality agreements</li>
+            </ul>
+
+            <h2>5. Data Security</h2>
+            <p>We implement appropriate security measures to protect your data:</p>
+            <ul>
+                <li>SSL/TLS encryption for all data in transit</li>
+                <li>Passwords are hashed using bcrypt algorithm</li>
+                <li>JWT-based authentication with secure token handling</li>
+                <li>Rate limiting to prevent brute-force attacks</li>
+                <li>Regular security audits and updates</li>
+            </ul>
+
+            <h2>6. Data Retention</h2>
+            <p>We retain your personal data for as long as your account is active. You can request deletion of your account and associated data by contacting us at <a href="mailto:support@asinscout.com">support@asinscout.com</a>. Scan history and ASIN data may be retained in anonymized form for analytics purposes.</p>
+
+            <h2>7. Cookies</h2>
+            <p>Our website uses minimal cookies necessary for:</p>
+            <ul>
+                <li>Maintaining your login session (authentication token stored in localStorage)</li>
+                <li>Language preferences</li>
+            </ul>
+            <p>We do not use third-party advertising or tracking cookies.</p>
+
+            <h2>8. Your Rights</h2>
+            <p>You have the right to:</p>
+            <ul>
+                <li><strong>Access</strong> your personal data</li>
+                <li><strong>Correct</strong> inaccurate information via your account settings</li>
+                <li><strong>Delete</strong> your account and personal data</li>
+                <li><strong>Export</strong> your scan data</li>
+                <li><strong>Withdraw consent</strong> for data processing at any time</li>
+            </ul>
+
+            <h2>9. Children's Privacy</h2>
+            <p>Our services are not directed at individuals under the age of 18. We do not knowingly collect personal information from children.</p>
+
+            <h2>10. Changes to This Policy</h2>
+            <p>We may update this Privacy Policy from time to time. We will notify you of significant changes by posting a notice on our website or sending an email. Your continued use of our services after such changes constitutes acceptance of the updated policy.</p>
+
+            <h2>11. Contact Us</h2>
+            <p>If you have questions about this Privacy Policy, contact us at:</p>
+            <ul>
+                <li>Email: <a href="mailto:support@asinscout.com">support@asinscout.com</a></li>
+                <li>Website: <a href="contact.html">Contact Page</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="contact.html">Contact</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+                <a href="refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-copy">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
+        </div>
+    </footer>
+</body>
+</html>

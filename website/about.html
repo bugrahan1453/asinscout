@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a25; --text: #f0f0f5; --text2: #9898a8; --text3: #5a5a6e; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --blue: #4d8eff; --border: #2a2a35; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        nav { padding: 20px 0; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,15,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+        nav .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; text-decoration: none; color: var(--text); }
+        .logo span { color: var(--orange); }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+        .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; margin-left: 24px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--orange); }
+        .page-header { padding: 140px 0 60px; text-align: center; background: var(--bg2); border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,107,44,0.1), transparent 60%); pointer-events: none; }
+        .page-header h1 { font-size: 42px; font-weight: 800; margin-bottom: 16px; }
+        .page-header h1 em { font-style: normal; background: linear-gradient(135deg, var(--orange), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .page-header p { color: var(--text2); font-size: 18px; max-width: 600px; margin: 0 auto; }
+        .content { padding: 80px 0 100px; }
+        .section { margin-bottom: 80px; }
+        .section h2 { font-size: 28px; font-weight: 700; margin-bottom: 20px; text-align: center; }
+        .section p.subtitle { color: var(--text2); font-size: 16px; text-align: center; max-width: 600px; margin: 0 auto 40px; }
+        .story { max-width: 700px; margin: 0 auto; }
+        .story p { color: var(--text2); font-size: 16px; margin-bottom: 20px; }
+        .story strong { color: var(--text); }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+        .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 32px 20px; text-align: center; }
+        .stat-value { font-size: 36px; font-weight: 800; background: linear-gradient(135deg, var(--orange), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 14px; color: var(--text2); margin-top: 8px; }
+        .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .value-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; transition: all 0.3s; }
+        .value-card:hover { border-color: var(--orange); transform: translateY(-3px); }
+        .value-icon { font-size: 36px; margin-bottom: 16px; }
+        .value-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .value-card p { color: var(--text2); font-size: 14px; }
+        .cta-section { text-align: center; background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 60px 40px; }
+        .cta-section h2 { font-size: 32px; font-weight: 700; margin-bottom: 16px; }
+        .cta-section p { color: var(--text2); font-size: 16px; margin-bottom: 32px; }
+        .btn { padding: 14px 32px; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 15px; transition: all 0.2s; display: inline-block; border: none; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg, var(--orange), var(--pink)); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,107,44,0.3); }
+        .btn-outline { border: 1px solid var(--border); color: var(--text); background: transparent; margin-left: 12px; }
+        .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+        footer { padding: 40px 0; border-top: 1px solid var(--border); text-align: center; }
+        .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+        .footer-links a { color: var(--text2); text-decoration: none; font-size: 14px; }
+        .footer-links a:hover { color: var(--orange); }
+        .footer-copy { color: var(--text3); font-size: 13px; }
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 28px; }
+            .nav-links { display: none; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .values-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="logo"><div class="logo-icon">A</div>ASIN<span>Scout</span> Pro</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html#features">Features</a>
+                <a href="index.html#pricing">Pricing</a>
+                <a href="contact.html">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1>About <em>ASIN Scout Pro</em></h1>
+            <p>We build powerful tools to help Amazon sellers and researchers work smarter, not harder.</p>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="container">
+
+            <div class="section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">50M+</div>
+                        <div class="stat-label">ASINs Scanned</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">10K+</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">20+</div>
+                        <div class="stat-label">Marketplaces</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">99.9%</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Our Story</h2>
+                <div class="story">
+                    <p>ASIN Scout Pro was born from a simple frustration: manually collecting product data from Amazon stores is painfully slow and inefficient. As Amazon sellers ourselves, we knew there had to be a better way.</p>
+                    <p>We built ASIN Scout Pro as the tool we always wished existed - <strong>fast, reliable, and comprehensive</strong>. Our 8-phase scanning algorithm doesn't just skim the surface; it digs deep into price ranges, categories, brands, and related products to find every single ASIN in a store.</p>
+                    <p>Today, ASIN Scout Pro is trusted by thousands of Amazon sellers, product researchers, and dropshippers around the world. Whether you're analyzing competitor stores, building product catalogs, or conducting market research, our tool gives you the data you need in minutes instead of days.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>What Drives Us</h2>
+                <p class="subtitle">Our core values guide everything we build</p>
+                <div class="values-grid">
+                    <div class="value-card">
+                        <div class="value-icon">&#9889;</div>
+                        <h3>Speed</h3>
+                        <p>Our adaptive scanning engine extracts thousands of ASINs per minute with smart throttling technology.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon">&#128170;</div>
+                        <h3>Reliability</h3>
+                        <p>Automatic captcha recovery, error handling, and retry logic ensure your scans complete successfully.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon">&#128274;</div>
+                        <h3>Security</h3>
+                        <p>Your data is encrypted, payments are processed securely via Stripe, and we never sell your information.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>How It Works</h2>
+                <p class="subtitle">Our Chrome extension uses an advanced multi-phase scanning system</p>
+                <div class="values-grid">
+                    <div class="value-card">
+                        <div class="value-icon">&#128269;</div>
+                        <h3>Smart Scanning</h3>
+                        <p>8 scanning phases cover sort variations, price ranges, categories, brands, ratings, spider crawl, keywords, and deal filters.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon">&#128202;</div>
+                        <h3>Real-Time Progress</h3>
+                        <p>Watch as ASINs are discovered in real-time with live status updates and progress tracking.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon">&#128190;</div>
+                        <h3>Easy Export</h3>
+                        <p>Export your results to TXT or Excel format, or copy directly to clipboard with one click.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <h2>Ready to Get Started?</h2>
+                <p>Join thousands of sellers who are already using ASIN Scout Pro to grow their business.</p>
+                <a href="register.html" class="btn btn-primary">Create Free Account</a>
+                <a href="index.html#pricing" class="btn btn-outline">View Pricing</a>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="contact.html">Contact</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+                <a href="refund.html">Refund Policy</a>
+            </div>
+            <div class="footer-copy">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
+        </div>
+    </footer>
+</body>
+</html>
