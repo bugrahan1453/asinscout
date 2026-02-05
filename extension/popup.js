@@ -3,8 +3,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   let allAsins = [], storeName = '', tabId = null, scanLimit = 0, currentMarketplace = 'amazon.com';
 
   chrome.runtime.sendMessage({ action: 'getAuthState' }, state => {
-    if (state && state.isLoggedIn) showApp(state.user);
-    else showScreen('login');
+    if (state && state.isLoggedIn) {
+      // Profili yenile, güncel daily scan bilgisi için
+      chrome.runtime.sendMessage({ action: 'refreshProfile' }, resp => {
+        if (resp && resp.ok && resp.user) showApp(resp.user);
+        else showApp(state.user);
+      });
+    } else showScreen('login');
   });
 
   function showScreen(name) {
@@ -25,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Günlük tarama hakkı göster
       if (user.daily_scan_limit && user.daily_scan_limit > 0) {
         const remaining = user.daily_remaining >= 0 ? user.daily_remaining : (user.daily_scan_limit - (user.daily_scans_used || 0));
-        limitText += '<br><span style="color:' + (remaining > 0 ? '#22c97a' : '#ff4d5e') + '">Daily: ' + remaining + '/' + user.daily_scan_limit + ' scans</span>';
+        limitText += '<br><span style="color:' + (remaining > 0 ? '#22c97a' : '#ff4d5e') + '">Günlük: ' + remaining + '/' + user.daily_scan_limit + ' tarama</span>';
       }
       $('limitInfo').innerHTML = limitText;
     } else {

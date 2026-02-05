@@ -95,10 +95,17 @@ switch ($action) {
         $db->query("UPDATE users SET last_login = NOW() WHERE id = ?", [$user['id']]);
         $token = Auth::createToken($user['id'], $user['email'], $user['role']);
         Api::log($user['id'], 'login', ['ip' => Api::getIp()]);
-        
+
         // Paket süresi kontrolü
         $hasActivePackage = $user['package_id'] && $user['package_expires'] && strtotime($user['package_expires']) > time();
-        
+
+        // Günlük tarama bilgisi
+        $dailyLimit = (int)($user['daily_scan_limit'] ?? 0);
+        $dailyUsed = (int)($user['daily_scans_used'] ?? 0);
+        if (($user['last_scan_date'] ?? '') !== date('Y-m-d')) {
+            $dailyUsed = 0;
+        }
+
         Api::success([
             'token' => $token,
             'user' => [
@@ -108,7 +115,10 @@ switch ($action) {
                 'role' => $user['role'],
                 'scan_limit' => $hasActivePackage ? (int)$user['scan_limit'] : 0,
                 'package_name' => $hasActivePackage ? $user['package_name'] : null,
-                'package_expires' => $hasActivePackage ? $user['package_expires'] : null
+                'package_expires' => $hasActivePackage ? $user['package_expires'] : null,
+                'daily_scan_limit' => $dailyLimit,
+                'daily_scans_used' => $dailyUsed,
+                'daily_remaining' => $dailyLimit > 0 ? max(0, $dailyLimit - $dailyUsed) : -1
             ]
         ]);
         break;
