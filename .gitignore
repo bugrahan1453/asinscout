@@ -1,0 +1,25 @@
+# Credentials - NEVER commit
+website/includes/config.php
+
+# Dependencies
+node_modules/
+vendor/
+website/includes/stripe-php/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+
+# Temp
+/tmp/
+*.zip

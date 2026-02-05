@@ -223,7 +223,7 @@ class Mailer {
         </p>
     </div>
     <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-        <p style="margin: 0; font-size: 12px; color: #888;">© 2024 {{site_name}}. All rights reserved.</p>
+        <p style="margin: 0; font-size: 12px; color: #888;">© 2025 {{site_name}}. All rights reserved.</p>
     </div>
 </div>
 </body>
@@ -254,7 +254,7 @@ class Mailer {
         </p>
     </div>
     <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-        <p style="margin: 0; font-size: 12px; color: #888;">© 2024 {{site_name}}. All rights reserved.</p>
+        <p style="margin: 0; font-size: 12px; color: #888;">© 2025 {{site_name}}. All rights reserved.</p>
     </div>
 </div>
 </body>
@@ -295,7 +295,7 @@ class Mailer {
         </div>
     </div>
     <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-        <p style="margin: 0; font-size: 12px; color: #888;">© 2024 {{site_name}}. All rights reserved.</p>
+        <p style="margin: 0; font-size: 12px; color: #888;">© 2025 {{site_name}}. All rights reserved.</p>
     </div>
 </div>
 </body>
@@ -323,7 +323,7 @@ class Mailer {
         </div>
     </div>
     <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-        <p style="margin: 0; font-size: 12px; color: #888;">© 2024 {{site_name}}. All rights reserved.</p>
+        <p style="margin: 0; font-size: 12px; color: #888;">© 2025 {{site_name}}. All rights reserved.</p>
     </div>
 </div>
 </body>

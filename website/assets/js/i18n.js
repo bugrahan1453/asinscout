@@ -91,7 +91,7 @@ const translations = {
         footer_privacy: "Privacy Policy",
         footer_terms: "Terms of Service",
         footer_refund: "Refund Policy",
-        footer_copyright: "© 2024 ASIN Scout Pro. All rights reserved.",
+        footer_copyright: "© 2025 ASIN Scout Pro. All rights reserved.",
         
         // Dashboard
         dash_title: "Dashboard",
@@ -236,7 +236,7 @@ const translations = {
         footer_privacy: "Gizlilik Politikası",
         footer_terms: "Kullanım Şartları",
         footer_refund: "İade Politikası",
-        footer_copyright: "© 2024 ASIN Scout Pro. Tüm hakları saklıdır.",
+        footer_copyright: "© 2025 ASIN Scout Pro. Tüm hakları saklıdır.",
         
         // Dashboard
         dash_title: "Kontrol Paneli",

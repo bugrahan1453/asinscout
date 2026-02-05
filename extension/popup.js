@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const $ = id => document.getElementById(id);
-  let allAsins = [], storeName = '', tabId = null, scanLimit = 0;
+  let allAsins = [], storeName = '', tabId = null, scanLimit = 0, currentMarketplace = 'amazon.com';
 
   chrome.runtime.sendMessage({ action: 'getAuthState' }, state => {
     if (state && state.isLoggedIn) showApp(state.user);
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       $('pkgBadge').textContent = 'No Package';
       $('pkgBadge').className = 'pkg-badge none';
-      $('limitInfo').innerHTML = '<a href="https://yourdomain.com/pricing.html" target="_blank" style="color:var(--or)">Buy package →</a>';
+      $('limitInfo').innerHTML = '<a href="https://asinscout.com/pricing.html" target="_blank" style="color:var(--or)">Buy package →</a>';
     }
     initApp();
   }
@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab?.url || !tab.url.includes('amazon')) { showNA(); return; }
       tabId = tab.id; $('pgurl').textContent = tab.url.substring(0, 50) + '...';
+      const mpMatch = tab.url.match(/amazon\.([a-z.]+)/i);
+      if (mpMatch) currentMarketplace = 'amazon.' + mpMatch[1];
       await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
       await new Promise(r => setTimeout(r, 400));
       chrome.tabs.sendMessage(tabId, { action: 'getPageInfo' }, info => {
@@ -91,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function showNA() { $('badge').className = 'badge no'; $('badgeTxt').textContent = 'Not Amazon'; }
 
   $('bScan').onclick = async () => {
-    if (scanLimit <= 0) { window.open('https://yourdomain.com/pricing.html', '_blank'); return; }
+    if (scanLimit <= 0) { window.open('https://asinscout.com/pricing.html', '_blank'); return; }
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     chrome.runtime.sendMessage({ action: 'startScan', tabId: tab.id, storeName, baseUrl: tab.url, scanLimit });
     showScanningMode();
@@ -133,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('bExcel').onclick = () => {
     if (!allAsins.length) return;
     let xml = '<?xml version="1.0"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="ASINs"><Table><Row><Cell><Data ss:Type="String">ASIN</Data></Cell><Cell><Data ss:Type="String">Link</Data></Cell></Row>';
-    for (const a of allAsins) xml += '<Row><Cell><Data ss:Type="String">' + a + '</Data></Cell><Cell><Data ss:Type="String">https://www.amazon.com/dp/' + a + '</Data></Cell></Row>';
+    for (const a of allAsins) xml += '<Row><Cell><Data ss:Type="String">' + a + '</Data></Cell><Cell><Data ss:Type="String">https://www.' + currentMarketplace + '/dp/' + a + '</Data></Cell></Row>';
     xml += '</Table></Worksheet></Workbook>';
     const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
     chrome.downloads.download({ url: URL.createObjectURL(blob), filename: (storeName || 'asins').replace(/[^a-zA-Z0-9]/g, '_') + '_' + allAsins.length + '.xls', saveAs: true });

@@ -22,7 +22,7 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
   }
   else if (msg.action === 'stopScan') { S.scanning = false; S.lastUpdate = 'Stopped: ' + S.asins.length + ' ASIN'; save(); badge(String(S.asins.length), '#ff4d5e'); if (S.tabId) try { chrome.tabs.sendMessage(S.tabId, { action: 'stopFetchScan' }); } catch(e) {} send({ ok: true }); }
   else if (msg.action === 'progressUpdate') { if (!S.scanning) return; S.asins = msg.asins || []; S.set = new Set(S.asins); S.scanned = msg.scanned || S.scanned; S.lastUpdate = msg.status || S.lastUpdate; save(); badge(fmtNum(S.asins.length), '#ff6b2c'); }
-  else if (msg.action === 'scanComplete') { S.scanning = false; S.asins = msg.asins || []; S.scanned = msg.scanned || S.scanned; S.lastUpdate = '✅ ' + S.asins.length + ' ASIN'; if (S.scanId && S.asins.length > 0) completeScanApi(S.scanId, S.asins, S.scanned, msg.duration || 0); badge(fmtNum(S.asins.length), '#22c97a'); save(); }
+  else if (msg.action === 'scanComplete') { S.scanning = false; S.asins = msg.asins || []; S.scanned = msg.scanned || S.scanned; S.lastUpdate = '✅ ' + S.asins.length + ' ASIN'; if (S.scanId && S.asins.length > 0) completeScanApi(S.scanId, S.asins, S.scanned, msg.duration || 0); badge(fmtNum(S.asins.length), '#22c97a'); save(); refreshProfile(); }
   else if (msg.action === 'getState') { send({ scanning: S.scanning, storeName: S.storeName, scanned: S.scanned, total: S.asins.length, lastUpdate: S.lastUpdate, isLoggedIn: S.isLoggedIn, user: S.user }); }
   else if (msg.action === 'getAsins') { send({ asins: S.asins, storeName: S.storeName }); }
   else if (msg.action === 'clearAll') { S.asins = []; S.set = new Set(); S.scanned = 0; S.storeName = ''; S.lastUpdate = ''; S.scanning = false; save(); badge('', '#22c97a'); send({ ok: true }); }
@@ -75,7 +75,7 @@ async function injectAndStart(tabId, baseUrl, scanLimit) {
   try {
     await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
     await new Promise(r => setTimeout(r, 500));
-    chrome.tabs.sendMessage(tabId, { action: 'startFetchScan', baseUrl, scanLimit }, r => {
+    chrome.tabs.sendMessage(tabId, { action: 'startFetchScan', baseUrl, scanLimit, mode: 'full' }, r => {
       if (chrome.runtime.lastError) { S.scanning = false; S.lastUpdate = 'Error: Refresh page'; save(); badge('ERR', '#ff4d5e'); }
     });
   } catch(e) { S.scanning = false; S.lastUpdate = 'Error: ' + e.message; save(); badge('ERR', '#ff4d5e'); }

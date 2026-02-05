@@ -27,9 +27,10 @@ define('DB_PASS', 'B1grahan1453@');
 define('DB_CHARSET', 'utf8mb4');
 
 // Güvenlik
-define('JWT_SECRET', 'change-this-to-random-64-char-string-1234567890abcdefghijklmnop'); // Değiştirin!
+define('JWT_SECRET', '174a18f8d8dfb2e0da98b136129282c2ed536871bac248eceedda7385e213d3d');
 define('JWT_EXPIRY', 86400 * 7); // 7 gün
-define('CORS_ORIGIN', '*'); // Production'da extension ID yazın: chrome-extension://xxxxx
+// CORS: Kendi domain + Chrome extension origin
+define('CORS_ORIGIN', 'https://asinscout.com');
 
 // Stripe Ayarları (Stripe Dashboard'dan alın)
 define('STRIPE_PUBLIC_KEY', 'pk_test_xxxxxxxxxx'); // pk_live_ for production

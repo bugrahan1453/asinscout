@@ -57,12 +57,14 @@ switch ($action) {
         
         $total = $db->fetch("SELECT COUNT(*) as cnt FROM users $where", $params)['cnt'];
         
+        $params[] = $limit;
+        $params[] = $offset;
         $users = $db->fetchAll(
-            "SELECT u.id, u.email, u.name, u.scan_limit, u.package_expires, u.total_scans, u.total_asins, 
+            "SELECT u.id, u.email, u.name, u.scan_limit, u.daily_scan_limit, u.daily_scans_used, u.package_expires, u.total_scans, u.total_asins,
                     u.status, u.created_at, u.last_login, p.name as package_name
-             FROM users u 
+             FROM users u
              LEFT JOIN packages p ON u.package_id = p.id
-             $where ORDER BY u.created_at DESC LIMIT $limit OFFSET $offset",
+             $where ORDER BY u.created_at DESC LIMIT ? OFFSET ?",
             $params
         );
         
@@ -119,8 +121,8 @@ switch ($action) {
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+' . $pkg['duration_days'] . ' days'));
                 
                 $db->query(
-                    "UPDATE users SET package_id = ?, scan_limit = ?, package_expires = ? WHERE id = ?",
-                    [$pkg['id'], $pkg['scan_limit'], $expiresAt, $userId]
+                    "UPDATE users SET package_id = ?, scan_limit = ?, daily_scan_limit = ?, daily_scans_used = 0, package_expires = ? WHERE id = ?",
+                    [$pkg['id'], $pkg['scan_limit'], $pkg['daily_scan_limit'] ?? 0, $expiresAt, $userId]
                 );
             } elseif (isset($data['scan_limit']) && $data['scan_limit']) {
                 // Custom limit ata
@@ -158,6 +160,7 @@ switch ($action) {
                 'name' => $data['name'],
                 'slug' => $data['slug'] ?? strtolower(preg_replace('/[^a-z0-9]+/', '-', $data['name'])),
                 'scan_limit' => (int)$data['scan_limit'],
+                'daily_scan_limit' => (int)($data['daily_scan_limit'] ?? 0),
                 'duration_days' => (int)($data['duration_days'] ?? 30),
                 'price' => (float)$data['price'],
                 'currency' => $data['currency'] ?? 'USD',
@@ -188,11 +191,12 @@ switch ($action) {
         $total = $db->fetch("SELECT COUNT(*) as cnt FROM orders")['cnt'];
         
         $orders = $db->fetchAll(
-            "SELECT o.*, u.email, u.name, p.name as package_name, p.scan_limit 
-             FROM orders o 
-             JOIN users u ON o.user_id = u.id 
-             JOIN packages p ON o.package_id = p.id 
-             ORDER BY o.created_at DESC LIMIT $limit OFFSET $offset"
+            "SELECT o.*, u.email, u.name, p.name as package_name, p.scan_limit
+             FROM orders o
+             JOIN users u ON o.user_id = u.id
+             JOIN packages p ON o.package_id = p.id
+             ORDER BY o.created_at DESC LIMIT ? OFFSET ?",
+            [$limit, $offset]
         );
         
         Api::success([

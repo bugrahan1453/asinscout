@@ -1,105 +1,248 @@
 -- ASIN Scout Pro - Database Setup
--- Bu SQL'i phpMyAdmin'de çalıştırın
+-- phpMyAdmin veya cPanel MySQL üzerinden çalıştırın
+-- Veritabanı: asinscout_asin_scout
 
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+-- --------------------------------------------------------
 -- Packages tablosu
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `packages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
-  `slug` varchar(100) NOT NULL,
-  `scan_limit` int(11) NOT NULL DEFAULT 20000,
-  `duration_days` int(11) NOT NULL DEFAULT 30,
-  `price` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `currency` varchar(10) NOT NULL DEFAULT 'USD',
-  `description` text,
-  `features` text,
-  `is_popular` tinyint(1) NOT NULL DEFAULT 0,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `sort_order` int(11) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `slug` varchar(50) NOT NULL,
+  `scan_limit` int(11) NOT NULL COMMENT 'Tarama başına max ASIN',
+  `daily_scan_limit` int(11) NOT NULL DEFAULT 0 COMMENT 'Günlük tarama hakkı (0 = sınırsız)',
+  `duration_days` int(11) DEFAULT 30,
+  `price` decimal(10,2) NOT NULL,
+  `currency` varchar(3) DEFAULT 'USD',
+  `stripe_price_id` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `features` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`features`)),
+  `is_popular` tinyint(1) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
+  `sort_order` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `slug` (`slug`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
 -- Users tablosu
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
-  `role` enum('user','admin') NOT NULL DEFAULT 'user',
-  `status` enum('active','suspended','pending') NOT NULL DEFAULT 'active',
   `package_id` int(11) DEFAULT NULL,
-  `scan_limit` int(11) NOT NULL DEFAULT 0,
+  `scan_limit` int(11) DEFAULT 0 COMMENT 'Tarama başına max ASIN',
+  `daily_scan_limit` int(11) NOT NULL DEFAULT 0 COMMENT 'Günlük tarama hakkı (0 = sınırsız)',
+  `daily_scans_used` int(11) NOT NULL DEFAULT 0 COMMENT 'Bugün kullanılan tarama sayısı',
+  `last_scan_date` date DEFAULT NULL COMMENT 'Son tarama tarihi (günlük reset için)',
   `package_expires` datetime DEFAULT NULL,
-  `total_scans` int(11) NOT NULL DEFAULT 0,
-  `total_asins` int(11) NOT NULL DEFAULT 0,
-  `email_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `total_scans` int(11) DEFAULT 0,
+  `total_asins` int(11) DEFAULT 0,
+  `stripe_customer_id` varchar(100) DEFAULT NULL,
+  `email_verified` tinyint(1) DEFAULT 0,
   `verify_token` varchar(100) DEFAULT NULL,
   `reset_token` varchar(100) DEFAULT NULL,
   `reset_expires` datetime DEFAULT NULL,
+  `status` enum('active','suspended','deleted') DEFAULT 'active',
+  `role` enum('user','admin') DEFAULT 'user',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `last_login` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
-  KEY `package_id` (`package_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  KEY `idx_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
 -- Scans tablosu
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `scans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `store_name` varchar(255) DEFAULT NULL,
-  `store_url` text,
+  `store_url` text DEFAULT NULL,
   `marketplace` varchar(20) DEFAULT NULL,
-  `asin_count` int(11) NOT NULL DEFAULT 0,
-  `asins` longtext,
-  `status` enum('pending','running','completed','failed') NOT NULL DEFAULT 'pending',
-  `scan_type` varchar(50) DEFAULT NULL,
+  `asin_count` int(11) DEFAULT 0,
+  `pages_scanned` int(11) DEFAULT 0,
   `duration_seconds` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('running','completed','stopped','error') DEFAULT 'running',
+  `error_message` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `completed_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  KEY `idx_user` (`user_id`),
+  KEY `idx_created` (`created_at`),
+  CONSTRAINT `scans_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Scan ASINs tablosu
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `scan_asins` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `scan_id` int(11) NOT NULL,
+  `asin` varchar(10) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_scan` (`scan_id`),
+  CONSTRAINT `scan_asins_ibfk_1` FOREIGN KEY (`scan_id`) REFERENCES `scans` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Orders tablosu
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `package_id` int(11) NOT NULL,
+  `stripe_payment_id` varchar(100) DEFAULT NULL,
+  `stripe_session_id` varchar(100) DEFAULT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `currency` varchar(10) NOT NULL DEFAULT 'USD',
-  `status` enum('pending','completed','failed','refunded') NOT NULL DEFAULT 'pending',
-  `payment_method` varchar(50) DEFAULT 'stripe',
-  `payment_id` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `currency` varchar(3) DEFAULT 'USD',
+  `status` enum('pending','completed','failed','refunded') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `completed_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `package_id` (`package_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  KEY `idx_user` (`user_id`),
+  KEY `package_id` (`package_id`),
+  KEY `idx_stripe_session` (`stripe_session_id`),
+  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`package_id`) REFERENCES `packages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Transactions tablosu
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `transactions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `stripe_payment_id` varchar(255) DEFAULT NULL,
+  `stripe_invoice_id` varchar(255) DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `currency` varchar(10) DEFAULT 'USD',
+  `plan` varchar(50) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'pending',
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_stripe` (`stripe_payment_id`),
+  CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Activity Logs tablosu
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `action` varchar(50) NOT NULL,
+  `details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`details`)),
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- API Keys tablosu
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `api_keys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `api_key` varchar(255) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `last_used_at` datetime DEFAULT NULL,
+  `requests_count` int(11) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `api_key` (`api_key`),
+  KEY `user_id` (`user_id`),
+  KEY `idx_key` (`api_key`),
+  CONSTRAINT `api_keys_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Password Resets tablosu
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `password_resets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_email` (`email`),
+  KEY `idx_token` (`token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Settings tablosu
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `settings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `setting_key` varchar(100) NOT NULL,
-  `setting_value` text,
-  `setting_type` varchar(50) DEFAULT 'text',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `setting_value` text DEFAULT NULL,
+  `setting_type` enum('string','number','boolean','json') DEFAULT 'string',
+  `description` varchar(255) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting_key` (`setting_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Admin kullanıcısı oluştur (şifre: admin123 - değiştirin!)
-INSERT INTO `users` (`email`, `password`, `name`, `role`, `status`) VALUES
-('admin@asinscout.com', '$2y$10$8K1p/a0dL1LXMw0HvTIVu.QJmLQl0JXJjZxF0Q5H1V6oH7VPNxQyy', 'Admin', 'admin', 'active')
+-- --------------------------------------------------------
+-- Varsayılan veriler
+-- --------------------------------------------------------
+
+-- Admin kullanıcısı (şifre: password - ÜRETİMDE DEĞİŞTİRİN!)
+INSERT INTO `users` (`email`, `password`, `name`, `role`, `status`, `scan_limit`, `email_verified`) VALUES
+('admin@asinscout.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin', 'admin', 'active', 999999, 1)
 ON DUPLICATE KEY UPDATE `role` = 'admin';
 
--- Örnek paketler
-INSERT INTO `packages` (`name`, `slug`, `scan_limit`, `duration_days`, `price`, `is_popular`, `is_active`, `sort_order`) VALUES
-('Starter', 'starter', 20000, 30, 9.99, 0, 1, 1),
-('Pro', 'pro', 50000, 30, 19.99, 1, 1, 2),
-('Business', 'business', 100000, 30, 34.99, 0, 1, 3)
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+-- Varsayılan ayarlar
+INSERT INTO `settings` (`setting_key`, `setting_value`, `setting_type`, `description`) VALUES
+('site_name', 'ASIN Scout Pro', 'string', 'Site name'),
+('site_url', 'https://asinscout.com', 'string', 'Site URL'),
+('stripe_public_key', '', 'string', 'Stripe Public Key'),
+('stripe_secret_key', '', 'string', 'Stripe Secret Key'),
+('stripe_webhook_secret', '', 'string', 'Stripe Webhook Secret'),
+('smtp_host', '', 'string', 'SMTP Host'),
+('smtp_port', '587', 'number', 'SMTP Port'),
+('smtp_user', '', 'string', 'SMTP Username'),
+('smtp_pass', '', 'string', 'SMTP Password'),
+('smtp_from', '', 'string', 'SMTP From Email'),
+('free_trial_days', '0', 'number', 'Free trial days'),
+('maintenance_mode', '0', 'boolean', 'Maintenance mode'),
+('admin_email', 'support@asinscout.com', 'string', 'Admin email'),
+('free_scans', '0', 'string', 'Free scan count for new users')
+ON DUPLICATE KEY UPDATE `setting_key` = `setting_key`;
+
+COMMIT;
+
+-- --------------------------------------------------------
+-- MEVCUT VERİTABANINA GÜNCELLEME
+-- Eğer tablolar zaten varsa, eksik kolonları eklemek için:
+-- --------------------------------------------------------
+-- ALTER TABLE `packages` ADD COLUMN `daily_scan_limit` int(11) NOT NULL DEFAULT 0 COMMENT 'Günlük tarama hakkı (0 = sınırsız)' AFTER `scan_limit`;
+-- ALTER TABLE `users` ADD COLUMN `daily_scan_limit` int(11) NOT NULL DEFAULT 0 COMMENT 'Günlük tarama hakkı' AFTER `scan_limit`;
+-- ALTER TABLE `users` ADD COLUMN `daily_scans_used` int(11) NOT NULL DEFAULT 0 COMMENT 'Bugün kullanılan tarama' AFTER `daily_scan_limit`;
+-- ALTER TABLE `users` ADD COLUMN `last_scan_date` date DEFAULT NULL COMMENT 'Son tarama tarihi' AFTER `daily_scans_used`;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

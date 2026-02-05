@@ -77,11 +77,21 @@ class Api {
      * CORS headers
      */
     public static function cors() {
-        header('Access-Control-Allow-Origin: ' . CORS_ORIGIN);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $allowed = array_map('trim', explode(',', CORS_ORIGIN));
+
+        // Chrome extension origin'lerini de kabul et
+        if (in_array($origin, $allowed) || preg_match('/^chrome-extension:\/\//', $origin)) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin');
+        } else {
+            header('Access-Control-Allow-Origin: ' . $allowed[0]);
+        }
+
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
         header('Access-Control-Max-Age: 86400');
-        
+
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             http_response_code(204);
             exit;

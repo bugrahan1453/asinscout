@@ -28,29 +28,47 @@ if ($action !== 'download') {
 switch ($action) {
     
     case 'start':
+        Api::rateLimit('scan_' . $user['id'], 30, 60); // max 30 scan start per minute
         $data = Api::getPostData();
         Api::required($data, ['store_url']);
-        
+
         // Paket kontrolü
         $fullUser = $db->fetch(
-            "SELECT u.*, p.scan_limit as pkg_limit FROM users u 
-             LEFT JOIN packages p ON u.package_id = p.id 
-             WHERE u.id = ?", 
+            "SELECT u.*, p.scan_limit as pkg_limit, p.daily_scan_limit as pkg_daily_limit FROM users u
+             LEFT JOIN packages p ON u.package_id = p.id
+             WHERE u.id = ?",
             [$user['id']]
         );
-        
+
         $hasActivePackage = $fullUser['package_id'] && $fullUser['package_expires'] && strtotime($fullUser['package_expires']) > time();
-        
+
         if (!$hasActivePackage && $fullUser['role'] !== 'admin') {
             Api::error('No active package. Please purchase a package to start scanning.', 402);
         }
-        
+
+        // Günlük tarama hakkı kontrolü
+        $dailyLimit = (int)($fullUser['daily_scan_limit'] ?? 0);
+        $dailyUsed = (int)($fullUser['daily_scans_used'] ?? 0);
+        $lastScanDate = $fullUser['last_scan_date'] ?? null;
+        $today = date('Y-m-d');
+
+        // Gün değiştiyse sayacı sıfırla
+        if ($lastScanDate !== $today) {
+            $dailyUsed = 0;
+            $db->query("UPDATE users SET daily_scans_used = 0, last_scan_date = ? WHERE id = ?", [$today, $user['id']]);
+        }
+
+        // Günlük limit kontrolü (0 = sınırsız)
+        if ($dailyLimit > 0 && $dailyUsed >= $dailyLimit && $fullUser['role'] !== 'admin') {
+            Api::error('Daily scan limit reached (' . $dailyLimit . '/' . $dailyLimit . '). Try again tomorrow.', 429);
+        }
+
         $scanLimit = $hasActivePackage ? (int)$fullUser['scan_limit'] : 999999;
-        
+
         // Marketplace tespit
         preg_match('/amazon\.([a-z.]+)/i', $data['store_url'], $matches);
         $marketplace = 'amazon.' . ($matches[1] ?? 'com');
-        
+
         $scanId = $db->insert('scans', [
             'user_id' => $user['id'],
             'store_name' => $data['store_name'] ?? 'Unknown Store',
@@ -58,12 +76,16 @@ switch ($action) {
             'marketplace' => $marketplace,
             'status' => 'running'
         ]);
-        
+
+        // Günlük kullanımı artır
+        $db->query("UPDATE users SET daily_scans_used = daily_scans_used + 1, last_scan_date = ? WHERE id = ?", [$today, $user['id']]);
+
         Api::log($user['id'], 'scan_start', ['scan_id' => $scanId]);
-        
+
         Api::success([
             'scan_id' => $scanId,
-            'scan_limit' => $scanLimit
+            'scan_limit' => $scanLimit,
+            'daily_remaining' => $dailyLimit > 0 ? max(0, $dailyLimit - $dailyUsed - 1) : -1
         ], 'Scan started');
         break;
     
@@ -214,15 +236,18 @@ switch ($action) {
         
         $filename = preg_replace('/[^a-z0-9]/i', '_', $scan['store_name']) . '_' . count($asinList);
         
+        // Marketplace'e göre doğru Amazon URL
+        $mp = $scan['marketplace'] ?: 'amazon.com';
+        $amazonBase = 'https://www.' . $mp . '/dp/';
+
         if ($format === 'csv') {
             header('Content-Type: text/csv; charset=utf-8');
             header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
             echo "ASIN,Amazon Link\n";
             foreach ($asinList as $asin) {
-                echo $asin . ',https://www.amazon.com/dp/' . $asin . "\n";
+                echo $asin . ',' . $amazonBase . $asin . "\n";
             }
         } elseif ($format === 'excel' || $format === 'xlsx') {
-            // Basit Excel XML format
             header('Content-Type: application/vnd.ms-excel');
             header('Content-Disposition: attachment; filename="' . $filename . '.xls"');
             echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
@@ -230,7 +255,7 @@ switch ($action) {
             echo '<Worksheet ss:Name="ASINs"><Table>' . "\n";
             echo '<Row><Cell><Data ss:Type="String">ASIN</Data></Cell><Cell><Data ss:Type="String">Amazon Link</Data></Cell></Row>' . "\n";
             foreach ($asinList as $asin) {
-                echo '<Row><Cell><Data ss:Type="String">' . $asin . '</Data></Cell><Cell><Data ss:Type="String">https://www.amazon.com/dp/' . $asin . '</Data></Cell></Row>' . "\n";
+                echo '<Row><Cell><Data ss:Type="String">' . $asin . '</Data></Cell><Cell><Data ss:Type="String">' . $amazonBase . $asin . '</Data></Cell></Row>' . "\n";
             }
             echo '</Table></Worksheet></Workbook>';
         } else {

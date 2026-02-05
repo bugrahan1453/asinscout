@@ -12,6 +12,7 @@ $db = Database::getInstance();
 switch ($action) {
     
     case 'register':
+        Api::rateLimit('register_' . Api::getIp(), 5, 300); // 5 register per 5 min
         $data = Api::getPostData();
         Api::required($data, ['email', 'password', 'name']);
         Api::validateEmail($data['email']);
@@ -56,6 +57,7 @@ switch ($action) {
         break;
     
     case 'login':
+        Api::rateLimit('login_' . Api::getIp(), 10, 300); // 10 login per 5 min
         $data = Api::getPostData();
         Api::required($data, ['email', 'password']);
         
@@ -115,6 +117,13 @@ switch ($action) {
         
         $hasActivePackage = $fullUser['package_id'] && $fullUser['package_expires'] && strtotime($fullUser['package_expires']) > time();
         
+        // Günlük tarama bilgisi
+        $dailyLimit = (int)($fullUser['daily_scan_limit'] ?? 0);
+        $dailyUsed = (int)($fullUser['daily_scans_used'] ?? 0);
+        if (($fullUser['last_scan_date'] ?? '') !== date('Y-m-d')) {
+            $dailyUsed = 0;
+        }
+
         Api::success([
             'user' => [
                 'id' => $fullUser['id'],
@@ -123,7 +132,10 @@ switch ($action) {
                 'role' => $fullUser['role'],
                 'scan_limit' => $hasActivePackage ? (int)$fullUser['scan_limit'] : 0,
                 'package_name' => $hasActivePackage ? $fullUser['package_name'] : null,
-                'package_expires' => $hasActivePackage ? $fullUser['package_expires'] : null
+                'package_expires' => $hasActivePackage ? $fullUser['package_expires'] : null,
+                'daily_scan_limit' => $dailyLimit,
+                'daily_scans_used' => $dailyUsed,
+                'daily_remaining' => $dailyLimit > 0 ? max(0, $dailyLimit - $dailyUsed) : -1
             ],
             'stats' => [
                 'total_scans' => (int)$stats['total_scans'],
@@ -133,6 +145,7 @@ switch ($action) {
         break;
     
     case 'forgot':
+        Api::rateLimit('forgot_' . Api::getIp(), 3, 600); // 3 reset per 10 min
         $data = Api::getPostData();
         Api::required($data, ['email']);
         

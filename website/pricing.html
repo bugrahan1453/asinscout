@@ -46,10 +46,14 @@
         .btn:hover{transform:translateY(-2px)}
         .message{padding:16px;border-radius:12px;margin-bottom:24px;display:none;text-align:center}
         .message.error{display:block;background:rgba(255,77,94,0.1);color:#ff4d5e}
-        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+        .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2,#12121a);border:1px solid var(--border,#2a2a35);border-radius:8px;padding:8px 12px;color:var(--text,#f0f0f5);font-size:18px;cursor:pointer}
+        .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
+        @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
     </style>
 </head>
 <body>
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('active')">&#9776;</button>
+<div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
     <aside class="sidebar">
         <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
         <ul class="sidebar-menu">
@@ -97,12 +101,12 @@
                 let h='';
                 for(const p of d.data.packages){
                     h+=`<div class="price-card ${p.is_popular?'popular':''}">
-                        <div class="price-name">${p.name}</div>
+                        <div class="price-name">${esc(p.name)}</div>
                         <div class="price-limit">Up to ${fmt(p.scan_limit)} ASINs per scan</div>
                         <div class="price-amount">$${p.price.toFixed(2)}</div>
                         <div class="price-duration">${p.duration_days} days access</div>
                         <ul class="price-features">
-                            ${p.features.map(f=>`<li>${f}</li>`).join('')}
+                            ${(p.features||[]).map(f=>`<li>${esc(f)}</li>`).join('')}
                         </ul>
                         <button class="btn ${p.is_popular?'btn-primary':'btn-outline'}" onclick="buyPackage(${p.id})">Buy Now</button>
                     </div>`;
@@ -135,6 +139,7 @@
         
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
+        function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
         loadPackages();
     </script>
 </body>
