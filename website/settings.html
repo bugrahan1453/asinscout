@@ -21,6 +21,9 @@
         .sidebar-user .avatar { width: 36px; height: 36px; background: var(--orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
         .sidebar-user .name { font-size: 13px; font-weight: 600; }
         .sidebar-user .email { font-size: 11px; color: var(--text3); }
+        .lang-switch { display: flex; gap: 6px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
+        .lang-btn { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--orange); color: var(--orange); }
         .main { margin-left: 250px; padding: 30px; max-width: 700px; }
         .page-title { font-size: 28px; font-weight: 700; margin-bottom: 30px; }
         .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
@@ -39,51 +42,56 @@
         @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
     </style>
 </head>
-<body>
+<body data-i18n-title="settings_title">
 <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('active')">&#9776;</button>
 <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
     <aside class="sidebar">
         <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
         <ul class="sidebar-menu">
-            <a href="dashboard.html">📊 Dashboard</a>
-            <a href="scans.html">📁 My Scans</a>
-            <a href="pricing.html">💳 Buy Package</a>
-            <a href="settings.html" class="active">⚙️ Settings</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="dashboard.html" data-i18n="sidebar_dashboard">📊 Dashboard</a>
+            <a href="scans.html" data-i18n="sidebar_scans">📁 My Scans</a>
+            <a href="pricing.html" data-i18n="sidebar_buy">💳 Buy Package</a>
+            <a href="settings.html" class="active" data-i18n="sidebar_settings">⚙️ Settings</a>
+            <a href="#" onclick="logout()" data-i18n="sidebar_logout">🚪 Logout</a>
         </ul>
         <div class="sidebar-user">
             <div class="avatar" id="userAvatar">U</div>
             <div><div class="name" id="userName">User</div><div class="email" id="userEmail">...</div></div>
         </div>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
     </aside>
     <main class="main">
-        <h1 class="page-title">Settings</h1>
+        <h1 class="page-title" data-i18n="settings_title">Settings</h1>
         <div class="message" id="message"></div>
         <div class="card">
-            <div class="card-title">Profile</div>
+            <div class="card-title" data-i18n="settings_profile">Profile</div>
             <div class="form-group">
-                <label>Name</label>
+                <label data-i18n="settings_name">Name</label>
                 <input type="text" id="name">
             </div>
             <div class="form-group">
-                <label>Email</label>
+                <label data-i18n="settings_email">Email</label>
                 <input type="email" id="email" readonly style="opacity:0.6">
             </div>
-            <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+            <button class="btn btn-primary" onclick="updateProfile()" data-i18n="settings_save">Save Changes</button>
         </div>
         <div class="card">
-            <div class="card-title">Change Password</div>
+            <div class="card-title" data-i18n="settings_password">Change Password</div>
             <div class="form-group">
-                <label>Current Password</label>
+                <label data-i18n="settings_current_pass">Current Password</label>
                 <input type="password" id="currentPass">
             </div>
             <div class="form-group">
-                <label>New Password</label>
-                <input type="password" id="newPass" placeholder="Min 6 characters">
+                <label data-i18n="settings_new_pass">New Password</label>
+                <input type="password" id="newPass" data-i18n-placeholder="settings_pass_min" placeholder="Min 6 characters">
             </div>
-            <button class="btn btn-primary" onclick="changePassword()">Change Password</button>
+            <button class="btn btn-primary" onclick="changePassword()" data-i18n="settings_update_pass">Change Password</button>
         </div>
     </main>
+    <script src="assets/js/i18n.js"></script>
     <script>
         const API_BASE = '/api';
         const token = localStorage.getItem('token');
@@ -94,7 +102,7 @@
         document.getElementById('userAvatar').textContent = (user.name || 'U')[0].toUpperCase();
         document.getElementById('name').value = user.name || '';
         document.getElementById('email').value = user.email || '';
-        
+
         async function updateProfile() {
             const name = document.getElementById('name').value;
             try {
@@ -104,21 +112,21 @@
                     body: JSON.stringify({ name })
                 });
                 const data = await resp.json();
-                showMsg(data.success ? 'success' : 'error', data.message);
+                showMsg(data.success ? 'success' : 'error', data.success ? t('settings_saved') : data.message);
                 if (data.success) {
                     user.name = name;
                     localStorage.setItem('user', JSON.stringify(user));
                     document.getElementById('userName').textContent = name;
                     document.getElementById('userAvatar').textContent = name[0].toUpperCase();
                 }
-            } catch (err) { showMsg('error', 'Error saving'); }
+            } catch (err) { showMsg('error', t('settings_save_error')); }
         }
-        
+
         async function changePassword() {
             const current_password = document.getElementById('currentPass').value;
             const new_password = document.getElementById('newPass').value;
-            if (!current_password || !new_password) { showMsg('error', 'Fill all fields'); return; }
-            if (new_password.length < 6) { showMsg('error', 'Password must be 6+ characters'); return; }
+            if (!current_password || !new_password) { showMsg('error', t('settings_fill_all')); return; }
+            if (new_password.length < 6) { showMsg('error', t('settings_pass_min')); return; }
             try {
                 const resp = await fetch(API_BASE + '/auth.php?action=update', {
                     method: 'POST',
@@ -128,9 +136,9 @@
                 const data = await resp.json();
                 showMsg(data.success ? 'success' : 'error', data.message);
                 if (data.success) { document.getElementById('currentPass').value = ''; document.getElementById('newPass').value = ''; }
-            } catch (err) { showMsg('error', 'Error'); }
+            } catch (err) { showMsg('error', t('settings_save_error')); }
         }
-        
+
         function showMsg(type, text) {
             const m = document.getElementById('message');
             m.className = 'message ' + type;

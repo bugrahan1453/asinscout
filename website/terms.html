@@ -15,8 +15,11 @@
         .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; text-decoration: none; color: var(--text); }
         .logo span { color: var(--orange); }
         .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+        .nav-links { display: flex; align-items: center; gap: 0; }
         .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; margin-left: 24px; transition: color 0.2s; }
         .nav-links a:hover { color: var(--orange); }
+        .lang-btn { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-left: 16px; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--orange); color: var(--orange); }
         .page-header { padding: 140px 0 60px; text-align: center; background: var(--bg2); border-bottom: 1px solid var(--border); }
         .page-header h1 { font-size: 42px; font-weight: 800; margin-bottom: 12px; }
         .page-header p { color: var(--text2); font-size: 16px; }
@@ -38,126 +41,220 @@
         @media (max-width: 768px) { .page-header h1 { font-size: 28px; } .nav-links { display: none; } }
     </style>
 </head>
-<body>
+<body data-i18n-title="terms_title">
     <nav>
         <div class="nav-container">
             <a href="index.html" class="logo"><div class="logo-icon">A</div>ASIN<span>Scout</span> Pro</a>
             <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="index.html#features">Features</a>
-                <a href="index.html#pricing">Pricing</a>
-                <a href="contact.html">Contact</a>
+                <a href="index.html" data-i18n="nav_home">Home</a>
+                <a href="index.html#features" data-i18n="nav_features">Features</a>
+                <a href="index.html#pricing" data-i18n="nav_pricing">Pricing</a>
+                <a href="contact.html" data-i18n="nav_contact">Contact</a>
+                <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+                <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
             </div>
         </div>
     </nav>
 
     <div class="page-header">
         <div class="container">
-            <h1>Terms of Service</h1>
-            <p>Last updated: February 2025</p>
+            <h1 data-i18n="terms_title">Terms of Service</h1>
+            <p data-i18n="terms_subtitle">Last updated: February 2025</p>
         </div>
     </div>
 
     <div class="content">
         <div class="container">
-            <h2>1. Acceptance of Terms</h2>
-            <p>By accessing or using ASIN Scout Pro ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service. These Terms apply to all visitors, users, and others who access or use the Service.</p>
+            <!-- English Content -->
+            <div data-lang-content="en">
+                <h2>1. Acceptance of Terms</h2>
+                <p>By accessing or using ASIN Scout Pro ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service. These Terms apply to all visitors, users, and others who access or use the Service.</p>
 
-            <h2>2. Description of Service</h2>
-            <p>ASIN Scout Pro provides a web-based platform and Chrome Extension that allows users to extract Amazon Standard Identification Numbers (ASINs) from publicly accessible Amazon marketplace pages. The Service includes:</p>
-            <ul>
-                <li>A Chrome browser extension for ASIN scanning</li>
-                <li>A web dashboard for managing scans and downloading results</li>
-                <li>Various scan packages with different limits and durations</li>
-            </ul>
+                <h2>2. Description of Service</h2>
+                <p>ASIN Scout Pro provides a web-based platform and Chrome Extension that allows users to extract Amazon Standard Identification Numbers (ASINs) from publicly accessible Amazon marketplace pages. The Service includes:</p>
+                <ul>
+                    <li>A Chrome browser extension for ASIN scanning</li>
+                    <li>A web dashboard for managing scans and downloading results</li>
+                    <li>Various scan packages with different limits and durations</li>
+                </ul>
 
-            <h2>3. Account Registration</h2>
-            <p>To use the Service, you must create an account and provide accurate information. You are responsible for:</p>
-            <ul>
-                <li>Maintaining the confidentiality of your account credentials</li>
-                <li>All activities that occur under your account</li>
-                <li>Notifying us immediately of any unauthorized access</li>
-            </ul>
-            <p>You must be at least 18 years old to create an account. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
+                <h2>3. Account Registration</h2>
+                <p>To use the Service, you must create an account and provide accurate information. You are responsible for:</p>
+                <ul>
+                    <li>Maintaining the confidentiality of your account credentials</li>
+                    <li>All activities that occur under your account</li>
+                    <li>Notifying us immediately of any unauthorized access</li>
+                </ul>
+                <p>You must be at least 18 years old to create an account. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
 
-            <h2>4. Packages and Payment</h2>
+                <h2>4. Packages and Payment</h2>
 
-            <h3>4.1 Pricing</h3>
-            <p>Packages are offered on a one-time purchase basis with a specified duration (in days) and scan limits. Prices are displayed in USD unless otherwise stated. We reserve the right to change pricing at any time, but changes will not affect existing active packages.</p>
+                <h3>4.1 Pricing</h3>
+                <p>Packages are offered on a one-time purchase basis with a specified duration (in days) and scan limits. Prices are displayed in USD unless otherwise stated. We reserve the right to change pricing at any time, but changes will not affect existing active packages.</p>
 
-            <h3>4.2 Payment Processing</h3>
-            <p>Payments are processed securely through Stripe. By making a purchase, you agree to Stripe's <a href="https://stripe.com/legal" target="_blank">Terms of Service</a>. All transactions are final, subject to our Refund Policy.</p>
+                <h3>4.2 Payment Processing</h3>
+                <p>Payments are processed securely through Stripe. By making a purchase, you agree to Stripe's <a href="https://stripe.com/legal" target="_blank">Terms of Service</a>. All transactions are final, subject to our Refund Policy.</p>
 
-            <h3>4.3 Package Duration</h3>
-            <p>Packages are activated immediately upon successful payment and expire after the specified duration. Unused scans or ASIN limits do not carry over after expiration.</p>
+                <h3>4.3 Package Duration</h3>
+                <p>Packages are activated immediately upon successful payment and expire after the specified duration. Unused scans or ASIN limits do not carry over after expiration.</p>
 
-            <h2>5. Acceptable Use</h2>
-            <p>You agree to use the Service only for lawful purposes. You must <strong>not</strong>:</p>
-            <ul>
-                <li>Use the Service to violate any applicable laws or regulations</li>
-                <li>Attempt to bypass scan limits or package restrictions</li>
-                <li>Share your account credentials with others</li>
-                <li>Reverse engineer, decompile, or disassemble the Chrome Extension</li>
-                <li>Use automated tools to interact with the Service (beyond the provided Extension)</li>
-                <li>Resell or redistribute data obtained through the Service in a competing product</li>
-                <li>Overload our servers through excessive or abusive use</li>
-            </ul>
+                <h2>5. Acceptable Use</h2>
+                <p>You agree to use the Service only for lawful purposes. You must <strong>not</strong>:</p>
+                <ul>
+                    <li>Use the Service to violate any applicable laws or regulations</li>
+                    <li>Attempt to bypass scan limits or package restrictions</li>
+                    <li>Share your account credentials with others</li>
+                    <li>Reverse engineer, decompile, or disassemble the Chrome Extension</li>
+                    <li>Use automated tools to interact with the Service (beyond the provided Extension)</li>
+                    <li>Resell or redistribute data obtained through the Service in a competing product</li>
+                    <li>Overload our servers through excessive or abusive use</li>
+                </ul>
 
-            <h2>6. Intellectual Property</h2>
-            <p>The ASIN Scout Pro brand, logo, website design, and Chrome Extension source code are the intellectual property of ASIN Scout Pro. You may not copy, modify, or distribute any part of our software without prior written consent.</p>
-            <p>Data extracted using our tool (ASINs) is publicly available information from Amazon. We make no claim of ownership over this data.</p>
+                <h2>6. Intellectual Property</h2>
+                <p>The ASIN Scout Pro brand, logo, website design, and Chrome Extension source code are the intellectual property of ASIN Scout Pro. You may not copy, modify, or distribute any part of our software without prior written consent.</p>
+                <p>Data extracted using our tool (ASINs) is publicly available information from Amazon. We make no claim of ownership over this data.</p>
 
-            <h2>7. Disclaimer of Warranties</h2>
-            <p>The Service is provided "as is" and "as available" without warranties of any kind, whether express or implied. We do not guarantee that:</p>
-            <ul>
-                <li>The Service will be uninterrupted or error-free</li>
-                <li>Scan results will be 100% complete or accurate</li>
-                <li>The Service will be compatible with all Amazon marketplace changes</li>
-            </ul>
-            <p>Amazon may change their website structure at any time, which may temporarily affect scan results. We actively maintain our tool to adapt to such changes.</p>
+                <h2>7. Disclaimer of Warranties</h2>
+                <p>The Service is provided "as is" and "as available" without warranties of any kind, whether express or implied. We do not guarantee that:</p>
+                <ul>
+                    <li>The Service will be uninterrupted or error-free</li>
+                    <li>Scan results will be 100% complete or accurate</li>
+                    <li>The Service will be compatible with all Amazon marketplace changes</li>
+                </ul>
+                <p>Amazon may change their website structure at any time, which may temporarily affect scan results. We actively maintain our tool to adapt to such changes.</p>
 
-            <h2>8. Limitation of Liability</h2>
-            <p>To the maximum extent permitted by law, ASIN Scout Pro shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or business opportunities, arising from your use of or inability to use the Service.</p>
-            <p>Our total liability for any claim related to the Service shall not exceed the amount you paid for your current package.</p>
+                <h2>8. Limitation of Liability</h2>
+                <p>To the maximum extent permitted by law, ASIN Scout Pro shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or business opportunities, arising from your use of or inability to use the Service.</p>
+                <p>Our total liability for any claim related to the Service shall not exceed the amount you paid for your current package.</p>
 
-            <h2>9. Third-Party Services</h2>
-            <p>Our Service interacts with Amazon marketplace pages and uses Stripe for payment processing. We are not responsible for the availability, accuracy, or policies of these third-party services. Your use of Amazon is subject to Amazon's own Terms of Service.</p>
+                <h2>9. Third-Party Services</h2>
+                <p>Our Service interacts with Amazon marketplace pages and uses Stripe for payment processing. We are not responsible for the availability, accuracy, or policies of these third-party services. Your use of Amazon is subject to Amazon's own Terms of Service.</p>
 
-            <h2>10. Account Termination</h2>
-            <p>We may suspend or terminate your account if you violate these Terms. You may also delete your account at any time by contacting us. Upon termination:</p>
-            <ul>
-                <li>Your access to the Service will be revoked</li>
-                <li>Active packages are non-refundable unless otherwise specified</li>
-                <li>Your scan data may be deleted after 30 days</li>
-            </ul>
+                <h2>10. Account Termination</h2>
+                <p>We may suspend or terminate your account if you violate these Terms. You may also delete your account at any time by contacting us. Upon termination:</p>
+                <ul>
+                    <li>Your access to the Service will be revoked</li>
+                    <li>Active packages are non-refundable unless otherwise specified</li>
+                    <li>Your scan data may be deleted after 30 days</li>
+                </ul>
 
-            <h2>11. Changes to Terms</h2>
-            <p>We reserve the right to modify these Terms at any time. Significant changes will be communicated via email or a notice on our website. Continued use of the Service after changes constitutes acceptance of the updated Terms.</p>
+                <h2>11. Changes to Terms</h2>
+                <p>We reserve the right to modify these Terms at any time. Significant changes will be communicated via email or a notice on our website. Continued use of the Service after changes constitutes acceptance of the updated Terms.</p>
 
-            <h2>12. Governing Law</h2>
-            <p>These Terms shall be governed by and construed in accordance with applicable laws. Any disputes arising from these Terms or the Service shall be resolved through good-faith negotiation first, and if necessary, through binding arbitration.</p>
+                <h2>12. Governing Law</h2>
+                <p>These Terms shall be governed by and construed in accordance with applicable laws. Any disputes arising from these Terms or the Service shall be resolved through good-faith negotiation first, and if necessary, through binding arbitration.</p>
 
-            <h2>13. Contact</h2>
-            <p>For questions about these Terms, contact us at:</p>
-            <ul>
-                <li>Email: <a href="mailto:support@asinscout.com">support@asinscout.com</a></li>
-                <li>Website: <a href="contact.html">Contact Page</a></li>
-            </ul>
+                <h2>13. Contact</h2>
+                <p>For questions about these Terms, contact us at:</p>
+                <ul>
+                    <li>Email: <a href="mailto:support@asinscout.com">support@asinscout.com</a></li>
+                    <li>Website: <a href="contact.html">Contact Page</a></li>
+                </ul>
+            </div>
+
+            <!-- Turkish Content -->
+            <div data-lang-content="tr" style="display:none;">
+                <h2>1. Şartların Kabulü</h2>
+                <p>ASIN Scout Pro ("Hizmet") hizmetine erişerek veya kullanarak, bu Kullanım Şartları ("Şartlar") ile bağlı olmayı kabul edersiniz. Bu Şartları kabul etmiyorsanız Hizmeti kullanmayın. Bu Şartlar, Hizmete erişen veya kullanan tüm ziyaretçiler, kullanıcılar ve diğer kişiler için geçerlidir.</p>
+
+                <h2>2. Hizmet Açıklaması</h2>
+                <p>ASIN Scout Pro, kullanıcıların kamuya açık Amazon pazaryeri sayfalarından Amazon Standart Kimlik Numaralarını (ASIN) çıkarmasına olanak tanıyan web tabanlı bir platform ve Chrome Eklentisi sağlar. Hizmet şunları içerir:</p>
+                <ul>
+                    <li>ASIN taraması için bir Chrome tarayıcı eklentisi</li>
+                    <li>Taramaları yönetmek ve sonuçları indirmek için bir web kontrol paneli</li>
+                    <li>Farklı limitlere ve sürelere sahip çeşitli tarama paketleri</li>
+                </ul>
+
+                <h2>3. Hesap Kaydı</h2>
+                <p>Hizmeti kullanmak için bir hesap oluşturmalı ve doğru bilgi sağlamalısınız. Şunlardan sorumlusunuz:</p>
+                <ul>
+                    <li>Hesap kimlik bilgilerinizin gizliliğini korumak</li>
+                    <li>Hesabınız altında gerçekleşen tüm faaliyetler</li>
+                    <li>Yetkisiz erişim durumunda bizi derhal bilgilendirmek</li>
+                </ul>
+                <p>Hesap oluşturmak için en az 18 yaşında olmalısınız. Bu Şartları ihlal eden hesapları askıya alma veya sonlandırma hakkını saklı tutarız.</p>
+
+                <h2>4. Paketler ve Ödeme</h2>
+
+                <h3>4.1 Fiyatlandırma</h3>
+                <p>Paketler, belirli bir süre (gün olarak) ve tarama limitleri ile tek seferlik satın alma esasıyla sunulur. Aksi belirtilmedikçe fiyatlar USD olarak gösterilir. Fiyatlandırmayı istediğimiz zaman değiştirme hakkını saklı tutarız, ancak değişiklikler mevcut aktif paketleri etkilemez.</p>
+
+                <h3>4.2 Ödeme İşleme</h3>
+                <p>Ödemeler Stripe aracılığıyla güvenli şekilde işlenir. Satın alma yaparak, Stripe'ın <a href="https://stripe.com/legal" target="_blank">Kullanım Şartlarını</a> kabul edersiniz. Tüm işlemler, İade Politikamıza tabi olarak kesindir.</p>
+
+                <h3>4.3 Paket Süresi</h3>
+                <p>Paketler, başarılı ödeme sonrasında hemen aktifleştirilir ve belirtilen süre sonunda sona erer. Kullanılmayan taramalar veya ASIN limitleri süresi dolduktan sonra devredilmez.</p>
+
+                <h2>5. Kabul Edilebilir Kullanım</h2>
+                <p>Hizmeti yalnızca yasal amaçlarla kullanmayı kabul edersiniz. Şunları <strong>yapmamalısınız</strong>:</p>
+                <ul>
+                    <li>Hizmeti herhangi bir geçerli yasa veya düzenlemeyi ihlal etmek için kullanmak</li>
+                    <li>Tarama limitlerini veya paket kısıtlamalarını atlatmaya çalışmak</li>
+                    <li>Hesap kimlik bilgilerinizi başkalarıyla paylaşmak</li>
+                    <li>Chrome Eklentisini tersine mühendislik yapmak, kaynak kodunu çözmek veya sökmek</li>
+                    <li>Hizmetle etkileşim kurmak için otomatik araçlar kullanmak (sağlanan Eklenti dışında)</li>
+                    <li>Hizmet aracılığıyla elde edilen verileri rakip bir üründe yeniden satmak veya dağıtmak</li>
+                    <li>Aşırı veya kötüye kullanım yoluyla sunucularımızı aşırı yüklemek</li>
+                </ul>
+
+                <h2>6. Fikri Mülkiyet</h2>
+                <p>ASIN Scout Pro markası, logosu, web sitesi tasarımı ve Chrome Eklentisi kaynak kodu ASIN Scout Pro'nun fikri mülkiyetidir. Yazılımımızın herhangi bir bölümünü önceden yazılı izin almadan kopyalayamaz, değiştiremez veya dağıtamazsınız.</p>
+                <p>Aracımız kullanılarak çıkarılan veriler (ASIN'ler), Amazon'dan kamuya açık bilgilerdir. Bu veriler üzerinde herhangi bir mülkiyet iddiasında bulunmayız.</p>
+
+                <h2>7. Garanti Reddi</h2>
+                <p>Hizmet, açık veya zımni herhangi bir garanti olmaksızın "olduğu gibi" ve "mevcut olduğu şekliyle" sağlanır. Şunları garanti etmeyiz:</p>
+                <ul>
+                    <li>Hizmetin kesintisiz veya hatasız olacağı</li>
+                    <li>Tarama sonuçlarının %100 eksiksiz veya doğru olacağı</li>
+                    <li>Hizmetin tüm Amazon pazaryeri değişiklikleriyle uyumlu olacağı</li>
+                </ul>
+                <p>Amazon web sitesi yapısını istediği zaman değiştirebilir, bu da tarama sonuçlarını geçici olarak etkileyebilir. Aracımızı bu tür değişikliklere uyum sağlayacak şekilde aktif olarak sürdürüyoruz.</p>
+
+                <h2>8. Sorumluluk Sınırlaması</h2>
+                <p>Yasaların izin verdiği azami ölçüde, ASIN Scout Pro, Hizmeti kullanımınızdan veya kullanamamanızdan kaynaklanan kar kaybı, veri kaybı veya iş fırsatları kaybı dahil ancak bunlarla sınırlı olmamak üzere, dolaylı, arızi, özel, sonuç niteliğinde veya cezai tazminatlardan sorumlu olmayacaktır.</p>
+                <p>Hizmetle ilgili herhangi bir talep için toplam sorumluluğumuz, mevcut paketiniz için ödediğiniz tutarı aşmayacaktır.</p>
+
+                <h2>9. Üçüncü Taraf Hizmetleri</h2>
+                <p>Hizmetimiz Amazon pazaryeri sayfaları ile etkileşime girer ve ödeme işleme için Stripe kullanır. Bu üçüncü taraf hizmetlerin kullanılabilirliğinden, doğruluğundan veya politikalarından sorumlu değiliz. Amazon kullanımınız, Amazon'un kendi Kullanım Şartlarına tabidir.</p>
+
+                <h2>10. Hesap Sonlandırma</h2>
+                <p>Bu Şartları ihlal ederseniz hesabınızı askıya alabilir veya sonlandırabiliriz. Ayrıca bizimle iletişime geçerek hesabınızı istediğiniz zaman silebilirsiniz. Sonlandırma üzerine:</p>
+                <ul>
+                    <li>Hizmete erişiminiz iptal edilecektir</li>
+                    <li>Aktif paketler, aksi belirtilmedikçe iade edilemez</li>
+                    <li>Tarama verileriniz 30 gün sonra silinebilir</li>
+                </ul>
+
+                <h2>11. Şartlarda Değişiklikler</h2>
+                <p>Bu Şartları istediğimiz zaman değiştirme hakkını saklı tutarız. Önemli değişiklikler e-posta veya web sitemizdeki bir bildirim aracılığıyla iletilecektir. Değişikliklerden sonra Hizmeti kullanmaya devam etmeniz, güncellenmiş Şartları kabul ettiğiniz anlamına gelir.</p>
+
+                <h2>12. Geçerli Hukuk</h2>
+                <p>Bu Şartlar geçerli yasalara uygun olarak yönetilecek ve yorumlanacaktır. Bu Şartlardan veya Hizmetten kaynaklanan anlaşmazlıklar önce iyi niyetli müzakere yoluyla, gerekirse bağlayıcı tahkim yoluyla çözümlenecektir.</p>
+
+                <h2>13. İletişim</h2>
+                <p>Bu Şartlar hakkında sorularınız için bizimle iletişime geçin:</p>
+                <ul>
+                    <li>E-posta: <a href="mailto:support@asinscout.com">support@asinscout.com</a></li>
+                    <li>Web sitesi: <a href="contact.html">İletişim Sayfası</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
     <footer>
         <div class="container">
             <div class="footer-links">
-                <a href="index.html">Home</a>
-                <a href="about.html">About Us</a>
-                <a href="contact.html">Contact</a>
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
-                <a href="refund.html">Refund Policy</a>
+                <a href="index.html" data-i18n="footer_home">Home</a>
+                <a href="about.html" data-i18n="footer_about">About Us</a>
+                <a href="contact.html" data-i18n="footer_contact">Contact</a>
+                <a href="privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+                <a href="terms.html" data-i18n="footer_terms">Terms of Service</a>
+                <a href="refund.html" data-i18n="footer_refund">Refund Policy</a>
             </div>
-            <div class="footer-copy">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
+            <div class="footer-copy" data-i18n="footer_copyright">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
         </div>
     </footer>
+
+    <script src="assets/js/i18n.js"></script>
 </body>
 </html>

@@ -15,8 +15,11 @@
         .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; text-decoration: none; color: var(--text); }
         .logo span { color: var(--orange); }
         .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+        .nav-links { display: flex; align-items: center; gap: 0; }
         .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; margin-left: 24px; transition: color 0.2s; }
         .nav-links a:hover { color: var(--orange); }
+        .lang-btn { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-left: 16px; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--orange); color: var(--orange); }
         .page-header { padding: 140px 0 60px; text-align: center; background: var(--bg2); border-bottom: 1px solid var(--border); }
         .page-header h1 { font-size: 42px; font-weight: 800; margin-bottom: 12px; }
         .page-header p { color: var(--text2); font-size: 16px; }
@@ -26,6 +29,7 @@
         .content h3 { font-size: 18px; font-weight: 600; margin: 28px 0 12px; }
         .content p { color: var(--text2); font-size: 15px; margin-bottom: 16px; }
         .content ul { color: var(--text2); font-size: 15px; margin: 0 0 16px 24px; }
+        .content ol { color: var(--text2); font-size: 15px; margin: 0 0 16px 24px; }
         .content li { margin-bottom: 8px; }
         .content a { color: var(--orange); text-decoration: none; }
         .content a:hover { text-decoration: underline; }
@@ -41,101 +45,170 @@
         @media (max-width: 768px) { .page-header h1 { font-size: 28px; } .nav-links { display: none; } }
     </style>
 </head>
-<body>
+<body data-i18n-title="refund_title">
     <nav>
         <div class="nav-container">
             <a href="index.html" class="logo"><div class="logo-icon">A</div>ASIN<span>Scout</span> Pro</a>
             <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="index.html#features">Features</a>
-                <a href="index.html#pricing">Pricing</a>
-                <a href="contact.html">Contact</a>
+                <a href="index.html" data-i18n="nav_home">Home</a>
+                <a href="index.html#features" data-i18n="nav_features">Features</a>
+                <a href="index.html#pricing" data-i18n="nav_pricing">Pricing</a>
+                <a href="contact.html" data-i18n="nav_contact">Contact</a>
+                <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+                <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
             </div>
         </div>
     </nav>
 
     <div class="page-header">
         <div class="container">
-            <h1>Refund Policy</h1>
-            <p>Last updated: February 2025</p>
+            <h1 data-i18n="refund_title">Refund Policy</h1>
+            <p data-i18n="refund_subtitle">Last updated: February 2025</p>
         </div>
     </div>
 
     <div class="content">
         <div class="container">
-            <div class="highlight-box green">
-                <h3>Our Commitment</h3>
-                <p style="margin-bottom:0;">We stand behind our product. If ASIN Scout Pro doesn't meet your expectations, we offer a straightforward refund process.</p>
+            <!-- English Content -->
+            <div data-lang-content="en">
+                <div class="highlight-box green">
+                    <h3>Our Commitment</h3>
+                    <p style="margin-bottom:0;">We stand behind our product. If ASIN Scout Pro doesn't meet your expectations, we offer a straightforward refund process.</p>
+                </div>
+
+                <h2>1. 7-Day Money-Back Guarantee</h2>
+                <p>We offer a <strong>7-day money-back guarantee</strong> on all package purchases. If you are not satisfied with our Service within 7 days of purchase, you may request a full refund - no questions asked.</p>
+
+                <h2>2. Eligibility for Refund</h2>
+                <p>You are eligible for a full refund if:</p>
+                <ul>
+                    <li>Your refund request is made within <strong>7 days</strong> of the purchase date</li>
+                    <li>It is your first purchase or your first refund request</li>
+                </ul>
+
+                <h2>3. Non-Refundable Situations</h2>
+                <p>Refunds may not be granted in the following situations:</p>
+                <ul>
+                    <li>The refund is requested more than 7 days after purchase</li>
+                    <li>You have already used a significant portion of your package limits (more than 50%)</li>
+                    <li>Your account was suspended due to a violation of our Terms of Service</li>
+                    <li>You have already received a refund for a previous purchase</li>
+                </ul>
+
+                <h2>4. How to Request a Refund</h2>
+                <p>To request a refund:</p>
+                <ol>
+                    <li>Send an email to <a href="mailto:support@asinscout.com">support@asinscout.com</a> with the subject line "Refund Request"</li>
+                    <li>Include your registered email address and order details</li>
+                    <li>Briefly describe the reason for your refund (optional but helpful)</li>
+                </ol>
+
+                <h2>5. Refund Processing</h2>
+                <p>Once approved, refunds are processed as follows:</p>
+                <ul>
+                    <li>Refunds are issued to the original payment method used for the purchase</li>
+                    <li>Processing typically takes <strong>5-10 business days</strong> depending on your bank</li>
+                    <li>Upon refund, your package and associated benefits will be immediately deactivated</li>
+                    <li>Any scans performed during the active period will remain in your history for 30 days</li>
+                </ul>
+
+                <h2>6. Partial Refunds</h2>
+                <p>In some cases, we may offer a partial refund or package credit if:</p>
+                <ul>
+                    <li>The refund request is made after the 7-day period but within 14 days</li>
+                    <li>The Service experienced significant downtime or technical issues during your active package period</li>
+                    <li>Special circumstances warrant consideration</li>
+                </ul>
+
+                <h2>7. Service Issues</h2>
+                <p>If you experience technical issues with the Service, please contact our support team first. Many issues can be resolved quickly without the need for a refund. We are committed to ensuring our tool works properly for all users.</p>
+
+                <h2>8. Contact Us</h2>
+                <p>For refund requests or questions about this policy:</p>
+                <ul>
+                    <li>Email: <a href="mailto:support@asinscout.com">support@asinscout.com</a></li>
+                    <li>Response time: Within 24-48 hours on business days</li>
+                </ul>
             </div>
 
-            <h2>1. 7-Day Money-Back Guarantee</h2>
-            <p>We offer a <strong>7-day money-back guarantee</strong> on all package purchases. If you are not satisfied with our Service within 7 days of purchase, you may request a full refund - no questions asked.</p>
+            <!-- Turkish Content -->
+            <div data-lang-content="tr" style="display:none;">
+                <div class="highlight-box green">
+                    <h3>Taahhüdümüz</h3>
+                    <p style="margin-bottom:0;">Ürünümüzün arkasında duruyoruz. ASIN Scout Pro beklentilerinizi karşılamazsa, basit bir iade süreci sunuyoruz.</p>
+                </div>
 
-            <h2>2. Eligibility for Refund</h2>
-            <p>You are eligible for a full refund if:</p>
-            <ul>
-                <li>Your refund request is made within <strong>7 days</strong> of the purchase date</li>
-                <li>It is your first purchase or your first refund request</li>
-            </ul>
+                <h2>1. 7 Günlük Para İade Garantisi</h2>
+                <p>Tüm paket satın alımlarında <strong>7 günlük para iade garantisi</strong> sunuyoruz. Satın alma tarihinden itibaren 7 gün içinde Hizmetimizden memnun kalmazsanız, soru sorulmadan tam iade talep edebilirsiniz.</p>
 
-            <h2>3. Non-Refundable Situations</h2>
-            <p>Refunds may not be granted in the following situations:</p>
-            <ul>
-                <li>The refund is requested more than 7 days after purchase</li>
-                <li>You have already used a significant portion of your package limits (more than 50%)</li>
-                <li>Your account was suspended due to a violation of our Terms of Service</li>
-                <li>You have already received a refund for a previous purchase</li>
-            </ul>
+                <h2>2. İade Uygunluğu</h2>
+                <p>Aşağıdaki durumlarda tam iade almaya hak kazanırsınız:</p>
+                <ul>
+                    <li>İade talebiniz satın alma tarihinden itibaren <strong>7 gün</strong> içinde yapılmışsa</li>
+                    <li>İlk satın alımınız veya ilk iade talebinizse</li>
+                </ul>
 
-            <h2>4. How to Request a Refund</h2>
-            <p>To request a refund:</p>
-            <ol>
-                <li>Send an email to <a href="mailto:support@asinscout.com">support@asinscout.com</a> with the subject line "Refund Request"</li>
-                <li>Include your registered email address and order details</li>
-                <li>Briefly describe the reason for your refund (optional but helpful)</li>
-            </ol>
+                <h2>3. İade Edilemeyecek Durumlar</h2>
+                <p>Aşağıdaki durumlarda iade yapılmayabilir:</p>
+                <ul>
+                    <li>İade, satın almadan 7 günden fazla süre sonra talep edilmişse</li>
+                    <li>Paket limitlerinin önemli bir bölümünü (%50'den fazla) zaten kullanmışsanız</li>
+                    <li>Hesabınız Kullanım Şartlarımızın ihlali nedeniyle askıya alınmışsa</li>
+                    <li>Önceki bir satın alma için zaten iade almışsanız</li>
+                </ul>
 
-            <h2>5. Refund Processing</h2>
-            <p>Once approved, refunds are processed as follows:</p>
-            <ul>
-                <li>Refunds are issued to the original payment method used for the purchase</li>
-                <li>Processing typically takes <strong>5-10 business days</strong> depending on your bank</li>
-                <li>Upon refund, your package and associated benefits will be immediately deactivated</li>
-                <li>Any scans performed during the active period will remain in your history for 30 days</li>
-            </ul>
+                <h2>4. İade Nasıl Talep Edilir</h2>
+                <p>İade talep etmek için:</p>
+                <ol>
+                    <li><a href="mailto:support@asinscout.com">support@asinscout.com</a> adresine "İade Talebi" konu başlığıyla e-posta gönderin</li>
+                    <li>Kayıtlı e-posta adresinizi ve sipariş detaylarınızı ekleyin</li>
+                    <li>İade nedeninizi kısaca açıklayın (isteğe bağlı ama yardımcı olur)</li>
+                </ol>
 
-            <h2>6. Partial Refunds</h2>
-            <p>In some cases, we may offer a partial refund or package credit if:</p>
-            <ul>
-                <li>The refund request is made after the 7-day period but within 14 days</li>
-                <li>The Service experienced significant downtime or technical issues during your active package period</li>
-                <li>Special circumstances warrant consideration</li>
-            </ul>
+                <h2>5. İade İşlemi</h2>
+                <p>Onaylandıktan sonra iadeler şu şekilde işlenir:</p>
+                <ul>
+                    <li>İadeler, satın alma için kullanılan orijinal ödeme yöntemine yapılır</li>
+                    <li>İşlem, bankanıza bağlı olarak genellikle <strong>5-10 iş günü</strong> sürer</li>
+                    <li>İade sonrasında paketiniz ve ilişkili avantajlar derhal devre dışı bırakılacaktır</li>
+                    <li>Aktif dönemde yapılan taramalar 30 gün boyunca geçmişinizde kalacaktır</li>
+                </ul>
 
-            <h2>7. Service Issues</h2>
-            <p>If you experience technical issues with the Service, please contact our support team first. Many issues can be resolved quickly without the need for a refund. We are committed to ensuring our tool works properly for all users.</p>
+                <h2>6. Kısmi İadeler</h2>
+                <p>Bazı durumlarda kısmi iade veya paket kredisi sunabiliriz:</p>
+                <ul>
+                    <li>İade talebi 7 günlük süre sonrasında ancak 14 gün içinde yapılmışsa</li>
+                    <li>Aktif paket döneminizde Hizmet önemli kesinti veya teknik sorunlar yaşamışsa</li>
+                    <li>Özel koşullar değerlendirme gerektiriyorsa</li>
+                </ul>
 
-            <h2>8. Contact Us</h2>
-            <p>For refund requests or questions about this policy:</p>
-            <ul>
-                <li>Email: <a href="mailto:support@asinscout.com">support@asinscout.com</a></li>
-                <li>Response time: Within 24-48 hours on business days</li>
-            </ul>
+                <h2>7. Hizmet Sorunları</h2>
+                <p>Hizmetle ilgili teknik sorunlar yaşarsanız, lütfen önce destek ekibimizle iletişime geçin. Birçok sorun, iadeye gerek kalmadan hızla çözülebilir. Aracımızın tüm kullanıcılar için düzgün çalışmasını sağlamaya kararlıyız.</p>
+
+                <h2>8. Bize Ulaşın</h2>
+                <p>İade talepleri veya bu politika hakkında sorular için:</p>
+                <ul>
+                    <li>E-posta: <a href="mailto:support@asinscout.com">support@asinscout.com</a></li>
+                    <li>Yanıt süresi: İş günlerinde 24-48 saat içinde</li>
+                </ul>
+            </div>
         </div>
     </div>
 
     <footer>
         <div class="container">
             <div class="footer-links">
-                <a href="index.html">Home</a>
-                <a href="about.html">About Us</a>
-                <a href="contact.html">Contact</a>
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
-                <a href="refund.html">Refund Policy</a>
+                <a href="index.html" data-i18n="footer_home">Home</a>
+                <a href="about.html" data-i18n="footer_about">About Us</a>
+                <a href="contact.html" data-i18n="footer_contact">Contact</a>
+                <a href="privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+                <a href="terms.html" data-i18n="footer_terms">Terms of Service</a>
+                <a href="refund.html" data-i18n="footer_refund">Refund Policy</a>
             </div>
-            <div class="footer-copy">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
+            <div class="footer-copy" data-i18n="footer_copyright">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
         </div>
     </footer>
+
+    <script src="assets/js/i18n.js"></script>
 </body>
 </html>

@@ -10,7 +10,9 @@ const translations = {
         nav_how_it_works: "How It Works",
         nav_login: "Login",
         nav_get_started: "Get Started Free",
-        
+        nav_home: "Home",
+        nav_contact: "Contact",
+
         // Hero
         hero_title_1: "Extract",
         hero_title_2: "Every ASIN",
@@ -21,7 +23,7 @@ const translations = {
         hero_stat_asins: "ASINs Scanned",
         hero_stat_users: "Happy Users",
         hero_stat_stores: "Stores Analyzed",
-        
+
         // Features
         features_title: "Powerful Features",
         features_subtitle: "Everything you need to analyze Amazon stores",
@@ -37,7 +39,7 @@ const translations = {
         feature_5_desc: "Advanced crawling finds hidden products through related items.",
         feature_6_title: "Scan History",
         feature_6_desc: "Access all your past scans anytime. Download or re-analyze.",
-        
+
         // How it works
         how_title: "How It Works",
         how_subtitle: "Start extracting ASINs in 3 simple steps",
@@ -47,8 +49,8 @@ const translations = {
         step_2_desc: "Navigate to any Amazon seller store or search results page.",
         step_3_title: "Start Scanning",
         step_3_desc: "Click the extension and watch as ASINs are extracted automatically.",
-        
-        // Pricing
+
+        // Pricing (index page)
         pricing_title: "Simple Pricing",
         pricing_subtitle: "Choose your scan limit. Unlimited usage.",
         pricing_popular: "MOST POPULAR",
@@ -68,16 +70,32 @@ const translations = {
         pricing_unlimited: "Unlimited history",
         pricing_all_formats: "All export formats",
         pricing_get_started: "Get Started",
-        
+
+        // Pricing page (dashboard)
+        pricing_page_title: "Buy Package",
+        pricing_page_subtitle: "Unlimited daily scans. Pay once, use for 30 days.",
+        pricing_current_pkg: "Your Current Package",
+        pricing_no_pkg: "No Package",
+        pricing_expires_label: "Expires",
+        pricing_up_to: "Up to",
+        pricing_asins_scan: "ASINs per scan",
+        pricing_days_access: "days access",
+        pricing_buy_now: "Buy Now",
+        pricing_best_value: "BEST VALUE",
+        pricing_redirecting: "Redirecting to Payment...",
+        pricing_redirect_text: "You will be redirected to Stripe's secure payment page. Please complete the payment there.",
+        pricing_warning: "Do NOT close this tab until the payment is complete. You will be redirected back automatically.",
+        pricing_conn_error: "Connection error",
+
         // Testimonials
         testimonials_title: "What Our Users Say",
         testimonials_subtitle: "Join thousands of satisfied Amazon sellers",
-        
+
         // CTA
         cta_title: "Ready to Start Scanning?",
         cta_subtitle: "Start scanning Amazon stores today. Free trial available.",
-        cta_btn: "Create Free Account →",
-        
+        cta_btn: "Create Free Account \u2192",
+
         // Footer
         footer_desc: "The most powerful Amazon ASIN extraction tool for sellers and researchers.",
         footer_product: "Product",
@@ -91,15 +109,16 @@ const translations = {
         footer_privacy: "Privacy Policy",
         footer_terms: "Terms of Service",
         footer_refund: "Refund Policy",
-        footer_copyright: "© 2025 ASIN Scout Pro. All rights reserved.",
-        
+        footer_copyright: "\u00a9 2025 ASIN Scout Pro. All rights reserved.",
+        footer_home: "Home",
+
         // Dashboard
         dash_title: "Dashboard",
         dash_no_package: "No Active Package",
         dash_scan_limit: "Scan Limit",
         dash_asins_per_scan: "ASINs per scan",
         dash_expires: "Expires",
-        dash_buy_package: "Buy a package →",
+        dash_buy_package: "Buy a package \u2192",
         dash_total_scans: "Total Scans",
         dash_total_asins: "Total ASINs",
         dash_recent_scans: "Recent Scans",
@@ -111,15 +130,71 @@ const translations = {
         dash_date: "Date",
         dash_view: "View",
         dash_loading: "Loading...",
-        
+        dash_package_word: "Package",
+
         // Sidebar
-        sidebar_dashboard: "📊 Dashboard",
-        sidebar_scans: "📁 My Scans",
-        sidebar_buy: "💳 Buy Package",
-        sidebar_settings: "⚙️ Settings",
-        sidebar_logout: "🚪 Logout",
-        
-        // Auth
+        sidebar_dashboard: "\ud83d\udcca Dashboard",
+        sidebar_scans: "\ud83d\udcc1 My Scans",
+        sidebar_buy: "\ud83d\udcb3 Buy Package",
+        sidebar_settings: "\u2699\ufe0f Settings",
+        sidebar_logout: "\ud83d\udeaa Logout",
+
+        // Auth - Login
+        login_title: "Welcome Back",
+        login_subtitle: "Login to your account to continue",
+        login_email: "Email Address",
+        login_password: "Password",
+        login_forgot: "Forgot password?",
+        login_btn: "Login",
+        login_no_account: "Don't have an account?",
+        login_signup: "Sign up free",
+        login_logging_in: "Logging in...",
+        login_success: "Login successful! Redirecting...",
+        login_error: "Connection error. Please try again.",
+
+        // Auth - Register
+        register_title: "Create Account",
+        register_subtitle: "Start scanning Amazon stores today",
+        register_badge: "Start Scanning Amazon Stores",
+        register_name: "Full Name",
+        register_email: "Email Address",
+        register_password: "Password",
+        register_btn: "Create Account",
+        register_terms_pre: "By signing up, you agree to our",
+        register_terms_link: "Terms",
+        register_and: "and",
+        register_privacy_link: "Privacy Policy",
+        register_has_account: "Already have an account?",
+        register_login: "Login",
+        register_creating: "Creating account...",
+        register_error: "Connection error. Please try again.",
+
+        // Auth - Forgot Password
+        forgot_title: "Forgot Password?",
+        forgot_subtitle: "Enter your email and we'll send you a link to reset your password.",
+        forgot_email: "Email Address",
+        forgot_btn: "Send Reset Link",
+        forgot_sending: "Sending...",
+        forgot_sent: "Email Sent",
+        forgot_success: "If email exists, reset instructions have been sent.",
+        forgot_error: "Error sending email. Please try again.",
+        forgot_remember: "Remember your password?",
+        forgot_login: "Login",
+
+        // Auth - Reset Password
+        reset_title: "Reset Password",
+        reset_subtitle: "Enter your new password below",
+        reset_new_pass: "New Password",
+        reset_confirm: "Confirm Password",
+        reset_btn: "Reset Password",
+        reset_resetting: "Resetting...",
+        reset_success: "Password reset successful! Redirecting to login...",
+        reset_no_match: "Passwords do not match.",
+        reset_invalid: "Invalid reset link.",
+        reset_expired: "Reset failed. Link may have expired.",
+        reset_error: "Error. Please try again.",
+
+        // Auth generic
         auth_login: "Login",
         auth_register: "Create Account",
         auth_email: "Email",
@@ -130,23 +205,152 @@ const translations = {
         auth_has_account: "Already have an account?",
         auth_sign_up: "Sign up",
         auth_sign_in: "Sign in",
-        
-        // Scans
+
+        // Scans page
         scans_title: "My Scans",
         scans_empty: "No scans yet. Install the Chrome extension to start scanning Amazon stores!",
         scans_search: "Search scans...",
         scans_download: "Download",
         scans_delete: "Delete",
-        
+        scans_store: "Store",
+        scans_marketplace: "Marketplace",
+        scans_asins_col: "ASINs",
+        scans_pages_col: "Pages",
+        scans_status: "Status",
+        scans_date: "Date",
+        scans_actions: "Actions",
+        scans_view: "View",
+        scans_prev: "\u2190 Prev",
+        scans_next: "Next \u2192",
+        scans_page: "Page",
+        scans_of: "of",
+        scans_confirm_delete: "Delete this scan?",
+        scans_loading: "Loading...",
+        scans_no_scans: "No scans yet. Install the Chrome extension to start!",
+
+        // Scan Detail
+        scan_back: "\u2190 Back to Scans",
+        scan_total_asins: "Total ASINs",
+        scan_pages_scanned: "Pages Scanned",
+        scan_duration: "Duration",
+        scan_status: "Status",
+        scan_download_txt: "Download TXT",
+        scan_download_excel: "Download Excel",
+        scan_copy: "Copy All ASINs",
+        scan_no_asins: "No ASINs found",
+        scan_copied: "ASINs copied to clipboard!",
+        scan_scanned_on: "Scanned on",
+        scan_asins_label: "ASINs",
+
         // Settings
         settings_title: "Settings",
-        settings_profile: "Profile Settings",
+        settings_profile: "Profile",
+        settings_name: "Name",
+        settings_email: "Email",
         settings_save: "Save Changes",
         settings_password: "Change Password",
         settings_current_pass: "Current Password",
         settings_new_pass: "New Password",
         settings_confirm_pass: "Confirm Password",
-        settings_update_pass: "Update Password"
+        settings_update_pass: "Change Password",
+        settings_saved: "Profile updated successfully",
+        settings_save_error: "Error saving",
+        settings_fill_all: "Fill all fields",
+        settings_pass_min: "Password must be 6+ characters",
+
+        // Payment Success
+        payment_verifying: "Verifying Payment...",
+        payment_verifying_text: "Please wait while we confirm your payment with Stripe. Do not close this page.",
+        payment_success_title: "Payment Successful!",
+        payment_success_text: "Your package has been activated. You can start scanning now.",
+        payment_go_dashboard: "Go to Dashboard \u2192",
+        payment_failed_title: "Verification Failed",
+        payment_failed_text: "We couldn't verify your payment. If you were charged, please contact support and we'll resolve it immediately.",
+        payment_contact: "Contact Support",
+        payment_invalid: "Invalid payment session. If you just made a payment, please contact support.",
+        payment_conn_error: "Connection error. Please refresh this page or contact support.",
+        payment_verify_fail: "Payment verification failed. Please contact support if you were charged.",
+        payment_already: "Payment already processed",
+        payment_valid_until: "Valid until",
+
+        // Contact page
+        contact_title: "Contact Us",
+        contact_subtitle: "Have a question or need help? We're here for you.",
+        contact_get_in_touch: "Get in Touch",
+        contact_email_support: "Email Support",
+        contact_email_desc: "For general questions and support",
+        contact_response: "Response Time",
+        contact_response_desc: "We typically respond within 24 hours on business days",
+        contact_social: "Social Media",
+        contact_social_desc: "Follow us for updates and tips",
+        contact_send_msg: "Send a Message",
+        contact_name: "Your Name",
+        contact_email: "Email Address",
+        contact_subject: "Subject",
+        contact_message: "Message",
+        contact_send_btn: "Send Message",
+        contact_sending: "Sending...",
+        contact_success: "Message sent successfully! We'll get back to you within 24 hours.",
+        contact_fail: "Failed to send message. Please try email instead.",
+        contact_fallback: "Please send your message directly to support@asinscout.com",
+        contact_faq_title: "Frequently Asked Questions",
+        contact_opt_general: "General Question",
+        contact_opt_support: "Technical Support",
+        contact_opt_billing: "Billing / Payment",
+        contact_opt_refund: "Refund Request",
+        contact_opt_bug: "Bug Report",
+        contact_opt_feature: "Feature Request",
+        contact_opt_other: "Other",
+        contact_faq1_q: "How do I install the Chrome Extension?",
+        contact_faq1_a: "After creating an account and purchasing a package, you can download the Chrome Extension from your dashboard. Open Chrome, go to chrome://extensions, enable Developer Mode, and drag the extension file to install it.",
+        contact_faq2_q: "Which Amazon marketplaces are supported?",
+        contact_faq2_a: "ASIN Scout Pro works on all major Amazon marketplaces including amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.co.jp, amazon.ca, amazon.com.au, and more.",
+        contact_faq3_q: "What happens when my package expires?",
+        contact_faq3_a: "When your package expires, you can still access your previous scan history and download results. To perform new scans, you'll need to purchase a new package.",
+        contact_faq4_q: "Can I upgrade my package?",
+        contact_faq4_a: "Yes, you can purchase a new package at any time. The new package will replace your current one and reset your scan limits.",
+        contact_faq5_q: "Is the extension safe to use?",
+        contact_faq5_a: "Yes. Our extension only runs on Amazon pages and communicates with our secure server. It does not access your personal data, browsing history, or any other websites.",
+
+        // About page
+        about_title_pre: "About",
+        about_subtitle: "We build powerful tools to help Amazon sellers and researchers work smarter, not harder.",
+        about_stat_asins: "ASINs Scanned",
+        about_stat_users: "Active Users",
+        about_stat_markets: "Marketplaces",
+        about_stat_uptime: "Uptime",
+        about_story_title: "Our Story",
+        about_story_1: "ASIN Scout Pro was born from a simple frustration: manually collecting product data from Amazon stores is painfully slow and inefficient. As Amazon sellers ourselves, we knew there had to be a better way.",
+        about_story_2: "We built ASIN Scout Pro as the tool we always wished existed \u2013 fast, reliable, and comprehensive. Our 8-phase scanning algorithm doesn't just skim the surface; it digs deep into price ranges, categories, brands, and related products to find every single ASIN in a store.",
+        about_story_3: "Today, ASIN Scout Pro is trusted by thousands of Amazon sellers, product researchers, and dropshippers around the world.",
+        about_values_title: "What Drives Us",
+        about_values_subtitle: "Our core values guide everything we build",
+        about_speed: "Speed",
+        about_speed_desc: "Our adaptive scanning engine extracts thousands of ASINs per minute with smart throttling technology.",
+        about_reliability: "Reliability",
+        about_reliability_desc: "Automatic captcha recovery, error handling, and retry logic ensure your scans complete successfully.",
+        about_security: "Security",
+        about_security_desc: "Your data is encrypted, payments are processed securely via Stripe, and we never sell your information.",
+        about_how_title: "How It Works",
+        about_how_subtitle: "Our Chrome extension uses an advanced multi-phase scanning system",
+        about_smart: "Smart Scanning",
+        about_smart_desc: "8 scanning phases cover sort variations, price ranges, categories, brands, ratings, spider crawl, keywords, and deal filters.",
+        about_realtime: "Real-Time Progress",
+        about_realtime_desc: "Watch as ASINs are discovered in real-time with live status updates and progress tracking.",
+        about_export: "Easy Export",
+        about_export_desc: "Export your results to TXT or Excel format, or copy directly to clipboard with one click.",
+        about_cta_title: "Ready to Get Started?",
+        about_cta_text: "Join thousands of sellers who are already using ASIN Scout Pro to grow their business.",
+        about_cta_btn: "Create Free Account",
+        about_cta_pricing: "View Pricing",
+
+        // Legal pages
+        privacy_title: "Privacy Policy",
+        privacy_subtitle: "Last updated: February 2025",
+        terms_title: "Terms of Service",
+        terms_subtitle: "Last updated: February 2025",
+        refund_title: "Refund Policy",
+        refund_subtitle: "Your satisfaction matters to us"
     },
     tr: {
         // Navigation
@@ -155,7 +359,9 @@ const translations = {
         nav_how_it_works: "Nasıl Çalışır",
         nav_login: "Giriş Yap",
         nav_get_started: "Ücretsiz Başla",
-        
+        nav_home: "Ana Sayfa",
+        nav_contact: "İletişim",
+
         // Hero
         hero_title_1: "Amazon Mağazalarından",
         hero_title_2: "Tüm ASIN'leri",
@@ -166,7 +372,7 @@ const translations = {
         hero_stat_asins: "Taranan ASIN",
         hero_stat_users: "Mutlu Kullanıcı",
         hero_stat_stores: "Analiz Edilen Mağaza",
-        
+
         // Features
         features_title: "Güçlü Özellikler",
         features_subtitle: "Amazon mağazalarını analiz etmek için ihtiyacınız olan her şey",
@@ -182,7 +388,7 @@ const translations = {
         feature_5_desc: "Gelişmiş tarama, ilgili ürünler üzerinden gizli ürünleri bulur.",
         feature_6_title: "Tarama Geçmişi",
         feature_6_desc: "Tüm geçmiş taramalarınıza istediğiniz zaman erişin.",
-        
+
         // How it works
         how_title: "Nasıl Çalışır",
         how_subtitle: "3 basit adımda ASIN çıkarmaya başlayın",
@@ -192,8 +398,8 @@ const translations = {
         step_2_desc: "Herhangi bir Amazon satıcı mağazasına veya arama sonuçlarına gidin.",
         step_3_title: "Taramayı Başlat",
         step_3_desc: "Eklentiye tıklayın ve ASIN'lerin otomatik çıkarılmasını izleyin.",
-        
-        // Pricing
+
+        // Pricing (index page)
         pricing_title: "Basit Fiyatlandırma",
         pricing_subtitle: "Tarama limitinizi seçin. Sınırsız kullanım.",
         pricing_popular: "EN POPÜLER",
@@ -213,16 +419,32 @@ const translations = {
         pricing_unlimited: "Sınırsız geçmiş",
         pricing_all_formats: "Tüm formatlar",
         pricing_get_started: "Başla",
-        
+
+        // Pricing page (dashboard)
+        pricing_page_title: "Paket Al",
+        pricing_page_subtitle: "Sınırsız günlük tarama. Bir kez öde, 30 gün kullan.",
+        pricing_current_pkg: "Mevcut Paketiniz",
+        pricing_no_pkg: "Paket Yok",
+        pricing_expires_label: "Bitiş",
+        pricing_up_to: "En fazla",
+        pricing_asins_scan: "taramada ASIN",
+        pricing_days_access: "gün erişim",
+        pricing_buy_now: "Hemen Al",
+        pricing_best_value: "EN İYİ DEĞER",
+        pricing_redirecting: "Ödemeye Yönlendiriliyor...",
+        pricing_redirect_text: "Stripe'ın güvenli ödeme sayfasına yönlendirileceksiniz. Lütfen ödemeyi orada tamamlayın.",
+        pricing_warning: "Ödeme tamamlanana kadar bu sekmeyi KAPATMAYIN. Otomatik olarak geri yönlendirileceksiniz.",
+        pricing_conn_error: "Bağlantı hatası",
+
         // Testimonials
         testimonials_title: "Kullanıcılarımız Ne Diyor",
         testimonials_subtitle: "Binlerce memnun Amazon satıcısına katılın",
-        
+
         // CTA
         cta_title: "Taramaya Hazır mısınız?",
         cta_subtitle: "Amazon mağazalarını taramaya bugün başlayın. Ücretsiz deneme mevcut.",
-        cta_btn: "Ücretsiz Hesap Oluştur →",
-        
+        cta_btn: "Ücretsiz Hesap Oluştur \u2192",
+
         // Footer
         footer_desc: "Satıcılar ve araştırmacılar için en güçlü Amazon ASIN çıkarma aracı.",
         footer_product: "Ürün",
@@ -236,15 +458,16 @@ const translations = {
         footer_privacy: "Gizlilik Politikası",
         footer_terms: "Kullanım Şartları",
         footer_refund: "İade Politikası",
-        footer_copyright: "© 2025 ASIN Scout Pro. Tüm hakları saklıdır.",
-        
+        footer_copyright: "\u00a9 2025 ASIN Scout Pro. Tüm hakları saklıdır.",
+        footer_home: "Ana Sayfa",
+
         // Dashboard
         dash_title: "Kontrol Paneli",
         dash_no_package: "Aktif Paket Yok",
         dash_scan_limit: "Tarama Limiti",
         dash_asins_per_scan: "tarama başına ASIN",
         dash_expires: "Bitiş Tarihi",
-        dash_buy_package: "Paket satın al →",
+        dash_buy_package: "Paket satın al \u2192",
         dash_total_scans: "Toplam Tarama",
         dash_total_asins: "Toplam ASIN",
         dash_recent_scans: "Son Taramalar",
@@ -256,15 +479,71 @@ const translations = {
         dash_date: "Tarih",
         dash_view: "Görüntüle",
         dash_loading: "Yükleniyor...",
-        
+        dash_package_word: "Paketi",
+
         // Sidebar
-        sidebar_dashboard: "📊 Kontrol Paneli",
-        sidebar_scans: "📁 Taramalarım",
-        sidebar_buy: "💳 Paket Al",
-        sidebar_settings: "⚙️ Ayarlar",
-        sidebar_logout: "🚪 Çıkış",
-        
-        // Auth
+        sidebar_dashboard: "\ud83d\udcca Kontrol Paneli",
+        sidebar_scans: "\ud83d\udcc1 Taramalarım",
+        sidebar_buy: "\ud83d\udcb3 Paket Al",
+        sidebar_settings: "\u2699\ufe0f Ayarlar",
+        sidebar_logout: "\ud83d\udeaa Çıkış",
+
+        // Auth - Login
+        login_title: "Tekrar Hoş Geldiniz",
+        login_subtitle: "Devam etmek için hesabınıza giriş yapın",
+        login_email: "E-posta Adresi",
+        login_password: "Şifre",
+        login_forgot: "Şifremi unuttum?",
+        login_btn: "Giriş Yap",
+        login_no_account: "Hesabınız yok mu?",
+        login_signup: "Ücretsiz kaydol",
+        login_logging_in: "Giriş yapılıyor...",
+        login_success: "Giriş başarılı! Yönlendiriliyor...",
+        login_error: "Bağlantı hatası. Lütfen tekrar deneyin.",
+
+        // Auth - Register
+        register_title: "Hesap Oluştur",
+        register_subtitle: "Amazon mağazalarını taramaya bugün başlayın",
+        register_badge: "Amazon Mağazalarını Taramaya Başlayın",
+        register_name: "Ad Soyad",
+        register_email: "E-posta Adresi",
+        register_password: "Şifre",
+        register_btn: "Hesap Oluştur",
+        register_terms_pre: "Kaydolarak",
+        register_terms_link: "Kullanım Şartları",
+        register_and: "ve",
+        register_privacy_link: "Gizlilik Politikası'nı",
+        register_has_account: "Zaten hesabınız var mı?",
+        register_login: "Giriş Yap",
+        register_creating: "Hesap oluşturuluyor...",
+        register_error: "Bağlantı hatası. Lütfen tekrar deneyin.",
+
+        // Auth - Forgot Password
+        forgot_title: "Şifremi Unuttum",
+        forgot_subtitle: "E-postanızı girin, şifre sıfırlama bağlantısı gönderelim.",
+        forgot_email: "E-posta Adresi",
+        forgot_btn: "Sıfırlama Bağlantısı Gönder",
+        forgot_sending: "Gönderiliyor...",
+        forgot_sent: "E-posta Gönderildi",
+        forgot_success: "E-posta mevcutsa sıfırlama talimatları gönderildi.",
+        forgot_error: "E-posta gönderiminde hata. Lütfen tekrar deneyin.",
+        forgot_remember: "Şifrenizi hatırlıyor musunuz?",
+        forgot_login: "Giriş Yap",
+
+        // Auth - Reset Password
+        reset_title: "Şifre Sıfırla",
+        reset_subtitle: "Yeni şifrenizi aşağıya girin",
+        reset_new_pass: "Yeni Şifre",
+        reset_confirm: "Şifre Tekrar",
+        reset_btn: "Şifreyi Sıfırla",
+        reset_resetting: "Sıfırlanıyor...",
+        reset_success: "Şifre başarıyla sıfırlandı! Giriş sayfasına yönlendiriliyor...",
+        reset_no_match: "Şifreler eşleşmiyor.",
+        reset_invalid: "Geçersiz sıfırlama bağlantısı.",
+        reset_expired: "Sıfırlama başarısız. Bağlantı süresi dolmuş olabilir.",
+        reset_error: "Hata. Lütfen tekrar deneyin.",
+
+        // Auth generic
         auth_login: "Giriş Yap",
         auth_register: "Hesap Oluştur",
         auth_email: "E-posta",
@@ -275,23 +554,152 @@ const translations = {
         auth_has_account: "Zaten hesabınız var mı?",
         auth_sign_up: "Kaydol",
         auth_sign_in: "Giriş yap",
-        
-        // Scans
+
+        // Scans page
         scans_title: "Taramalarım",
         scans_empty: "Henüz tarama yok. Amazon mağazalarını taramak için Chrome eklentisini yükleyin!",
         scans_search: "Tarama ara...",
         scans_download: "İndir",
         scans_delete: "Sil",
-        
+        scans_store: "Mağaza",
+        scans_marketplace: "Pazaryeri",
+        scans_asins_col: "ASIN",
+        scans_pages_col: "Sayfa",
+        scans_status: "Durum",
+        scans_date: "Tarih",
+        scans_actions: "İşlemler",
+        scans_view: "Görüntüle",
+        scans_prev: "\u2190 Önceki",
+        scans_next: "Sonraki \u2192",
+        scans_page: "Sayfa",
+        scans_of: "/",
+        scans_confirm_delete: "Bu taramayı silmek istediğinize emin misiniz?",
+        scans_loading: "Yükleniyor...",
+        scans_no_scans: "Henüz tarama yok. Başlamak için Chrome eklentisini yükleyin!",
+
+        // Scan Detail
+        scan_back: "\u2190 Taramalara Dön",
+        scan_total_asins: "Toplam ASIN",
+        scan_pages_scanned: "Taranan Sayfa",
+        scan_duration: "Süre",
+        scan_status: "Durum",
+        scan_download_txt: "TXT İndir",
+        scan_download_excel: "Excel İndir",
+        scan_copy: "Tüm ASIN'leri Kopyala",
+        scan_no_asins: "ASIN bulunamadı",
+        scan_copied: "ASIN'ler panoya kopyalandı!",
+        scan_scanned_on: "Tarama tarihi",
+        scan_asins_label: "ASIN'ler",
+
         // Settings
         settings_title: "Ayarlar",
-        settings_profile: "Profil Ayarları",
+        settings_profile: "Profil",
+        settings_name: "Ad",
+        settings_email: "E-posta",
         settings_save: "Değişiklikleri Kaydet",
         settings_password: "Şifre Değiştir",
         settings_current_pass: "Mevcut Şifre",
         settings_new_pass: "Yeni Şifre",
         settings_confirm_pass: "Şifre Tekrar",
-        settings_update_pass: "Şifreyi Güncelle"
+        settings_update_pass: "Şifreyi Güncelle",
+        settings_saved: "Profil başarıyla güncellendi",
+        settings_save_error: "Kaydetme hatası",
+        settings_fill_all: "Tüm alanları doldurun",
+        settings_pass_min: "Şifre en az 6 karakter olmalı",
+
+        // Payment Success
+        payment_verifying: "Ödeme Doğrulanıyor...",
+        payment_verifying_text: "Stripe ile ödemenizi doğrularken lütfen bekleyin. Bu sayfayı kapatmayın.",
+        payment_success_title: "Ödeme Başarılı!",
+        payment_success_text: "Paketiniz aktifleştirildi. Artık taramaya başlayabilirsiniz.",
+        payment_go_dashboard: "Kontrol Paneline Git \u2192",
+        payment_failed_title: "Doğrulama Başarısız",
+        payment_failed_text: "Ödemenizi doğrulayamadık. Ücretlendirildiyseniz lütfen destek ile iletişime geçin.",
+        payment_contact: "Destek ile İletişim",
+        payment_invalid: "Geçersiz ödeme oturumu. Ödeme yaptıysanız destek ile iletişime geçin.",
+        payment_conn_error: "Bağlantı hatası. Bu sayfayı yenileyin veya destek ile iletişime geçin.",
+        payment_verify_fail: "Ödeme doğrulaması başarısız. Ücretlendirildiyseniz destek ile iletişime geçin.",
+        payment_already: "Ödeme zaten işlendi",
+        payment_valid_until: "Geçerlilik tarihi",
+
+        // Contact page
+        contact_title: "İletişim",
+        contact_subtitle: "Sorunuz mu var? Yardıma mı ihtiyacınız var? Buradayız.",
+        contact_get_in_touch: "İletişime Geçin",
+        contact_email_support: "E-posta Desteği",
+        contact_email_desc: "Genel sorular ve destek için",
+        contact_response: "Yanıt Süresi",
+        contact_response_desc: "İş günlerinde genellikle 24 saat içinde yanıt veririz",
+        contact_social: "Sosyal Medya",
+        contact_social_desc: "Güncellemeler ve ipuçları için bizi takip edin",
+        contact_send_msg: "Mesaj Gönderin",
+        contact_name: "Adınız",
+        contact_email: "E-posta Adresi",
+        contact_subject: "Konu",
+        contact_message: "Mesaj",
+        contact_send_btn: "Mesaj Gönder",
+        contact_sending: "Gönderiliyor...",
+        contact_success: "Mesajınız gönderildi! 24 saat içinde size dönüş yapacağız.",
+        contact_fail: "Mesaj gönderilemedi. Lütfen doğrudan e-posta gönderin.",
+        contact_fallback: "Lütfen mesajınızı doğrudan support@asinscout.com adresine gönderin",
+        contact_faq_title: "Sık Sorulan Sorular",
+        contact_opt_general: "Genel Soru",
+        contact_opt_support: "Teknik Destek",
+        contact_opt_billing: "Faturalama / Ödeme",
+        contact_opt_refund: "İade Talebi",
+        contact_opt_bug: "Hata Bildirimi",
+        contact_opt_feature: "Özellik İsteği",
+        contact_opt_other: "Diğer",
+        contact_faq1_q: "Chrome Eklentisini nasıl yüklerim?",
+        contact_faq1_a: "Hesap oluşturup paket satın aldıktan sonra Chrome Eklentisini kontrol panelinizden indirebilirsiniz. Chrome'u açın, chrome://extensions adresine gidin, Geliştirici Modunu etkinleştirin ve eklenti dosyasını sürükleyerek yükleyin.",
+        contact_faq2_q: "Hangi Amazon pazaryerleri destekleniyor?",
+        contact_faq2_a: "ASIN Scout Pro, amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.co.jp, amazon.ca, amazon.com.au ve daha fazlası dahil tüm büyük Amazon pazaryerlerinde çalışır.",
+        contact_faq3_q: "Paketim süresi dolduğunda ne olur?",
+        contact_faq3_a: "Paketinizin süresi dolduğunda, önceki tarama geçmişinize ve sonuçlarınıza erişmeye devam edebilirsiniz. Yeni tarama yapmak için yeni bir paket satın almanız gerekir.",
+        contact_faq4_q: "Paketimi yükseltebilir miyim?",
+        contact_faq4_a: "Evet, istediğiniz zaman yeni bir paket satın alabilirsiniz. Yeni paket mevcut paketinizin yerine geçecek ve tarama limitlerinizi sıfırlayacaktır.",
+        contact_faq5_q: "Eklenti güvenli mi?",
+        contact_faq5_a: "Evet. Eklentimiz yalnızca Amazon sayfalarında çalışır ve güvenli sunucumuzla iletişim kurar. Kişisel verilerinize, tarama geçmişinize veya diğer web sitelerine erişmez.",
+
+        // About page
+        about_title_pre: "Hakkında",
+        about_subtitle: "Amazon satıcılarına ve araştırmacılara daha akıllı çalışmalarına yardımcı olacak güçlü araçlar geliştiriyoruz.",
+        about_stat_asins: "Taranan ASIN",
+        about_stat_users: "Aktif Kullanıcı",
+        about_stat_markets: "Pazaryeri",
+        about_stat_uptime: "Çalışma Süresi",
+        about_story_title: "Hikayemiz",
+        about_story_1: "ASIN Scout Pro basit bir hayal kırıklığından doğdu: Amazon mağazalarından ürün verilerini manuel olarak toplamak acı verici derecede yavaş ve verimsiz. Amazon satıcıları olarak daha iyi bir yol olması gerektiğini biliyorduk.",
+        about_story_2: "ASIN Scout Pro'yu her zaman var olmasını dilediğimiz araç olarak inşa ettik \u2013 hızlı, güvenilir ve kapsamlı. 8 fazlı tarama algoritmamız sadece yüzeyi taramaz; fiyat aralıklarına, kategorilere, markalara ve ilgili ürünlere derinlemesine iner.",
+        about_story_3: "Bugün ASIN Scout Pro, dünya genelinde binlerce Amazon satıcısı, ürün araştırmacısı ve dropshipper tarafından güvenilmektedir.",
+        about_values_title: "Bizi Yönlendiren Değerler",
+        about_values_subtitle: "Temel değerlerimiz yaptığımız her şeye yön verir",
+        about_speed: "Hız",
+        about_speed_desc: "Adaptif tarama motorumuz akıllı hız kontrolü teknolojisi ile dakikada binlerce ASIN çıkarır.",
+        about_reliability: "Güvenilirlik",
+        about_reliability_desc: "Otomatik captcha kurtarma, hata yönetimi ve yeniden deneme mantığı taramalarınızın başarıyla tamamlanmasını sağlar.",
+        about_security: "Güvenlik",
+        about_security_desc: "Verileriniz şifrelenir, ödemeler Stripe üzerinden güvenle işlenir ve bilgilerinizi asla satmayız.",
+        about_how_title: "Nasıl Çalışır",
+        about_how_subtitle: "Chrome eklentimiz gelişmiş çok fazlı tarama sistemi kullanır",
+        about_smart: "Akıllı Tarama",
+        about_smart_desc: "8 tarama fazı; sıralama varyasyonları, fiyat aralıkları, kategoriler, markalar, değerlendirmeler, örümcek tarama, anahtar kelimeler ve fırsat filtrelerini kapsar.",
+        about_realtime: "Gerçek Zamanlı İlerleme",
+        about_realtime_desc: "Canlı durum güncellemeleri ve ilerleme takibi ile ASIN'lerin gerçek zamanlı keşfedilmesini izleyin.",
+        about_export: "Kolay Dışa Aktarma",
+        about_export_desc: "Sonuçlarınızı TXT veya Excel formatında dışa aktarın ya da tek tıkla panoya kopyalayın.",
+        about_cta_title: "Başlamaya Hazır mısınız?",
+        about_cta_text: "İşlerini büyütmek için ASIN Scout Pro kullanan binlerce satıcıya katılın.",
+        about_cta_btn: "Ücretsiz Hesap Oluştur",
+        about_cta_pricing: "Fiyatları Görüntüle",
+
+        // Legal pages
+        privacy_title: "Gizlilik Politikası",
+        privacy_subtitle: "Son güncelleme: Şubat 2025",
+        terms_title: "Kullanım Şartları",
+        terms_subtitle: "Son güncelleme: Şubat 2025",
+        refund_title: "İade Politikası",
+        refund_subtitle: "Memnuniyetiniz bizim için önemlidir"
     }
 };
 
@@ -300,11 +708,11 @@ function getUserLanguage() {
     // 1. Check localStorage for manual preference
     const saved = localStorage.getItem('asin_lang');
     if (saved && translations[saved]) return saved;
-    
+
     // 2. Check browser language
     const browserLang = navigator.language.slice(0, 2).toLowerCase();
     if (translations[browserLang]) return browserLang;
-    
+
     // 3. Default to English
     return 'en';
 }
@@ -320,30 +728,41 @@ function setLanguage(lang) {
 
 // Apply translations to page
 function applyTranslations(lang) {
-    const t = translations[lang];
+    const tr = translations[lang];
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (t[key]) {
-            if (el.tagName === 'INPUT' && el.placeholder) {
-                el.placeholder = t[key];
+        if (tr[key]) {
+            if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'email' || el.type === 'password' || el.type === 'search')) {
+                el.placeholder = tr[key];
             } else {
-                el.textContent = t[key];
+                el.textContent = tr[key];
             }
         }
     });
-    
-    // Update HTML attributes
+
+    // Update placeholder attributes
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
-        if (t[key]) el.placeholder = t[key];
+        if (tr[key]) el.placeholder = tr[key];
     });
+
+    // Toggle lang-content sections (for legal pages, about story etc.)
+    document.querySelectorAll('[data-lang-content]').forEach(el => {
+        el.style.display = el.getAttribute('data-lang-content') === lang ? '' : 'none';
+    });
+
+    // Update page title if data-i18n-title exists on body
+    const titleKey = document.body.getAttribute('data-i18n-title');
+    if (titleKey && tr[titleKey]) {
+        document.title = tr[titleKey] + ' - ASIN Scout Pro';
+    }
 }
 
 // Update language selector UI
 function updateLanguageSelector(lang) {
     const selector = document.getElementById('langSelector');
     if (selector) selector.value = lang;
-    
+
     // Update flag buttons if exist
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.lang === lang);

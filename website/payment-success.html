@@ -8,16 +8,14 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --bg: #0a0a0f; --bg2: #12121a; --text: #f0f0f5; --text2: #9898a8; --text3: #5a5a6e; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --red: #ff4d5e; --border: #2a2a35; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; }
         .container { max-width: 500px; text-align: center; }
 
-        /* Loading state */
         .loading-state .spinner { width: 60px; height: 60px; border: 4px solid var(--border); border-top-color: var(--orange); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 24px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-state h2 { font-size: 24px; margin-bottom: 12px; }
         .loading-state p { color: var(--text2); font-size: 15px; }
 
-        /* Success state */
         .success-state { display: none; }
         .success-icon { width: 100px; height: 100px; background: linear-gradient(135deg, var(--green), #17a566); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 30px; animation: pop 0.5s ease; }
         @keyframes pop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
@@ -30,46 +28,53 @@
         .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, var(--orange), var(--pink)); color: #fff; text-decoration: none; border-radius: 10px; font-size: 16px; font-weight: 600; transition: all 0.2s; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,107,44,0.3); }
 
-        /* Error state */
         .error-state { display: none; }
         .error-icon { width: 100px; height: 100px; background: rgba(255,77,94,0.15); border: 2px solid var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 30px; }
         .error-state h1 { font-size: 28px; margin-bottom: 16px; color: var(--red); }
         .error-state p { color: var(--text2); font-size: 15px; margin-bottom: 24px; line-height: 1.6; }
         .error-state .btn-outline { display: inline-block; padding: 12px 24px; border: 1px solid var(--border); color: var(--text); text-decoration: none; border-radius: 10px; font-size: 14px; margin-left: 12px; }
+        .lang-switch { position: absolute; top: 20px; right: 20px; display: flex; gap: 6px; }
+        .lang-btn { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--orange); color: var(--orange); }
     </style>
 </head>
 <body>
+    <div class="lang-switch">
+        <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+    </div>
     <div class="container">
         <!-- Loading -->
         <div class="loading-state" id="loadingState">
             <div class="spinner"></div>
-            <h2>Verifying Payment...</h2>
-            <p>Please wait while we confirm your payment with Stripe. Do not close this page.</p>
+            <h2 data-i18n="payment_verifying">Verifying Payment...</h2>
+            <p data-i18n="payment_verifying_text">Please wait while we confirm your payment with Stripe. Do not close this page.</p>
         </div>
 
         <!-- Success -->
         <div class="success-state" id="successState">
             <div class="success-icon">&#10003;</div>
-            <h1>Payment Successful!</h1>
-            <p class="subtitle">Your package has been activated. You can start scanning now.</p>
+            <h1 data-i18n="payment_success_title">Payment Successful!</h1>
+            <p class="subtitle" data-i18n="payment_success_text">Your package has been activated. You can start scanning now.</p>
             <div class="package-info">
                 <div class="pkg-name" id="pkgName">Package</div>
                 <div class="pkg-value" id="pkgLimit">...</div>
                 <div class="pkg-detail" id="pkgExpires"></div>
             </div>
-            <a href="dashboard.html" class="btn">Go to Dashboard &#8594;</a>
+            <a href="dashboard.html" class="btn" data-i18n="payment_go_dashboard">Go to Dashboard &#8594;</a>
         </div>
 
         <!-- Error -->
         <div class="error-state" id="errorState">
             <div class="error-icon">&#10007;</div>
-            <h1>Verification Failed</h1>
-            <p id="errorMessage">We couldn't verify your payment. If you were charged, please contact support and we'll resolve it immediately.</p>
-            <a href="dashboard.html" class="btn">Go to Dashboard</a>
-            <a href="mailto:support@asinscout.com" class="btn-outline">Contact Support</a>
+            <h1 data-i18n="payment_failed_title">Verification Failed</h1>
+            <p id="errorMessage" data-i18n="payment_failed_text">We couldn't verify your payment. If you were charged, please contact support and we'll resolve it immediately.</p>
+            <a href="dashboard.html" class="btn" data-i18n="payment_go_dashboard">Go to Dashboard</a>
+            <a href="mailto:support@asinscout.com" class="btn-outline" data-i18n="payment_contact">Contact Support</a>
         </div>
     </div>
 
+    <script src="assets/js/i18n.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
@@ -82,7 +87,7 @@
             const limit = data.scan_limit || 0;
             document.getElementById('pkgLimit').textContent = (limit >= 1000 ? Math.round(limit/1000) + 'K' : limit) + ' ASINs';
             if (data.expires) {
-                document.getElementById('pkgExpires').textContent = 'Valid until ' + new Date(data.expires).toLocaleDateString();
+                document.getElementById('pkgExpires').textContent = t('payment_valid_until') + ' ' + new Date(data.expires).toLocaleDateString();
             }
         }
 
@@ -92,7 +97,6 @@
             if (msg) document.getElementById('errorMessage').textContent = msg;
         }
 
-        // Retry verification up to 3 times (in case Stripe is slow)
         async function verifyPayment(attempt) {
             attempt = attempt || 1;
             try {
@@ -101,7 +105,6 @@
 
                 if (data.success) {
                     showSuccess(data.data);
-                    // Refresh user profile in localStorage
                     const token = localStorage.getItem('token');
                     if (token) {
                         fetch('/api/auth.php?action=profile', {
@@ -111,16 +114,15 @@
                         });
                     }
                 } else if (attempt < 3) {
-                    // Stripe might be processing - retry after delay
                     setTimeout(function() { verifyPayment(attempt + 1); }, 2000 * attempt);
                 } else {
-                    showError(data.message || 'Payment verification failed. Please contact support if you were charged.');
+                    showError(data.message || t('payment_verify_fail'));
                 }
             } catch (e) {
                 if (attempt < 3) {
                     setTimeout(function() { verifyPayment(attempt + 1); }, 2000 * attempt);
                 } else {
-                    showError('Connection error. Please refresh this page or contact support.');
+                    showError(t('payment_conn_error'));
                 }
             }
         }
@@ -128,7 +130,7 @@
         if (sessionId) {
             verifyPayment(1);
         } else {
-            showError('Invalid payment session. If you just made a payment, please contact support.');
+            showError(t('payment_invalid'));
         }
     </script>
 </body>

@@ -15,8 +15,11 @@
         .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; text-decoration: none; color: var(--text); }
         .logo span { color: var(--orange); }
         .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+        .nav-links { display: flex; align-items: center; gap: 0; }
         .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; margin-left: 24px; transition: color 0.2s; }
         .nav-links a:hover { color: var(--orange); }
+        .lang-btn { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-left: 16px; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--orange); color: var(--orange); }
         .page-header { padding: 140px 0 60px; text-align: center; background: var(--bg2); border-bottom: 1px solid var(--border); }
         .page-header h1 { font-size: 42px; font-weight: 800; margin-bottom: 12px; }
         .page-header p { color: var(--text2); font-size: 16px; max-width: 500px; margin: 0 auto; }
@@ -56,23 +59,25 @@
         @media (max-width: 768px) { .page-header h1 { font-size: 28px; } .nav-links { display: none; } .contact-grid { grid-template-columns: 1fr; gap: 40px; } }
     </style>
 </head>
-<body>
+<body data-i18n-title="contact_title">
     <nav>
         <div class="nav-container">
             <a href="index.html" class="logo"><div class="logo-icon">A</div>ASIN<span>Scout</span> Pro</a>
             <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="index.html#features">Features</a>
-                <a href="index.html#pricing">Pricing</a>
-                <a href="contact.html">Contact</a>
+                <a href="index.html" data-i18n="nav_home">Home</a>
+                <a href="index.html#features" data-i18n="nav_features">Features</a>
+                <a href="index.html#pricing" data-i18n="nav_pricing">Pricing</a>
+                <a href="contact.html" data-i18n="nav_contact">Contact</a>
+                <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+                <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
             </div>
         </div>
     </nav>
 
     <div class="page-header">
         <div class="container">
-            <h1>Contact Us</h1>
-            <p>Have a question or need help? We're here for you.</p>
+            <h1 data-i18n="contact_title">Contact Us</h1>
+            <p data-i18n="contact_subtitle">Have a question or need help? We're here for you.</p>
         </div>
     </div>
 
@@ -80,13 +85,13 @@
         <div class="container">
             <div class="contact-grid">
                 <div class="contact-info">
-                    <h2>Get in Touch</h2>
+                    <h2 data-i18n="contact_get_in_touch">Get in Touch</h2>
 
                     <div class="contact-item">
                         <div class="contact-icon">&#9993;</div>
                         <div class="contact-detail">
-                            <h3>Email Support</h3>
-                            <p>For general questions and support</p>
+                            <h3 data-i18n="contact_email_support">Email Support</h3>
+                            <p data-i18n="contact_email_desc">For general questions and support</p>
                             <a href="mailto:support@asinscout.com">support@asinscout.com</a>
                         </div>
                     </div>
@@ -94,80 +99,80 @@
                     <div class="contact-item">
                         <div class="contact-icon">&#9201;</div>
                         <div class="contact-detail">
-                            <h3>Response Time</h3>
-                            <p>We typically respond within 24 hours on business days</p>
+                            <h3 data-i18n="contact_response">Response Time</h3>
+                            <p data-i18n="contact_response_desc">We typically respond within 24 hours on business days</p>
                         </div>
                     </div>
 
                     <div class="contact-item">
                         <div class="contact-icon">&#127760;</div>
                         <div class="contact-detail">
-                            <h3>Social Media</h3>
-                            <p>Follow us for updates and tips</p>
+                            <h3 data-i18n="contact_social">Social Media</h3>
+                            <p data-i18n="contact_social_desc">Follow us for updates and tips</p>
                             <p style="margin-top:4px;"><a href="#">Twitter</a> &middot; <a href="#">YouTube</a></p>
                         </div>
                     </div>
                 </div>
 
                 <div class="contact-form">
-                    <h2>Send a Message</h2>
+                    <h2 data-i18n="contact_send_msg">Send a Message</h2>
                     <div class="message" id="message"></div>
                     <form id="contactForm">
                         <div class="form-group">
-                            <label>Your Name</label>
-                            <input type="text" id="name" placeholder="John Doe" required>
+                            <label data-i18n="contact_name">Your Name</label>
+                            <input type="text" id="name" data-i18n-placeholder="contact_name" placeholder="John Doe" required>
                         </div>
                         <div class="form-group">
-                            <label>Email Address</label>
-                            <input type="email" id="email" placeholder="you@example.com" required>
+                            <label data-i18n="contact_email">Email Address</label>
+                            <input type="email" id="email" data-i18n-placeholder="contact_email" placeholder="you@example.com" required>
                         </div>
                         <div class="form-group">
-                            <label>Subject</label>
+                            <label data-i18n="contact_subject">Subject</label>
                             <select id="subject">
-                                <option value="general">General Question</option>
-                                <option value="support">Technical Support</option>
-                                <option value="billing">Billing / Payment</option>
-                                <option value="refund">Refund Request</option>
-                                <option value="bug">Bug Report</option>
-                                <option value="feature">Feature Request</option>
-                                <option value="other">Other</option>
+                                <option value="general" data-i18n="contact_opt_general">General Question</option>
+                                <option value="support" data-i18n="contact_opt_support">Technical Support</option>
+                                <option value="billing" data-i18n="contact_opt_billing">Billing / Payment</option>
+                                <option value="refund" data-i18n="contact_opt_refund">Refund Request</option>
+                                <option value="bug" data-i18n="contact_opt_bug">Bug Report</option>
+                                <option value="feature" data-i18n="contact_opt_feature">Feature Request</option>
+                                <option value="other" data-i18n="contact_opt_other">Other</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Message</label>
-                            <textarea id="messageText" placeholder="Describe your question or issue in detail..." required></textarea>
+                            <label data-i18n="contact_message">Message</label>
+                            <textarea id="messageText" data-i18n-placeholder="contact_message" placeholder="Describe your question or issue in detail..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary" id="submitBtn">Send Message</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn" data-i18n="contact_send_btn">Send Message</button>
                     </form>
                 </div>
             </div>
 
             <div class="faq">
-                <h2>Frequently Asked Questions</h2>
+                <h2 data-i18n="contact_faq_title">Frequently Asked Questions</h2>
 
                 <div class="faq-item">
-                    <h3>How do I install the Chrome Extension?</h3>
-                    <p>After creating an account and purchasing a package, you can download the Chrome Extension from your dashboard. Open Chrome, go to chrome://extensions, enable Developer Mode, and drag the extension file to install it.</p>
+                    <h3 data-i18n="contact_faq1_q">How do I install the Chrome Extension?</h3>
+                    <p data-i18n="contact_faq1_a">After creating an account and purchasing a package, you can download the Chrome Extension from your dashboard. Open Chrome, go to chrome://extensions, enable Developer Mode, and drag the extension file to install it.</p>
                 </div>
 
                 <div class="faq-item">
-                    <h3>Which Amazon marketplaces are supported?</h3>
-                    <p>ASIN Scout Pro works on all major Amazon marketplaces including amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.co.jp, amazon.ca, amazon.com.au, amazon.com.br, amazon.in, amazon.com.mx, amazon.nl, amazon.se, amazon.pl, amazon.com.tr, and more.</p>
+                    <h3 data-i18n="contact_faq2_q">Which Amazon marketplaces are supported?</h3>
+                    <p data-i18n="contact_faq2_a">ASIN Scout Pro works on all major Amazon marketplaces including amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.co.jp, amazon.ca, amazon.com.au, amazon.com.br, amazon.in, amazon.com.mx, amazon.nl, amazon.se, amazon.pl, amazon.com.tr, and more.</p>
                 </div>
 
                 <div class="faq-item">
-                    <h3>What happens when my package expires?</h3>
-                    <p>When your package expires, you can still access your previous scan history and download results. To perform new scans, you'll need to purchase a new package.</p>
+                    <h3 data-i18n="contact_faq3_q">What happens when my package expires?</h3>
+                    <p data-i18n="contact_faq3_a">When your package expires, you can still access your previous scan history and download results. To perform new scans, you'll need to purchase a new package.</p>
                 </div>
 
                 <div class="faq-item">
-                    <h3>Can I upgrade my package?</h3>
-                    <p>Yes, you can purchase a new package at any time. The new package will replace your current one and reset your scan limits.</p>
+                    <h3 data-i18n="contact_faq4_q">Can I upgrade my package?</h3>
+                    <p data-i18n="contact_faq4_a">Yes, you can purchase a new package at any time. The new package will replace your current one and reset your scan limits.</p>
                 </div>
 
                 <div class="faq-item">
-                    <h3>Is the extension safe to use?</h3>
-                    <p>Yes. Our extension only runs on Amazon pages and communicates with our secure server. It does not access your personal data, browsing history, or any other websites.</p>
+                    <h3 data-i18n="contact_faq5_q">Is the extension safe to use?</h3>
+                    <p data-i18n="contact_faq5_a">Yes. Our extension only runs on Amazon pages and communicates with our secure server. It does not access your personal data, browsing history, or any other websites.</p>
                 </div>
             </div>
         </div>
@@ -176,17 +181,18 @@
     <footer>
         <div class="container">
             <div class="footer-links">
-                <a href="index.html">Home</a>
-                <a href="about.html">About Us</a>
-                <a href="contact.html">Contact</a>
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
-                <a href="refund.html">Refund Policy</a>
+                <a href="index.html" data-i18n="footer_home">Home</a>
+                <a href="about.html" data-i18n="footer_about">About Us</a>
+                <a href="contact.html" data-i18n="footer_contact">Contact</a>
+                <a href="privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+                <a href="terms.html" data-i18n="footer_terms">Terms of Service</a>
+                <a href="refund.html" data-i18n="footer_refund">Refund Policy</a>
             </div>
-            <div class="footer-copy">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
+            <div class="footer-copy" data-i18n="footer_copyright">&copy; 2025 ASIN Scout Pro. All rights reserved.</div>
         </div>
     </footer>
 
+    <script src="assets/js/i18n.js"></script>
     <script>
         document.getElementById('contactForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -198,7 +204,7 @@
             const text = document.getElementById('messageText').value;
 
             btn.disabled = true;
-            btn.textContent = 'Sending...';
+            btn.textContent = t('contact_sending');
             msg.className = 'message';
 
             try {
@@ -211,18 +217,18 @@
 
                 if (data.success) {
                     msg.className = 'message success';
-                    msg.textContent = 'Message sent successfully! We\'ll get back to you within 24 hours.';
+                    msg.textContent = t('contact_success');
                     document.getElementById('contactForm').reset();
                 } else {
                     msg.className = 'message error';
-                    msg.textContent = data.message || 'Failed to send message. Please try email instead.';
+                    msg.textContent = data.message || t('contact_fail');
                 }
             } catch (err) {
                 msg.className = 'message success';
-                msg.textContent = 'Please send your message directly to support@asinscout.com';
+                msg.textContent = t('contact_fallback');
             }
             btn.disabled = false;
-            btn.textContent = 'Send Message';
+            btn.textContent = t('contact_send_btn');
         });
     </script>
 </body>

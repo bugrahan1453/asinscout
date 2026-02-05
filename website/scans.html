@@ -21,6 +21,9 @@
         .sidebar-user .avatar{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
         .sidebar-user .name{font-size:13px;font-weight:600}
         .sidebar-user .email{font-size:11px;color:var(--text3)}
+        .lang-switch{display:flex;gap:6px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)}
+        .lang-btn{flex:1;background:transparent;border:1px solid var(--border);color:var(--text2);padding:8px;border-radius:6px;cursor:pointer;font-size:12px}
+        .lang-btn:hover,.lang-btn.active{border-color:var(--orange);color:var(--orange)}
         .main{margin-left:250px;padding:30px}
         .page-title{font-size:28px;font-weight:700;margin-bottom:30px}
         .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px}
@@ -44,34 +47,39 @@
         @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
     </style>
 </head>
-<body>
+<body data-i18n-title="scans_title">
 <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('active')">&#9776;</button>
 <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
     <aside class="sidebar">
         <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
         <ul class="sidebar-menu">
-            <a href="dashboard.html">📊 Dashboard</a>
-            <a href="scans.html" class="active">📁 My Scans</a>
-            <a href="pricing.html">💳 Buy Package</a>
-            <a href="settings.html">⚙️ Settings</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="dashboard.html" data-i18n="sidebar_dashboard">📊 Dashboard</a>
+            <a href="scans.html" class="active" data-i18n="sidebar_scans">📁 My Scans</a>
+            <a href="pricing.html" data-i18n="sidebar_buy">💳 Buy Package</a>
+            <a href="settings.html" data-i18n="sidebar_settings">⚙️ Settings</a>
+            <a href="#" onclick="logout()" data-i18n="sidebar_logout">🚪 Logout</a>
         </ul>
         <div class="sidebar-user">
             <div class="avatar" id="userAvatar">U</div>
             <div><div class="name" id="userName">User</div><div class="email" id="userEmail">...</div></div>
         </div>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
     </aside>
     <main class="main">
-        <h1 class="page-title">My Scans</h1>
+        <h1 class="page-title" data-i18n="scans_title">My Scans</h1>
         <div class="card">
-            <div id="scansContainer"><div class="empty">Loading...</div></div>
+            <div id="scansContainer"><div class="empty" data-i18n="scans_loading">Loading...</div></div>
             <div class="pagination" id="pagination" style="display:none">
-                <button id="prevBtn" onclick="loadScans(currentPage-1)">← Prev</button>
+                <button id="prevBtn" onclick="loadScans(currentPage-1)" data-i18n="scans_prev">← Prev</button>
                 <span id="pageInfo" style="padding:8px 14px;color:var(--text2)">Page 1</span>
-                <button id="nextBtn" onclick="loadScans(currentPage+1)">Next →</button>
+                <button id="nextBtn" onclick="loadScans(currentPage+1)" data-i18n="scans_next">Next →</button>
             </div>
         </div>
     </main>
+    <script src="assets/js/i18n.js"></script>
     <script>
         const API='/api',token=localStorage.getItem('token');
         if(!token)location.href='login.html';
@@ -79,9 +87,9 @@
         document.getElementById('userName').textContent=user.name||'User';
         document.getElementById('userEmail').textContent=user.email||'';
         document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
-        
+
         let currentPage=1,totalPages=1;
-        
+
         async function loadScans(page=1){
             const r=await fetch(API+`/scans.php?action=list&page=${page}&limit=20`,{headers:{'Authorization':'Bearer '+token}});
             const d=await r.json();
@@ -89,11 +97,11 @@
                 const scans=d.data.scans,p=d.data.pagination;
                 currentPage=p.page;totalPages=p.pages;
                 if(scans.length===0){
-                    document.getElementById('scansContainer').innerHTML='<div class="empty">No scans yet. Install the Chrome extension to start!</div>';
+                    document.getElementById('scansContainer').innerHTML='<div class="empty">'+t('scans_no_scans')+'</div>';
                     document.getElementById('pagination').style.display='none';
                     return;
                 }
-                let h='<table><thead><tr><th>Store</th><th>Marketplace</th><th>ASINs</th><th>Pages</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+                let h='<table><thead><tr><th>'+t('scans_store')+'</th><th>'+t('scans_marketplace')+'</th><th>'+t('scans_asins_col')+'</th><th>'+t('scans_pages_col')+'</th><th>'+t('scans_status')+'</th><th>'+t('scans_date')+'</th><th>'+t('scans_actions')+'</th></tr></thead><tbody>';
                 for(const s of scans){
                     h+=`<tr>
                         <td><strong>${esc(s.store_name||'Unknown')}</strong></td>
@@ -103,7 +111,7 @@
                         <td><span class="badge ${s.status==='completed'?'green':'red'}">${s.status}</span></td>
                         <td>${new Date(s.created_at).toLocaleDateString()}</td>
                         <td>
-                            <a href="scan-detail.html?id=${s.id}" class="btn btn-outline">View</a>
+                            <a href="scan-detail.html?id=${s.id}" class="btn btn-outline">${t('scans_view')}</a>
                             <a href="${API}/scans.php?action=download&id=${s.id}&format=txt&token=${token}" class="btn btn-outline">TXT</a>
                             <a href="${API}/scans.php?action=download&id=${s.id}&format=excel&token=${token}" class="btn btn-outline">Excel</a>
                             <button class="btn btn-red" onclick="deleteScan(${s.id})">🗑️</button>
@@ -113,19 +121,19 @@
                 document.getElementById('scansContainer').innerHTML=h+'</tbody></table>';
                 if(totalPages>1){
                     document.getElementById('pagination').style.display='flex';
-                    document.getElementById('pageInfo').textContent=`Page ${currentPage} of ${totalPages}`;
+                    document.getElementById('pageInfo').textContent=t('scans_page')+' '+currentPage+' '+t('scans_of')+' '+totalPages;
                     document.getElementById('prevBtn').disabled=currentPage<=1;
                     document.getElementById('nextBtn').disabled=currentPage>=totalPages;
                 }else{document.getElementById('pagination').style.display='none';}
             }
         }
-        
+
         async function deleteScan(id){
-            if(!confirm('Delete this scan?'))return;
+            if(!confirm(t('scans_confirm_delete')))return;
             await fetch(API+`/scans.php?action=delete&id=${id}`,{headers:{'Authorization':'Bearer '+token}});
             loadScans(currentPage);
         }
-        
+
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         function esc(s){return String(s||'').replace(/</g,'&lt;');}

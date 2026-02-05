@@ -21,6 +21,9 @@
         .sidebar-user .avatar{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
         .sidebar-user .name{font-size:13px;font-weight:600}
         .sidebar-user .email{font-size:11px;color:var(--text3)}
+        .lang-switch{display:flex;gap:6px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)}
+        .lang-btn{flex:1;background:transparent;border:1px solid var(--border);color:var(--text2);padding:8px;border-radius:6px;cursor:pointer;font-size:12px}
+        .lang-btn:hover,.lang-btn.active{border-color:var(--orange);color:var(--orange)}
         .main{margin-left:250px;padding:30px}
         .page-title{font-size:28px;font-weight:700;margin-bottom:10px}
         .page-subtitle{color:var(--text2);margin-bottom:30px}
@@ -31,7 +34,7 @@
         .price-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;position:relative}
         .price-card:hover{border-color:var(--orange)}
         .price-card.popular{border-color:var(--orange)}
-        .price-card.popular::before{content:'BEST VALUE';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--orange),#ff2c6b);color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700}
+        .price-card.popular::before{content:attr(data-popular-label);position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--orange),#ff2c6b);color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700}
         .price-name{font-size:22px;font-weight:700;margin-bottom:8px}
         .price-limit{font-size:14px;color:var(--green);margin-bottom:20px}
         .price-amount{font-size:48px;font-weight:800;margin-bottom:4px}
@@ -58,42 +61,47 @@
         @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
     </style>
 </head>
-<body>
+<body data-i18n-title="pricing_page_title">
 <div class="payment-overlay" id="paymentOverlay">
     <div class="spinner"></div>
-    <h2>Redirecting to Payment...</h2>
-    <p>You will be redirected to Stripe's secure payment page. Please complete the payment there.</p>
-    <div class="warning-box">&#9888; Do NOT close this tab until the payment is complete. You will be redirected back automatically.</div>
+    <h2 data-i18n="pricing_redirecting">Redirecting to Payment...</h2>
+    <p data-i18n="pricing_redirect_text">You will be redirected to Stripe's secure payment page. Please complete the payment there.</p>
+    <div class="warning-box" data-i18n="pricing_warning">&#9888; Do NOT close this tab until the payment is complete. You will be redirected back automatically.</div>
 </div>
 <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('active')">&#9776;</button>
 <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
     <aside class="sidebar">
         <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
         <ul class="sidebar-menu">
-            <a href="dashboard.html">📊 Dashboard</a>
-            <a href="scans.html">📁 My Scans</a>
-            <a href="pricing.html" class="active">💳 Buy Package</a>
-            <a href="settings.html">⚙️ Settings</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="dashboard.html" data-i18n="sidebar_dashboard">📊 Dashboard</a>
+            <a href="scans.html" data-i18n="sidebar_scans">📁 My Scans</a>
+            <a href="pricing.html" class="active" data-i18n="sidebar_buy">💳 Buy Package</a>
+            <a href="settings.html" data-i18n="sidebar_settings">⚙️ Settings</a>
+            <a href="#" onclick="logout()" data-i18n="sidebar_logout">🚪 Logout</a>
         </ul>
         <div class="sidebar-user">
             <div class="avatar" id="userAvatar">U</div>
             <div><div class="name" id="userName">User</div><div class="email" id="userEmail">...</div></div>
         </div>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
     </aside>
     <main class="main">
-        <h1 class="page-title">Buy Package</h1>
-        <p class="page-subtitle">Unlimited daily scans. Pay once, use for 30 days.</p>
-        
+        <h1 class="page-title" data-i18n="pricing_page_title">Buy Package</h1>
+        <p class="page-subtitle" data-i18n="pricing_page_subtitle">Unlimited daily scans. Pay once, use for 30 days.</p>
+
         <div class="current-pkg">
-            <div><div class="label">Your Current Package</div><div class="value" id="currentPkg">No Package</div></div>
+            <div><div class="label" data-i18n="pricing_current_pkg">Your Current Package</div><div class="value" id="currentPkg" data-i18n="pricing_no_pkg">No Package</div></div>
             <div id="pkgExpires" style="font-size:13px;color:var(--text3)"></div>
         </div>
-        
+
         <div class="message" id="message"></div>
-        
+
         <div class="pricing-grid" id="pricingGrid"></div>
     </main>
+    <script src="assets/js/i18n.js"></script>
     <script>
         const API='/api',token=localStorage.getItem('token');
         if(!token)location.href='login.html';
@@ -101,33 +109,34 @@
         document.getElementById('userName').textContent=user.name||'User';
         document.getElementById('userEmail').textContent=user.email||'';
         document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
-        
+
         if(user.package_name&&user.scan_limit>0){
-            document.getElementById('currentPkg').textContent=user.package_name+' ('+fmt(user.scan_limit)+' limit)';
-            document.getElementById('pkgExpires').textContent='Expires: '+new Date(user.package_expires).toLocaleDateString();
+            document.getElementById('currentPkg').textContent=user.package_name+' ('+fmt(user.scan_limit)+' '+t('pricing_scans')+')';
+            document.getElementById('currentPkg').removeAttribute('data-i18n');
+            document.getElementById('pkgExpires').textContent=t('pricing_expires_label')+': '+new Date(user.package_expires).toLocaleDateString();
         }
-        
+
         async function loadPackages(){
             const r=await fetch(API+'/packages.php?action=list');
             const d=await r.json();
             if(d.success){
                 let h='';
                 for(const p of d.data.packages){
-                    h+=`<div class="price-card ${p.is_popular?'popular':''}">
+                    h+=`<div class="price-card ${p.is_popular?'popular':''}" ${p.is_popular?'data-popular-label="'+t('pricing_best_value')+'"':''}>
                         <div class="price-name">${esc(p.name)}</div>
-                        <div class="price-limit">Up to ${fmt(p.scan_limit)} ASINs per scan</div>
+                        <div class="price-limit">${t('pricing_up_to')} ${fmt(p.scan_limit)} ${t('pricing_asins_scan')}</div>
                         <div class="price-amount">$${p.price.toFixed(2)}</div>
-                        <div class="price-duration">${p.duration_days} days access</div>
+                        <div class="price-duration">${p.duration_days} ${t('pricing_days_access')}</div>
                         <ul class="price-features">
                             ${(p.features||[]).map(f=>`<li>${esc(f)}</li>`).join('')}
                         </ul>
-                        <button class="btn ${p.is_popular?'btn-primary':'btn-outline'}" onclick="buyPackage(${p.id})">Buy Now</button>
+                        <button class="btn ${p.is_popular?'btn-primary':'btn-outline'}" onclick="buyPackage(${p.id})">${t('pricing_buy_now')}</button>
                     </div>`;
                 }
                 document.getElementById('pricingGrid').innerHTML=h;
             }
         }
-        
+
         let paymentInProgress=false;
         window.addEventListener('beforeunload',function(e){
             if(paymentInProgress){e.preventDefault();e.returnValue='Payment is in progress. Are you sure you want to leave?';}
@@ -138,7 +147,6 @@
             const overlay=document.getElementById('paymentOverlay');
             msg.className='message';
             try{
-                // Show overlay immediately
                 overlay.classList.add('active');
                 paymentInProgress=true;
 
@@ -160,10 +168,10 @@
                 overlay.classList.remove('active');
                 paymentInProgress=false;
                 msg.className='message error';
-                msg.textContent='Connection error';
+                msg.textContent=t('pricing_conn_error');
             }
         }
-        
+
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}

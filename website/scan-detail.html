@@ -20,6 +20,9 @@
         .sidebar-user .avatar{width:36px;height:36px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
         .sidebar-user .name{font-size:13px;font-weight:600}
         .sidebar-user .email{font-size:11px;color:var(--text3)}
+        .lang-switch{display:flex;gap:6px;margin-top:15px;padding-top:15px;border-top:1px solid var(--border)}
+        .lang-btn{flex:1;background:transparent;border:1px solid var(--border);color:var(--text2);padding:8px;border-radius:6px;cursor:pointer;font-size:12px}
+        .lang-btn:hover,.lang-btn.active{border-color:var(--orange);color:var(--orange)}
         .main{margin-left:250px;padding:30px}
         .back-link{color:var(--text2);text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px}
         .back-link:hover{color:var(--orange)}
@@ -54,40 +57,45 @@
     <aside class="sidebar">
         <a href="index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
         <ul class="sidebar-menu">
-            <a href="dashboard.html">📊 Dashboard</a>
-            <a href="scans.html" class="active">📁 My Scans</a>
-            <a href="pricing.html">💳 Buy Package</a>
-            <a href="settings.html">⚙️ Settings</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="dashboard.html" data-i18n="sidebar_dashboard">📊 Dashboard</a>
+            <a href="scans.html" class="active" data-i18n="sidebar_scans">📁 My Scans</a>
+            <a href="pricing.html" data-i18n="sidebar_buy">💳 Buy Package</a>
+            <a href="settings.html" data-i18n="sidebar_settings">⚙️ Settings</a>
+            <a href="#" onclick="logout()" data-i18n="sidebar_logout">🚪 Logout</a>
         </ul>
         <div class="sidebar-user">
             <div class="avatar" id="userAvatar">U</div>
             <div><div class="name" id="userName">User</div><div class="email" id="userEmail">...</div></div>
         </div>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
     </aside>
     <main class="main">
-        <a href="scans.html" class="back-link">← Back to Scans</a>
+        <a href="scans.html" class="back-link" data-i18n="scan_back">← Back to Scans</a>
         <h1 class="page-title" id="storeName">Loading...</h1>
         <p class="page-subtitle" id="scanInfo">...</p>
-        
+
         <div class="stats-row">
-            <div class="stat-box"><div class="label">Total ASINs</div><div class="value green" id="asinCount">0</div></div>
-            <div class="stat-box"><div class="label">Pages Scanned</div><div class="value blue" id="pagesScanned">0</div></div>
-            <div class="stat-box"><div class="label">Duration</div><div class="value" id="duration">-</div></div>
-            <div class="stat-box"><div class="label">Status</div><div class="value" id="status">-</div></div>
+            <div class="stat-box"><div class="label" data-i18n="scan_total_asins">Total ASINs</div><div class="value green" id="asinCount">0</div></div>
+            <div class="stat-box"><div class="label" data-i18n="scan_pages_scanned">Pages Scanned</div><div class="value blue" id="pagesScanned">0</div></div>
+            <div class="stat-box"><div class="label" data-i18n="scan_duration">Duration</div><div class="value" id="duration">-</div></div>
+            <div class="stat-box"><div class="label" data-i18n="scan_status">Status</div><div class="value" id="status">-</div></div>
         </div>
-        
+
         <div class="actions">
-            <a href="#" id="downloadTxt" class="btn btn-primary">📄 Download TXT</a>
-            <a href="#" id="downloadExcel" class="btn btn-outline">📊 Download Excel</a>
-            <button class="btn btn-outline" onclick="copyAsins()">📋 Copy All ASINs</button>
+            <a href="#" id="downloadTxt" class="btn btn-primary" data-i18n="scan_download_txt">📄 Download TXT</a>
+            <a href="#" id="downloadExcel" class="btn btn-outline" data-i18n="scan_download_excel">📊 Download Excel</a>
+            <button class="btn btn-outline" onclick="copyAsins()" data-i18n="scan_copy">📋 Copy All ASINs</button>
         </div>
-        
+
         <div class="card">
-            <div class="card-title">ASINs (<span id="asinTotal">0</span>)</div>
-            <div class="asins-grid" id="asinsGrid"><div class="empty">Loading...</div></div>
+            <div class="card-title"><span data-i18n="scan_asins_label">ASINs</span> (<span id="asinTotal">0</span>)</div>
+            <div class="asins-grid" id="asinsGrid"><div class="empty" data-i18n="scans_loading">Loading...</div></div>
         </div>
     </main>
+    <script src="assets/js/i18n.js"></script>
     <script>
         const API='/api',token=localStorage.getItem('token');
         if(!token)location.href='login.html';
@@ -95,32 +103,32 @@
         document.getElementById('userName').textContent=user.name||'User';
         document.getElementById('userEmail').textContent=user.email||'';
         document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
-        
+
         const params=new URLSearchParams(window.location.search);
         const scanId=params.get('id');
         let allAsins=[];
-        
+
         if(!scanId){location.href='scans.html';}
-        
+
         async function loadScan(){
             const r=await fetch(API+`/scans.php?action=detail&id=${scanId}`,{headers:{'Authorization':'Bearer '+token}});
             const d=await r.json();
             if(!d.success){alert('Scan not found');location.href='scans.html';return;}
-            
+
             const s=d.data.scan;
             allAsins=s.asins||[];
-            
+
             document.getElementById('storeName').textContent=s.store_name||'Unknown Store';
-            document.getElementById('scanInfo').textContent=`${s.marketplace||'Amazon'} • Scanned on ${new Date(s.created_at).toLocaleString()}`;
+            document.getElementById('scanInfo').textContent=`${s.marketplace||'Amazon'} • ${t('scan_scanned_on')} ${new Date(s.created_at).toLocaleString()}`;
             document.getElementById('asinCount').textContent=fmt(s.asin_count);
             document.getElementById('pagesScanned').textContent=s.pages_scanned||0;
             document.getElementById('duration').textContent=s.duration_seconds?Math.round(s.duration_seconds/60)+'m':'-';
             document.getElementById('status').textContent=s.status;
             document.getElementById('asinTotal').textContent=allAsins.length;
-            
+
             document.getElementById('downloadTxt').href=API+`/scans.php?action=download&id=${scanId}&format=txt&token=${token}`;
             document.getElementById('downloadExcel').href=API+`/scans.php?action=download&id=${scanId}&format=excel&token=${token}`;
-            
+
             if(allAsins.length>0){
                 let h='';
                 for(const asin of allAsins){
@@ -128,16 +136,16 @@
                 }
                 document.getElementById('asinsGrid').innerHTML=h;
             }else{
-                document.getElementById('asinsGrid').innerHTML='<div class="empty">No ASINs found</div>';
+                document.getElementById('asinsGrid').innerHTML='<div class="empty">'+t('scan_no_asins')+'</div>';
             }
         }
-        
+
         function copyAsins(){
             if(allAsins.length===0)return;
             navigator.clipboard.writeText(allAsins.join('\n'));
-            alert(allAsins.length+' ASINs copied to clipboard!');
+            alert(allAsins.length+' '+t('scan_copied'));
         }
-        
+
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         loadScan();
