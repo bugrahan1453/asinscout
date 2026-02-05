@@ -30,17 +30,32 @@ switch ($action) {
         $userCount = $db->fetch("SELECT COUNT(*) as cnt FROM users");
         $isFirstUser = ($userCount['cnt'] == 0);
         
+        // Affiliate referans kontrolü
+        $referredBy = null;
+        if (!empty($data['ref'])) {
+            $affiliate = $db->fetch("SELECT id FROM affiliates WHERE code = ? AND is_active = 1", [strtolower(trim($data['ref']))]);
+            if ($affiliate) {
+                $referredBy = (int)$affiliate['id'];
+            }
+        }
+
         $userId = $db->insert('users', [
             'email' => strtolower(trim($data['email'])),
             'password' => Auth::hashPassword($data['password']),
             'name' => trim($data['name']),
             'role' => $isFirstUser ? 'admin' : 'user',
             'scan_limit' => 0,
-            'verify_token' => Auth::generateToken()
+            'verify_token' => Auth::generateToken(),
+            'referred_by' => $referredBy
         ]);
-        
+
+        // Affiliate referral sayısını güncelle
+        if ($referredBy) {
+            $db->query("UPDATE affiliates SET total_referrals = total_referrals + 1 WHERE id = ?", [$referredBy]);
+        }
+
         $token = Auth::createToken($userId, $data['email']);
-        Api::log($userId, 'register', ['ip' => Api::getIp()]);
+        Api::log($userId, 'register', ['ip' => Api::getIp(), 'ref' => $data['ref'] ?? null]);
         
         Api::success([
             'token' => $token,

@@ -76,13 +76,18 @@ switch ($action) {
                 ]
             ]);
             
+            // Kullanıcının affiliate referansını kontrol et
+            $userFull = $db->fetch("SELECT referred_by FROM users WHERE id = ?", [$user['id']]);
+            $affiliateId = $userFull ? $userFull['referred_by'] : null;
+
             $db->insert('orders', [
                 'user_id' => $user['id'],
                 'package_id' => $package['id'],
                 'stripe_session_id' => $session->id,
                 'amount' => $package['price'],
                 'currency' => $package['currency'] ?: 'USD',
-                'status' => 'pending'
+                'status' => 'pending',
+                'affiliate_id' => $affiliateId
             ]);
             
             Api::success([
@@ -102,8 +107,8 @@ switch ($action) {
         }
         
         $order = $db->fetch(
-            "SELECT o.*, p.scan_limit, p.duration_days, p.name as package_name FROM orders o 
-             JOIN packages p ON o.package_id = p.id 
+            "SELECT o.*, p.scan_limit, p.duration_days, p.name as package_name, o.affiliate_id FROM orders o
+             JOIN packages p ON o.package_id = p.id
              WHERE o.stripe_session_id = ?",
             [$sessionId]
         );
@@ -141,9 +146,46 @@ switch ($action) {
                     [$session->payment_intent, $order['id']]
                 );
                 
+                // Affiliate komisyon hesaplama
+                $orderAffiliateId = $order['affiliate_id'] ?? null;
+                if (!$orderAffiliateId) {
+                    // Order'da yoksa kullanıcıdan kontrol et
+                    $refUser = $db->fetch("SELECT referred_by FROM users WHERE id = ?", [$order['user_id']]);
+                    $orderAffiliateId = $refUser ? $refUser['referred_by'] : null;
+                }
+
+                if ($orderAffiliateId) {
+                    $affiliate = $db->fetch("SELECT id, commission_rate, is_active FROM affiliates WHERE id = ? AND is_active = 1", [$orderAffiliateId]);
+                    if ($affiliate) {
+                        $commissionAmount = round(((float)$order['amount'] * (float)$affiliate['commission_rate']) / 100, 2);
+
+                        $db->insert('affiliate_earnings', [
+                            'affiliate_id' => $affiliate['id'],
+                            'order_id' => $order['id'],
+                            'user_id' => $order['user_id'],
+                            'order_amount' => $order['amount'],
+                            'commission_rate' => $affiliate['commission_rate'],
+                            'commission_amount' => $commissionAmount,
+                            'status' => 'pending'
+                        ]);
+
+                        // Affiliate istatistiklerini güncelle
+                        $db->query(
+                            "UPDATE affiliates SET total_orders = total_orders + 1, total_earnings = total_earnings + ? WHERE id = ?",
+                            [$commissionAmount, $affiliate['id']]
+                        );
+
+                        // Order'a affiliate_id ekle (yoksa)
+                        if (!$order['affiliate_id']) {
+                            $db->query("UPDATE orders SET affiliate_id = ? WHERE id = ?", [$affiliate['id'], $order['id']]);
+                        }
+                    }
+                }
+
                 Api::log($order['user_id'], 'purchase', [
                     'order_id' => $order['id'],
-                    'package' => $order['package_name']
+                    'package' => $order['package_name'],
+                    'affiliate_id' => $orderAffiliateId
                 ]);
                 
                 Api::success([

@@ -225,6 +225,134 @@ switch ($action) {
         }
         break;
     
+    // ========================================
+    // AFFILIATE MANAGEMENT
+    // ========================================
+
+    case 'affiliates':
+        $affiliates = $db->fetchAll(
+            "SELECT a.*,
+                    (SELECT COUNT(*) FROM users u WHERE u.referred_by = a.id) as actual_referrals,
+                    (SELECT COUNT(*) FROM affiliate_earnings ae WHERE ae.affiliate_id = a.id) as actual_orders,
+                    (SELECT COALESCE(SUM(ae.commission_amount), 0) FROM affiliate_earnings ae WHERE ae.affiliate_id = a.id) as actual_earnings
+             FROM affiliates a ORDER BY a.created_at DESC"
+        );
+        Api::success(['affiliates' => $affiliates]);
+        break;
+
+    case 'affiliate_save':
+        try {
+            $data = Api::getPostData();
+            Api::required($data, ['name', 'code', 'commission_rate']);
+
+            $code = strtolower(preg_replace('/[^a-z0-9\-_]/i', '', trim($data['code'])));
+            if (strlen($code) < 3) {
+                Api::error('Code must be at least 3 characters');
+            }
+
+            $rate = max(0, min(100, (float)$data['commission_rate']));
+
+            $affiliateData = [
+                'name' => trim($data['name']),
+                'code' => $code,
+                'commission_rate' => $rate,
+                'is_active' => (int)($data['is_active'] ?? 1),
+                'notes' => trim($data['notes'] ?? '')
+            ];
+
+            if (isset($data['id']) && $data['id']) {
+                // Check code uniqueness excluding current
+                $existing = $db->fetch("SELECT id FROM affiliates WHERE code = ? AND id != ?", [$code, (int)$data['id']]);
+                if ($existing) {
+                    Api::error('Affiliate code already exists');
+                }
+                $db->update('affiliates', $affiliateData, 'id = :id', ['id' => (int)$data['id']]);
+            } else {
+                // Check code uniqueness
+                $existing = $db->fetch("SELECT id FROM affiliates WHERE code = ?", [$code]);
+                if ($existing) {
+                    Api::error('Affiliate code already exists');
+                }
+                $db->insert('affiliates', $affiliateData);
+            }
+
+            Api::success(null, 'Affiliate saved');
+        } catch (Exception $e) {
+            Api::error('Error: ' . $e->getMessage());
+        }
+        break;
+
+    case 'affiliate_delete':
+        $data = Api::getPostData();
+        Api::required($data, ['id']);
+
+        $db->query("DELETE FROM affiliates WHERE id = ?", [(int)$data['id']]);
+        Api::success(null, 'Affiliate deleted');
+        break;
+
+    case 'affiliate_earnings':
+        $affiliateId = (int)($_GET['affiliate_id'] ?? 0);
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = 50;
+        $offset = ($page - 1) * $limit;
+
+        $where = "";
+        $params = [];
+
+        if ($affiliateId) {
+            $where = "WHERE ae.affiliate_id = ?";
+            $params[] = $affiliateId;
+        }
+
+        $total = $db->fetch("SELECT COUNT(*) as cnt FROM affiliate_earnings ae $where", $params)['cnt'];
+
+        $params[] = $limit;
+        $params[] = $offset;
+        $earnings = $db->fetchAll(
+            "SELECT ae.*, a.name as affiliate_name, a.code as affiliate_code,
+                    u.email as user_email, u.name as user_name,
+                    p.name as package_name
+             FROM affiliate_earnings ae
+             JOIN affiliates a ON ae.affiliate_id = a.id
+             JOIN users u ON ae.user_id = u.id
+             JOIN orders o ON ae.order_id = o.id
+             JOIN packages p ON o.package_id = p.id
+             $where ORDER BY ae.created_at DESC LIMIT ? OFFSET ?",
+            $params
+        );
+
+        // Toplam istatistikler
+        $statsParams = $affiliateId ? [$affiliateId] : [];
+        $statsWhere = $affiliateId ? "WHERE affiliate_id = ?" : "";
+        $stats = $db->fetch(
+            "SELECT COALESCE(SUM(commission_amount), 0) as total_commission,
+                    COUNT(*) as total_orders,
+                    COALESCE(SUM(order_amount), 0) as total_order_amount
+             FROM affiliate_earnings $statsWhere",
+            $statsParams
+        );
+
+        Api::success([
+            'earnings' => $earnings,
+            'stats' => $stats,
+            'total' => (int)$total,
+            'page' => $page,
+            'pages' => ceil($total / $limit)
+        ]);
+        break;
+
+    case 'affiliate_earning_status':
+        $data = Api::getPostData();
+        Api::required($data, ['id', 'status']);
+
+        if (!in_array($data['status'], ['pending', 'approved', 'paid'])) {
+            Api::error('Invalid status');
+        }
+
+        $db->update('affiliate_earnings', ['status' => $data['status']], 'id = :id', ['id' => (int)$data['id']]);
+        Api::success(null, 'Status updated');
+        break;
+
     default:
         Api::error('Invalid action', 400);
 }

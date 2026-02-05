@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `daily_scan_limit` int(11) NOT NULL DEFAULT 0 COMMENT 'Günlük tarama hakkı (0 = sınırsız)',
   `daily_scans_used` int(11) NOT NULL DEFAULT 0 COMMENT 'Bugün kullanılan tarama sayısı',
   `last_scan_date` date DEFAULT NULL COMMENT 'Son tarama tarihi (günlük reset için)',
+  `referred_by` int(11) DEFAULT NULL COMMENT 'Affiliate ID',
   `package_expires` datetime DEFAULT NULL,
   `total_scans` int(11) DEFAULT 0,
   `total_asins` int(11) DEFAULT 0,
@@ -113,12 +114,14 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `amount` decimal(10,2) NOT NULL,
   `currency` varchar(3) DEFAULT 'USD',
   `status` enum('pending','completed','failed','refunded') DEFAULT 'pending',
+  `affiliate_id` int(11) DEFAULT NULL COMMENT 'Affiliate ID',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `completed_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_user` (`user_id`),
   KEY `package_id` (`package_id`),
   KEY `idx_stripe_session` (`stripe_session_id`),
+  KEY `idx_affiliate` (`affiliate_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`package_id`) REFERENCES `packages` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -235,6 +238,47 @@ ON DUPLICATE KEY UPDATE `setting_key` = `setting_key`;
 COMMIT;
 
 -- --------------------------------------------------------
+-- Affiliates tablosu
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `affiliates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL COMMENT 'Affiliate ismi (admin belirler)',
+  `code` varchar(50) NOT NULL COMMENT 'Referans kodu (link için)',
+  `commission_rate` decimal(5,2) NOT NULL DEFAULT 5.00 COMMENT 'Komisyon oranı (%)',
+  `total_earnings` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Toplam kazanç',
+  `total_referrals` int(11) NOT NULL DEFAULT 0 COMMENT 'Toplam yönlendirilen kullanıcı',
+  `total_orders` int(11) NOT NULL DEFAULT 0 COMMENT 'Toplam sipariş',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `notes` text DEFAULT NULL COMMENT 'Admin notları',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Affiliate Earnings tablosu
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `affiliate_earnings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `affiliate_id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL COMMENT 'Yönlendirilen kullanıcı',
+  `order_amount` decimal(10,2) NOT NULL,
+  `commission_rate` decimal(5,2) NOT NULL COMMENT 'Sipariş anındaki oran',
+  `commission_amount` decimal(10,2) NOT NULL COMMENT 'Hesaplanan komisyon',
+  `status` enum('pending','approved','paid') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_affiliate` (`affiliate_id`),
+  KEY `idx_order` (`order_id`),
+  KEY `idx_user` (`user_id`),
+  CONSTRAINT `affiliate_earnings_ibfk_1` FOREIGN KEY (`affiliate_id`) REFERENCES `affiliates` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `affiliate_earnings_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `affiliate_earnings_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- MEVCUT VERİTABANINA GÜNCELLEME
 -- Eğer tablolar zaten varsa, eksik kolonları eklemek için:
 -- --------------------------------------------------------
@@ -242,6 +286,8 @@ COMMIT;
 -- ALTER TABLE `users` ADD COLUMN `daily_scan_limit` int(11) NOT NULL DEFAULT 0 COMMENT 'Günlük tarama hakkı' AFTER `scan_limit`;
 -- ALTER TABLE `users` ADD COLUMN `daily_scans_used` int(11) NOT NULL DEFAULT 0 COMMENT 'Bugün kullanılan tarama' AFTER `daily_scan_limit`;
 -- ALTER TABLE `users` ADD COLUMN `last_scan_date` date DEFAULT NULL COMMENT 'Son tarama tarihi' AFTER `daily_scans_used`;
+-- ALTER TABLE `users` ADD COLUMN `referred_by` int(11) DEFAULT NULL COMMENT 'Affiliate ID' AFTER `last_scan_date`;
+-- ALTER TABLE `orders` ADD COLUMN `affiliate_id` int(11) DEFAULT NULL COMMENT 'Affiliate ID' AFTER `status`;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

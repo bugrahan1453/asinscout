@@ -85,6 +85,12 @@
     <script>
         const API_BASE = '/api';
 
+        // Affiliate referral code from URL param
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        if (refCode) sessionStorage.setItem('asin_ref', refCode);
+        const affiliateRef = refCode || sessionStorage.getItem('asin_ref') || '';
+
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -98,11 +104,14 @@
             btn.textContent = t('register_creating');
             msg.className = 'message';
 
+            const payload = { name, email, password };
+            if (affiliateRef) payload.ref = affiliateRef;
+
             try {
                 const resp = await fetch(API_BASE + '/auth.php?action=register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await resp.json();
@@ -110,6 +119,7 @@
                 if (data.success) {
                     localStorage.setItem('token', data.data.token);
                     localStorage.setItem('user', JSON.stringify(data.data.user));
+                    sessionStorage.removeItem('asin_ref');
 
                     msg.className = 'message success';
                     msg.textContent = data.message || 'Account created! Redirecting...';

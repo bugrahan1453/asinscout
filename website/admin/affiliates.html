@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliates - ASIN Scout Pro Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a25; --text: #f0f0f5; --text2: #9898a8; --text3: #5a5a6e; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --blue: #4d8eff; --red: #ff4d5e; --border: #2a2a35; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: var(--bg2); border-right: 1px solid var(--border); padding: 20px; }
+        .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text); text-decoration: none; }
+        .sidebar-logo span { color: var(--orange); }
+        .sidebar-logo .icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .admin-badge { font-size: 10px; background: var(--red); color: #fff; padding: 2px 8px; border-radius: 4px; margin-bottom: 30px; display: inline-block; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text2); text-decoration: none; border-radius: 10px; margin-bottom: 4px; font-size: 14px; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--bg3); color: var(--text); }
+        .sidebar-menu a.active { background: linear-gradient(135deg, rgba(255,107,44,0.2), rgba(255,44,107,0.1)); color: var(--orange); }
+        .main { margin-left: 260px; padding: 30px; }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .page-subtitle { font-size: 14px; color: var(--text2); margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+        .stat-card .label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+        .stat-card .value { font-size: 28px; font-weight: 800; }
+        .stat-card .value.green { color: var(--green); }
+        .stat-card .value.orange { color: var(--orange); }
+        .stat-card .value.blue { color: var(--blue); }
+        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 18px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        th { color: var(--text2); font-weight: 500; font-size: 11px; text-transform: uppercase; }
+        tr:hover { background: var(--bg3); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge.green { background: rgba(34,201,122,0.15); color: var(--green); }
+        .badge.red { background: rgba(255,77,94,0.15); color: var(--red); }
+        .badge.orange { background: rgba(255,107,44,0.15); color: var(--orange); }
+        .badge.blue { background: rgba(77,142,255,0.15); color: var(--blue); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--orange), var(--pink)); color: #fff; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,107,44,0.3); }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+        .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+        .btn-danger { background: rgba(255,77,94,0.15); color: var(--red); border: 1px solid rgba(255,77,94,0.3); }
+        .btn-danger:hover { background: rgba(255,77,94,0.25); }
+        .copy-link { font-size: 12px; color: var(--blue); cursor: pointer; text-decoration: underline; }
+        .copy-link:hover { color: var(--orange); }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; width: 100%; max-width: 500px; }
+        .modal h2 { font-size: 22px; margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text2); }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; font-family: inherit; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--orange); }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .modal-actions .btn { flex: 1; padding: 12px; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+        .tab { padding: 10px 20px; background: transparent; border: 1px solid var(--border); color: var(--text2); border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; }
+        .tab:hover { border-color: var(--orange); color: var(--text); }
+        .tab.active { background: linear-gradient(135deg, rgba(255,107,44,0.2), rgba(255,44,107,0.1)); border-color: var(--orange); color: var(--orange); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
+        .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:18px;cursor:pointer}
+        .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
+        @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}.form-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    </style>
+</head>
+<body>
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('active')">&#9776;</button>
+<div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
+    <aside class="sidebar">
+        <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <div class="admin-badge">ADMIN PANEL</div>
+        <ul class="sidebar-menu">
+            <a href="index.html">📊 Dashboard</a>
+            <a href="users.html">👥 Users</a>
+            <a href="packages.html">📦 Packages</a>
+            <a href="orders.html">💳 Orders</a>
+            <a href="affiliates.html" class="active">🤝 Affiliates</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <h1 class="page-title">Affiliate Management</h1>
+        <p class="page-subtitle">Affiliate linklerini ve komisyonları yönetin</p>
+
+        <div class="stats-grid" id="affiliateStats">
+            <div class="stat-card">
+                <div class="label">Total Affiliates</div>
+                <div class="value orange" id="statAffiliates">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Referrals</div>
+                <div class="value blue" id="statReferrals">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Orders</div>
+                <div class="value orange" id="statOrders">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Earnings</div>
+                <div class="value green" id="statEarnings">$0</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('affiliates')">Affiliates</button>
+            <button class="tab" onclick="switchTab('earnings')">Earnings</button>
+        </div>
+
+        <!-- Affiliates Tab -->
+        <div class="tab-content active" id="tab-affiliates">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">All Affiliates</div>
+                    <button class="btn btn-primary" onclick="openModal()">+ New Affiliate</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Commission</th>
+                            <th>Referrals</th>
+                            <th>Orders</th>
+                            <th>Earnings</th>
+                            <th>Status</th>
+                            <th>Link</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="affiliatesTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Earnings Tab -->
+        <div class="tab-content" id="tab-earnings">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Commission Earnings</div>
+                    <select id="earningsFilter" onchange="loadEarnings()" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;">
+                        <option value="">All Affiliates</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Affiliate</th>
+                            <th>User</th>
+                            <th>Package</th>
+                            <th>Order Amount</th>
+                            <th>Rate</th>
+                            <th>Commission</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="earningsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">New Affiliate</h2>
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label>Affiliate Name *</label>
+                <input type="text" id="affName" placeholder="e.g. Ali Yılmaz">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Referral Code *</label>
+                    <input type="text" id="affCode" placeholder="e.g. ali2025" style="text-transform:lowercase">
+                </div>
+                <div class="form-group">
+                    <label>Commission Rate (%) *</label>
+                    <input type="number" id="affRate" placeholder="5" min="0" max="100" step="0.5" value="5">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="affActive">
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="affNotes" placeholder="Admin notes..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAffiliate()">Save Affiliate</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token || user.role !== 'admin') { window.location.href = '../login.html'; }
+
+        let affiliatesData = [];
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`#tab-${tab}`).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'earnings') loadEarnings();
+        }
+
+        // Load affiliates
+        async function loadAffiliates() {
+            try {
+                const resp = await fetch(API_BASE + '/admin.php?action=affiliates', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    affiliatesData = data.data.affiliates || [];
+                    renderAffiliates();
+                    updateStats();
+                    populateFilter();
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function renderAffiliates() {
+            const siteUrl = window.location.origin;
+            let html = '';
+            for (const a of affiliatesData) {
+                const link = siteUrl + '/register.html?ref=' + a.code;
+                html += `<tr>
+                    <td><strong>${esc(a.name)}</strong></td>
+                    <td><code style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:12px">${esc(a.code)}</code></td>
+                    <td>${parseFloat(a.commission_rate).toFixed(1)}%</td>
+                    <td>${a.actual_referrals || a.total_referrals || 0}</td>
+                    <td>${a.actual_orders || a.total_orders || 0}</td>
+                    <td style="color:var(--green);font-weight:600">$${parseFloat(a.actual_earnings || a.total_earnings || 0).toFixed(2)}</td>
+                    <td><span class="badge ${a.is_active == 1 ? 'green' : 'red'}">${a.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="copy-link" onclick="copyLink('${esc(link)}')" title="${esc(link)}">Copy Link</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline" onclick="editAffiliate(${a.id})">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAffiliate(${a.id}, '${esc(a.name)}')" style="margin-left:4px">Delete</button>
+                    </td>
+                </tr>`;
+            }
+            document.getElementById('affiliatesTable').innerHTML = html || '<tr><td colspan="9" class="empty-state">No affiliates yet. Click "+ New Affiliate" to create one.</td></tr>';
+        }
+
+        function updateStats() {
+            let totalRefs = 0, totalOrders = 0, totalEarnings = 0;
+            for (const a of affiliatesData) {
+                totalRefs += parseInt(a.actual_referrals || a.total_referrals || 0);
+                totalOrders += parseInt(a.actual_orders || a.total_orders || 0);
+                totalEarnings += parseFloat(a.actual_earnings || a.total_earnings || 0);
+            }
+            document.getElementById('statAffiliates').textContent = affiliatesData.length;
+            document.getElementById('statReferrals').textContent = totalRefs;
+            document.getElementById('statOrders').textContent = totalOrders;
+            document.getElementById('statEarnings').textContent = '$' + totalEarnings.toFixed(2);
+        }
+
+        function populateFilter() {
+            const select = document.getElementById('earningsFilter');
+            select.innerHTML = '<option value="">All Affiliates</option>';
+            for (const a of affiliatesData) {
+                select.innerHTML += `<option value="${a.id}">${esc(a.name)} (${esc(a.code)})</option>`;
+            }
+        }
+
+        // Load earnings
+        async function loadEarnings() {
+            const affiliateId = document.getElementById('earningsFilter').value;
+            const url = API_BASE + '/admin.php?action=affiliate_earnings' + (affiliateId ? '&affiliate_id=' + affiliateId : '');
+            try {
+                const resp = await fetch(url, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    renderEarnings(data.data.earnings || []);
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function renderEarnings(earnings) {
+            let html = '';
+            for (const e of earnings) {
+                html += `<tr>
+                    <td>${fmtDate(e.created_at)}</td>
+                    <td>${esc(e.affiliate_name)} <code style="font-size:10px;color:var(--text3)">${esc(e.affiliate_code)}</code></td>
+                    <td>${esc(e.user_email)}</td>
+                    <td>${esc(e.package_name)}</td>
+                    <td>$${parseFloat(e.order_amount).toFixed(2)}</td>
+                    <td>${parseFloat(e.commission_rate).toFixed(1)}%</td>
+                    <td style="color:var(--green);font-weight:600">$${parseFloat(e.commission_amount).toFixed(2)}</td>
+                    <td><span class="badge ${e.status === 'paid' ? 'green' : e.status === 'approved' ? 'blue' : 'orange'}">${e.status}</span></td>
+                    <td>
+                        <select onchange="updateEarningStatus(${e.id}, this.value)" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px">
+                            <option value="pending" ${e.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="approved" ${e.status === 'approved' ? 'selected' : ''}>Approved</option>
+                            <option value="paid" ${e.status === 'paid' ? 'selected' : ''}>Paid</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }
+            document.getElementById('earningsTable').innerHTML = html || '<tr><td colspan="9" class="empty-state">No earnings yet</td></tr>';
+        }
+
+        async function updateEarningStatus(id, status) {
+            try {
+                await fetch(API_BASE + '/admin.php?action=affiliate_earning_status', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, status })
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        // Modal
+        function openModal(id) {
+            document.getElementById('editId').value = '';
+            document.getElementById('affName').value = '';
+            document.getElementById('affCode').value = '';
+            document.getElementById('affRate').value = '5';
+            document.getElementById('affActive').value = '1';
+            document.getElementById('affNotes').value = '';
+            document.getElementById('modalTitle').textContent = 'New Affiliate';
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function editAffiliate(id) {
+            const a = affiliatesData.find(x => x.id == id);
+            if (!a) return;
+            document.getElementById('editId').value = a.id;
+            document.getElementById('affName').value = a.name;
+            document.getElementById('affCode').value = a.code;
+            document.getElementById('affRate').value = parseFloat(a.commission_rate);
+            document.getElementById('affActive').value = a.is_active;
+            document.getElementById('affNotes').value = a.notes || '';
+            document.getElementById('modalTitle').textContent = 'Edit Affiliate';
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        async function saveAffiliate() {
+            const payload = {
+                name: document.getElementById('affName').value.trim(),
+                code: document.getElementById('affCode').value.trim().toLowerCase(),
+                commission_rate: parseFloat(document.getElementById('affRate').value) || 5,
+                is_active: parseInt(document.getElementById('affActive').value),
+                notes: document.getElementById('affNotes').value.trim()
+            };
+
+            const editId = document.getElementById('editId').value;
+            if (editId) payload.id = parseInt(editId);
+
+            if (!payload.name || !payload.code) {
+                alert('Name and code are required');
+                return;
+            }
+
+            try {
+                const resp = await fetch(API_BASE + '/admin.php?action=affiliate_save', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    closeModal();
+                    loadAffiliates();
+                } else {
+                    alert(data.message || 'Error saving');
+                }
+            } catch (err) { alert('Connection error'); }
+        }
+
+        async function deleteAffiliate(id, name) {
+            if (!confirm('Delete affiliate "' + name + '"? This will also delete all earnings records.')) return;
+            try {
+                const resp = await fetch(API_BASE + '/admin.php?action=affiliate_delete', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await resp.json();
+                if (data.success) loadAffiliates();
+                else alert(data.message || 'Error');
+            } catch (err) { alert('Connection error'); }
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                const el = event.target;
+                const orig = el.textContent;
+                el.textContent = 'Copied!';
+                el.style.color = 'var(--green)';
+                setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1500);
+            });
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '../login.html'; }
+        function esc(s) { return String(s || '').replace(/</g, '&lt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
+        function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '-'; }
+
+        // Close modal on overlay click
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        loadAffiliates();
+    </script>
+</body>
+</html>
