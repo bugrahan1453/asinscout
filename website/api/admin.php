@@ -3,6 +3,10 @@
  * ASIN Scout Pro - Admin API v2
  */
 
+// Geçici hata gösterimi - sonra kaldır!
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once __DIR__ . '/../includes/bootstrap.php';
 
 $action = $_GET['action'] ?? '';
