@@ -7,64 +7,128 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --bg: #0a0a0f; --bg2: #12121a; --text: #f0f0f5; --text2: #9898a8; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --border: #2a2a35; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --text: #f0f0f5; --text2: #9898a8; --text3: #5a5a6e; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --red: #ff4d5e; --border: #2a2a35; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .container { max-width: 500px; text-align: center; }
+
+        /* Loading state */
+        .loading-state .spinner { width: 60px; height: 60px; border: 4px solid var(--border); border-top-color: var(--orange); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 24px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-state h2 { font-size: 24px; margin-bottom: 12px; }
+        .loading-state p { color: var(--text2); font-size: 15px; }
+
+        /* Success state */
+        .success-state { display: none; }
         .success-icon { width: 100px; height: 100px; background: linear-gradient(135deg, var(--green), #17a566); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 30px; animation: pop 0.5s ease; }
         @keyframes pop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        h1 { font-size: 32px; margin-bottom: 16px; }
-        p { color: var(--text2); font-size: 16px; margin-bottom: 30px; line-height: 1.6; }
-        .credits-added { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px; }
-        .credits-added .label { color: var(--text2); font-size: 14px; margin-bottom: 8px; }
-        .credits-added .value { font-size: 48px; font-weight: 800; color: var(--green); }
+        .success-state h1 { font-size: 32px; margin-bottom: 16px; }
+        .success-state .subtitle { color: var(--text2); font-size: 16px; margin-bottom: 30px; line-height: 1.6; }
+        .package-info { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px; }
+        .package-info .pkg-name { font-size: 14px; color: var(--text2); margin-bottom: 8px; }
+        .package-info .pkg-value { font-size: 42px; font-weight: 800; color: var(--green); margin-bottom: 4px; }
+        .package-info .pkg-detail { font-size: 13px; color: var(--text3); }
         .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, var(--orange), var(--pink)); color: #fff; text-decoration: none; border-radius: 10px; font-size: 16px; font-weight: 600; transition: all 0.2s; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,107,44,0.3); }
-        .loading { display: none; }
-        .error { color: #ff4d5e; }
+
+        /* Error state */
+        .error-state { display: none; }
+        .error-icon { width: 100px; height: 100px; background: rgba(255,77,94,0.15); border: 2px solid var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 30px; }
+        .error-state h1 { font-size: 28px; margin-bottom: 16px; color: var(--red); }
+        .error-state p { color: var(--text2); font-size: 15px; margin-bottom: 24px; line-height: 1.6; }
+        .error-state .btn-outline { display: inline-block; padding: 12px 24px; border: 1px solid var(--border); color: var(--text); text-decoration: none; border-radius: 10px; font-size: 14px; margin-left: 12px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="success-icon">✓</div>
-        <h1>Payment Successful!</h1>
-        <p id="message">Your credits have been added to your account.</p>
-        <div class="credits-added">
-            <div class="label">Credits Added</div>
-            <div class="value" id="creditsAdded">...</div>
+        <!-- Loading -->
+        <div class="loading-state" id="loadingState">
+            <div class="spinner"></div>
+            <h2>Verifying Payment...</h2>
+            <p>Please wait while we confirm your payment with Stripe. Do not close this page.</p>
         </div>
-        <a href="dashboard.html" class="btn">Go to Dashboard →</a>
+
+        <!-- Success -->
+        <div class="success-state" id="successState">
+            <div class="success-icon">&#10003;</div>
+            <h1>Payment Successful!</h1>
+            <p class="subtitle">Your package has been activated. You can start scanning now.</p>
+            <div class="package-info">
+                <div class="pkg-name" id="pkgName">Package</div>
+                <div class="pkg-value" id="pkgLimit">...</div>
+                <div class="pkg-detail" id="pkgExpires"></div>
+            </div>
+            <a href="dashboard.html" class="btn">Go to Dashboard &#8594;</a>
+        </div>
+
+        <!-- Error -->
+        <div class="error-state" id="errorState">
+            <div class="error-icon">&#10007;</div>
+            <h1>Verification Failed</h1>
+            <p id="errorMessage">We couldn't verify your payment. If you were charged, please contact support and we'll resolve it immediately.</p>
+            <a href="dashboard.html" class="btn">Go to Dashboard</a>
+            <a href="mailto:support@asinscout.com" class="btn-outline">Contact Support</a>
+        </div>
     </div>
+
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
-        
-        if (sessionId) {
-            fetch('/api/packages.php?action=success&session_id=' + sessionId)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('creditsAdded').textContent = new Intl.NumberFormat().format(data.data.credits_added);
-                        // Refresh user data
-                        const token = localStorage.getItem('token');
-                        if (token) {
-                            fetch('/api/auth.php?action=profile', {
-                                headers: { 'Authorization': 'Bearer ' + token }
-                            }).then(r => r.json()).then(d => {
-                                if (d.success) localStorage.setItem('user', JSON.stringify(d.data.user));
-                            });
-                        }
-                    } else {
-                        document.getElementById('message').textContent = data.message || 'Error verifying payment';
-                        document.getElementById('message').className = 'error';
+
+        function showSuccess(data) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+
+            document.getElementById('pkgName').textContent = data.package_name || 'Package';
+            const limit = data.scan_limit || 0;
+            document.getElementById('pkgLimit').textContent = (limit >= 1000 ? Math.round(limit/1000) + 'K' : limit) + ' ASINs';
+            if (data.expires) {
+                document.getElementById('pkgExpires').textContent = 'Valid until ' + new Date(data.expires).toLocaleDateString();
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            if (msg) document.getElementById('errorMessage').textContent = msg;
+        }
+
+        // Retry verification up to 3 times (in case Stripe is slow)
+        async function verifyPayment(attempt) {
+            attempt = attempt || 1;
+            try {
+                const r = await fetch('/api/packages.php?action=success&session_id=' + sessionId);
+                const data = await r.json();
+
+                if (data.success) {
+                    showSuccess(data.data);
+                    // Refresh user profile in localStorage
+                    const token = localStorage.getItem('token');
+                    if (token) {
+                        fetch('/api/auth.php?action=profile', {
+                            headers: { 'Authorization': 'Bearer ' + token }
+                        }).then(r => r.json()).then(d => {
+                            if (d.success) localStorage.setItem('user', JSON.stringify(d.data.user));
+                        });
                     }
-                })
-                .catch(err => {
-                    document.getElementById('message').textContent = 'Error verifying payment. Please contact support.';
-                    document.getElementById('message').className = 'error';
-                });
+                } else if (attempt < 3) {
+                    // Stripe might be processing - retry after delay
+                    setTimeout(function() { verifyPayment(attempt + 1); }, 2000 * attempt);
+                } else {
+                    showError(data.message || 'Payment verification failed. Please contact support if you were charged.');
+                }
+            } catch (e) {
+                if (attempt < 3) {
+                    setTimeout(function() { verifyPayment(attempt + 1); }, 2000 * attempt);
+                } else {
+                    showError('Connection error. Please refresh this page or contact support.');
+                }
+            }
+        }
+
+        if (sessionId) {
+            verifyPayment(1);
         } else {
-            document.getElementById('message').textContent = 'Invalid session. Please contact support.';
-            document.getElementById('message').className = 'error';
+            showError('Invalid payment session. If you just made a payment, please contact support.');
         }
     </script>
 </body>

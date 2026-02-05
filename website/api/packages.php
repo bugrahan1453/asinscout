@@ -160,51 +160,6 @@ switch ($action) {
         }
         break;
     
-    case 'webhook':
-        $payload = file_get_contents('php://input');
-        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
-        
-        require_once __DIR__ . '/../includes/stripe-php/init.php';
-        
-        try {
-            $event = \Stripe\Webhook::constructEvent($payload, $sig_header, STRIPE_WEBHOOK_SECRET);
-        } catch(\Exception $e) {
-            http_response_code(400);
-            exit();
-        }
-        
-        if ($event->type === 'checkout.session.completed') {
-            $session = $event->data->object;
-            
-            if ($session->payment_status === 'paid') {
-                $order = $db->fetch(
-                    "SELECT o.*, p.scan_limit, p.duration_days FROM orders o 
-                     JOIN packages p ON o.package_id = p.id 
-                     WHERE o.stripe_session_id = ? AND o.status = 'pending'",
-                    [$session->id]
-                );
-                
-                if ($order) {
-                    $expiresAt = date('Y-m-d H:i:s', strtotime('+' . $order['duration_days'] . ' days'));
-                    
-                    $db->query(
-                        "UPDATE users SET package_id = ?, scan_limit = ?, package_expires = ? WHERE id = ?",
-                        [$order['package_id'], $order['scan_limit'], $expiresAt, $order['user_id']]
-                    );
-                    
-                    $db->query(
-                        "UPDATE orders SET status = 'completed', stripe_payment_id = ?, completed_at = NOW() WHERE id = ?",
-                        [$session->payment_intent, $order['id']]
-                    );
-                }
-            }
-        }
-        
-        http_response_code(200);
-        echo json_encode(['received' => true]);
-        exit;
-        break;
-    
     default:
         Api::error('Invalid action', 400);
 }
