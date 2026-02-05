@@ -289,6 +289,29 @@ CREATE TABLE IF NOT EXISTS `affiliate_earnings` (
 -- ALTER TABLE `users` ADD COLUMN `referred_by` int(11) DEFAULT NULL COMMENT 'Affiliate ID' AFTER `last_scan_date`;
 -- ALTER TABLE `orders` ADD COLUMN `affiliate_id` int(11) DEFAULT NULL COMMENT 'Affiliate ID' AFTER `status`;
 
+-- --------------------------------------------------------
+-- Testimonials tablosu (Müşteri yorumları)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `testimonials` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL COMMENT 'Müşteri adı',
+  `role` varchar(100) DEFAULT NULL COMMENT 'Ünvan/Rol',
+  `avatar` varchar(10) DEFAULT NULL COMMENT 'Avatar harfi (örn: M, S, D)',
+  `text` text NOT NULL COMMENT 'Yorum metni',
+  `rating` tinyint(1) DEFAULT 5 COMMENT 'Yıldız puanı (1-5)',
+  `is_active` tinyint(1) DEFAULT 1,
+  `sort_order` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Varsayılan yorumlar
+INSERT INTO `testimonials` (`name`, `role`, `avatar`, `text`, `rating`, `is_active`, `sort_order`) VALUES
+('Michael R.', 'Amazon FBA Seller', 'M', 'This tool saved me hours of manual work. I can now analyze competitor stores in minutes instead of days.', 5, 1, 1),
+('Sarah L.', 'Product Researcher', 'S', 'The spider crawl feature is amazing! It found products I would have never discovered manually.', 5, 1, 2),
+('David K.', 'Dropshipper', 'D', 'Best ASIN scraper I''ve used. Fast, reliable, and the pricing is very fair.', 5, 1, 3)
+ON DUPLICATE KEY UPDATE `name` = `name`;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

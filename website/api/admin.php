@@ -358,6 +358,45 @@ try {
             Api::success(null, 'Status updated');
             break;
 
+        case 'testimonials':
+            $testimonials = $db->fetchAll("SELECT * FROM testimonials ORDER BY sort_order, id") ?: [];
+            Api::success(['testimonials' => $testimonials]);
+            break;
+
+        case 'testimonial_save':
+            $data = Api::getPostData();
+            Api::required($data, ['name', 'text']);
+
+            $testimonialData = [
+                'name' => trim($data['name']),
+                'role' => trim($data['role'] ?? ''),
+                'avatar' => strtoupper(substr(trim($data['name']), 0, 1)),
+                'text' => trim($data['text']),
+                'rating' => max(1, min(5, (int)($data['rating'] ?? 5))),
+                'is_active' => (int)($data['is_active'] ?? 1),
+                'sort_order' => (int)($data['sort_order'] ?? 0)
+            ];
+
+            if (isset($data['avatar']) && $data['avatar']) {
+                $testimonialData['avatar'] = strtoupper(substr(trim($data['avatar']), 0, 1));
+            }
+
+            if (isset($data['id']) && $data['id']) {
+                $db->update('testimonials', $testimonialData, 'id = :id', ['id' => (int)$data['id']]);
+            } else {
+                $db->insert('testimonials', $testimonialData);
+            }
+
+            Api::success(null, 'Testimonial saved');
+            break;
+
+        case 'testimonial_delete':
+            $data = Api::getPostData();
+            Api::required($data, ['id']);
+            $db->query("DELETE FROM testimonials WHERE id = ?", [(int)$data['id']]);
+            Api::success(null, 'Testimonial deleted');
+            break;
+
         default:
             Api::error('Invalid action', 400);
     }

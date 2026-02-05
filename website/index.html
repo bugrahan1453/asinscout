@@ -176,48 +176,9 @@
                 <h2 data-i18n="pricing_title">Simple Pricing</h2>
                 <p data-i18n="pricing_subtitle">Pay per ASIN. No subscriptions, no hidden fees.</p>
             </div>
-            <div class="pricing-grid">
-                <div class="price-card">
-                    <div class="price-name" data-i18n="pricing_starter">Starter</div>
-                    <div class="price-credits">20,000 ASIN <span data-i18n="pricing_limit">per scan</span></div>
-                    <div class="price-amount">$9.99</div>
-                    <ul class="price-features">
-                        <li data-i18n="pricing_unlimited_usage">Unlimited usage</li>
-                        <li data-i18n="pricing_marketplaces">All marketplaces</li>
-                        <li data-i18n="pricing_export">Export to TXT/Excel</li>
-                        <li data-i18n="pricing_history">Scan history</li>
-                        <li data-i18n="pricing_email_support">Email support</li>
-                    </ul>
-                    <a href="register.html" class="btn btn-outline" data-i18n="pricing_get_started">Get Started</a>
-                </div>
-                <div class="price-card popular" data-popular="MOST POPULAR">
-                    <div class="price-name" data-i18n="pricing_pro">Pro</div>
-                    <div class="price-credits">50,000 ASIN <span data-i18n="pricing_limit">per scan</span></div>
-                    <div class="price-amount">$19.99</div>
-                    <ul class="price-features">
-                        <li data-i18n="pricing_unlimited_usage">Unlimited usage</li>
-                        <li data-i18n="pricing_marketplaces">All marketplaces</li>
-                        <li data-i18n="pricing_export">Export to TXT/Excel</li>
-                        <li data-i18n="pricing_history">Scan history</li>
-                        <li data-i18n="pricing_priority_support">Priority support</li>
-                        <li data-i18n="pricing_api">API access</li>
-                    </ul>
-                    <a href="register.html" class="btn btn-primary" data-i18n="pricing_get_started">Get Started</a>
-                </div>
-                <div class="price-card">
-                    <div class="price-name" data-i18n="pricing_business">Business</div>
-                    <div class="price-credits">100,000 ASIN <span data-i18n="pricing_limit">per scan</span></div>
-                    <div class="price-amount">$34.99</div>
-                    <ul class="price-features">
-                        <li data-i18n="pricing_unlimited_usage">Unlimited usage</li>
-                        <li data-i18n="pricing_marketplaces">All marketplaces</li>
-                        <li data-i18n="pricing_all_formats">All export formats</li>
-                        <li data-i18n="pricing_unlimited">Unlimited history</li>
-                        <li data-i18n="pricing_24_7">24/7 support</li>
-                        <li data-i18n="pricing_api">API access</li>
-                    </ul>
-                    <a href="register.html" class="btn btn-outline" data-i18n="pricing_get_started">Get Started</a>
-                </div>
+            <div class="pricing-grid" id="pricingGrid">
+                <!-- Paketler veritabanından yüklenecek -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text2);">Loading packages...</div>
             </div>
         </div>
     </section>
@@ -228,10 +189,8 @@
                 <h2 data-i18n="testimonials_title">What Our Users Say</h2>
                 <p data-i18n="testimonials_subtitle">Join thousands of satisfied Amazon sellers</p>
             </div>
-            <div class="testimonials-grid">
-                <div class="testimonial"><div class="testimonial-text">"This tool saved me hours of manual work. I can now analyze competitor stores in minutes instead of days."</div><div class="testimonial-author"><div class="testimonial-avatar">M</div><div><div class="testimonial-name">Michael R.</div><div class="testimonial-role">Amazon FBA Seller</div></div></div></div>
-                <div class="testimonial"><div class="testimonial-text">"The spider crawl feature is amazing! It found products I would have never discovered manually."</div><div class="testimonial-author"><div class="testimonial-avatar">S</div><div><div class="testimonial-name">Sarah L.</div><div class="testimonial-role">Product Researcher</div></div></div></div>
-                <div class="testimonial"><div class="testimonial-text">"Best ASIN scraper I've used. Fast, reliable, and the pricing is very fair."</div><div class="testimonial-author"><div class="testimonial-avatar">D</div><div><div class="testimonial-name">David K.</div><div class="testimonial-role">Dropshipper</div></div></div></div>
+            <div class="testimonials-grid" id="testimonialsGrid">
+                <!-- Yorumlar veritabanından yüklenecek -->
             </div>
         </div>
     </section>
@@ -281,6 +240,92 @@
                 window.location.href = '/downloads/extension.zip';
             }
         }
+
+        // Paketleri yükle
+        async function loadPackages() {
+            try {
+                const r = await fetch('/api/packages.php?action=list');
+                const d = await r.json();
+                if (d.success && d.data.packages && d.data.packages.length > 0) {
+                    let html = '';
+                    for (const pkg of d.data.packages) {
+                        const isPopular = pkg.is_popular;
+                        const limit = pkg.scan_limit >= 1000 ? (pkg.scan_limit / 1000).toLocaleString() + 'K' : pkg.scan_limit;
+
+                        // Özellikleri oluştur
+                        let featuresHtml = '';
+                        if (pkg.features && pkg.features.length > 0) {
+                            for (const f of pkg.features) {
+                                featuresHtml += `<li>${escapeHtml(f)}</li>`;
+                            }
+                        } else {
+                            // Varsayılan özellikler
+                            featuresHtml = `
+                                <li data-i18n="pricing_unlimited_usage">Unlimited usage</li>
+                                <li data-i18n="pricing_marketplaces">All marketplaces</li>
+                                <li data-i18n="pricing_export">Export to TXT/Excel</li>
+                                <li data-i18n="pricing_history">Scan history</li>
+                            `;
+                        }
+
+                        html += `
+                            <div class="price-card ${isPopular ? 'popular' : ''}" ${isPopular ? 'data-popular="' + t('pricing_popular') + '"' : ''}>
+                                <div class="price-name">${escapeHtml(pkg.name)}</div>
+                                <div class="price-credits">${limit} ASIN <span data-i18n="pricing_limit">per scan</span></div>
+                                <div class="price-amount">$${parseFloat(pkg.price).toFixed(2)}</div>
+                                <ul class="price-features">${featuresHtml}</ul>
+                                <a href="register.html" class="btn ${isPopular ? 'btn-primary' : 'btn-outline'}" data-i18n="pricing_get_started">Get Started</a>
+                            </div>
+                        `;
+                    }
+                    document.getElementById('pricingGrid').innerHTML = html;
+                    // i18n güncelle
+                    if (typeof applyTranslations === 'function') {
+                        applyTranslations(localStorage.getItem('asin_lang') || 'en');
+                    }
+                }
+            } catch (e) {
+                console.error('Packages load error:', e);
+            }
+        }
+
+        // Yorumları yükle
+        async function loadTestimonials() {
+            try {
+                const r = await fetch('/api/packages.php?action=testimonials');
+                const d = await r.json();
+                if (d.success && d.data.testimonials && d.data.testimonials.length > 0) {
+                    let html = '';
+                    for (const t of d.data.testimonials) {
+                        html += `
+                            <div class="testimonial">
+                                <div class="testimonial-text">"${escapeHtml(t.text)}"</div>
+                                <div class="testimonial-author">
+                                    <div class="testimonial-avatar">${escapeHtml(t.avatar || t.name.charAt(0))}</div>
+                                    <div>
+                                        <div class="testimonial-name">${escapeHtml(t.name)}</div>
+                                        <div class="testimonial-role">${escapeHtml(t.role || '')}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    document.getElementById('testimonialsGrid').innerHTML = html;
+                }
+            } catch (e) {
+                console.error('Testimonials load error:', e);
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPackages();
+            loadTestimonials();
+        });
     </script>
 </body>
 </html>

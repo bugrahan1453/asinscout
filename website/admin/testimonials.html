@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Packages - Admin</title>
+    <title>Testimonials - Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
@@ -33,6 +33,7 @@
         .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
         .btn-sm{padding:6px 12px;font-size:12px}
         .btn-danger{background:var(--red);color:#fff}
+        .btn-danger:hover{background:#ff6b7a}
         .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
         .badge.green{background:rgba(34,201,122,0.15);color:var(--green)}
         .badge.red{background:rgba(255,77,94,0.15);color:var(--red)}
@@ -43,7 +44,7 @@
         .form-group{margin-bottom:20px}
         .form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px}
         .form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px}
-        .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--orange)}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--orange)}
         .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
         .form-check{display:flex;align-items:center;gap:10px}
         .form-check input{width:auto}
@@ -51,6 +52,9 @@
         .modal-actions .btn{flex:1}
         .empty{text-align:center;padding:60px;color:var(--text2)}
         .loading{text-align:center;padding:40px;color:var(--text2)}
+        .testimonial-text{max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .avatar-preview{width:40px;height:40px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
+        .stars{color:#ffc107}
         .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2,#12121a);border:1px solid var(--border,#2a2a35);border-radius:8px;padding:8px 12px;color:var(--text,#f0f0f5);font-size:18px;cursor:pointer}
         .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
         @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}}
@@ -68,10 +72,10 @@
         <ul class="sidebar-menu">
             <a href="index.html">📊 <span data-i18n="admin_dashboard">Dashboard</span></a>
             <a href="users.html">👥 <span data-i18n="admin_users">Users</span></a>
-            <a href="packages.html" class="active">📦 <span data-i18n="admin_packages">Packages</span></a>
+            <a href="packages.html">📦 <span data-i18n="admin_packages">Packages</span></a>
             <a href="orders.html">💳 <span data-i18n="admin_orders">Orders</span></a>
             <a href="affiliates.html">🤝 <span data-i18n="admin_affiliates">Affiliates</span></a>
-            <a href="testimonials.html">💬 <span data-i18n="admin_testimonials">Testimonials</span></a>
+            <a href="testimonials.html" class="active">💬 <span data-i18n="admin_testimonials">Testimonials</span></a>
             <a href="settings.html">⚙️ <span data-i18n="admin_settings">Settings</span></a>
             <a href="#" onclick="logout()">🚪 <span data-i18n="admin_logout">Logout</span></a>
         </ul>
@@ -83,94 +87,81 @@
 
     <main class="main">
         <div class="page-header">
-            <h1 class="page-title">📦 <span data-i18n="admin_pkg_title">Packages</span></h1>
-            <button class="btn btn-primary" onclick="openModal()" data-i18n="admin_pkg_add">+ Add Package</button>
+            <h1 class="page-title">💬 <span data-i18n="admin_testimonials_title">Testimonials</span></h1>
+            <button class="btn btn-primary" onclick="openModal()" data-i18n="admin_testimonial_add">+ Add Testimonial</button>
         </div>
 
         <div class="card">
             <table>
                 <thead>
                     <tr>
-                        <th data-i18n="admin_pkg_name">Name</th>
-                        <th data-i18n="admin_pkg_scan_limit">Scan Limit</th>
-                        <th data-i18n="admin_pkg_daily_limit">Daily Limit</th>
-                        <th data-i18n="admin_pkg_price">Price</th>
-                        <th data-i18n="admin_pkg_duration">Duration</th>
+                        <th>Avatar</th>
+                        <th data-i18n="admin_testimonial_name">Name</th>
+                        <th data-i18n="admin_testimonial_role">Role</th>
+                        <th data-i18n="admin_testimonial_text">Comment</th>
+                        <th data-i18n="admin_testimonial_rating">Rating</th>
                         <th data-i18n="admin_status">Status</th>
-                        <th data-i18n="admin_pkg_popular">Popular</th>
+                        <th data-i18n="admin_testimonial_order">Order</th>
                         <th data-i18n="admin_actions">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="packagesTable">
-                    <tr><td colspan="8" class="loading" data-i18n="admin_loading">Loading packages...</td></tr>
+                <tbody id="testimonialsTable">
+                    <tr><td colspan="8" class="loading" data-i18n="admin_loading">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
 
-    <!-- Add/Edit Package Modal -->
-    <div class="modal" id="packageModal">
+    <!-- Add/Edit Testimonial Modal -->
+    <div class="modal" id="testimonialModal">
         <div class="modal-content">
-            <h2 class="modal-title" id="modalTitle" data-i18n="admin_pkg_modal_add">Add Package</h2>
-            <form id="packageForm" onsubmit="savePackage(event)">
-                <input type="hidden" id="packageId">
+            <h2 class="modal-title" id="modalTitle" data-i18n="admin_testimonial_modal_add">Add Testimonial</h2>
+            <form id="testimonialForm" onsubmit="saveTestimonial(event)">
+                <input type="hidden" id="testimonialId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="admin_testimonial_name_label">Name *</label>
+                        <input type="text" id="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="admin_testimonial_role_label">Role / Title</label>
+                        <input type="text" id="role" placeholder="Amazon FBA Seller">
+                    </div>
+                </div>
 
                 <div class="form-group">
-                    <label data-i18n="admin_pkg_name_label">Package Name *</label>
-                    <input type="text" id="packageName" data-i18n-placeholder="admin_pkg_name_placeholder" placeholder="e.g. Starter, Pro, Business" required>
+                    <label data-i18n="admin_testimonial_text_label">Comment *</label>
+                    <textarea id="text" rows="4" placeholder="This tool is amazing..." required></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label data-i18n="admin_pkg_limit_label">Scan Limit (ASIN per scan) *</label>
-                        <input type="number" id="scanLimit" placeholder="20000" required>
+                        <label data-i18n="admin_testimonial_rating_label">Rating (1-5)</label>
+                        <select id="rating">
+                            <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                            <option value="4">⭐⭐⭐⭐ (4)</option>
+                            <option value="3">⭐⭐⭐ (3)</option>
+                            <option value="2">⭐⭐ (2)</option>
+                            <option value="1">⭐ (1)</option>
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label data-i18n="admin_pkg_daily_label">Daily Scan Limit (0 = unlimited)</label>
-                        <input type="number" id="dailyScanLimit" value="0" placeholder="0" min="0">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="admin_pkg_price_label">Price ($) *</label>
-                        <input type="number" id="price" step="0.01" placeholder="9.99" required>
-                    </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="admin_pkg_duration_label">Duration (days)</label>
-                        <input type="number" id="duration" value="30" placeholder="30">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="admin_pkg_sort_label">Sort Order</label>
+                        <label data-i18n="admin_testimonial_order_label">Sort Order</label>
                         <input type="number" id="sortOrder" value="0" placeholder="0">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label data-i18n="admin_pkg_desc_label">Description</label>
-                    <textarea id="description" rows="2" placeholder="Package description..."></textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-check">
-                            <input type="checkbox" id="isActive" checked>
-                            <span data-i18n="admin_pkg_active_label">Active</span>
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-check">
-                            <input type="checkbox" id="isPopular">
-                            <span data-i18n="admin_pkg_popular_label">Popular (show badge)</span>
-                        </label>
-                    </div>
+                    <label class="form-check">
+                        <input type="checkbox" id="isActive" checked>
+                        <span data-i18n="admin_testimonial_active_label">Active (show on homepage)</span>
+                    </label>
                 </div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-outline" onclick="closeModal()" data-i18n="admin_cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary" data-i18n="admin_pkg_save">Save Package</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="admin_testimonial_save">Save</button>
                 </div>
             </form>
         </div>
@@ -186,113 +177,133 @@
             window.location.href = '../login.html';
         }
 
-        // Load packages
-        async function loadPackages() {
+        let testimonialsData = [];
+
+        // Load testimonials
+        async function loadTestimonials() {
             try {
-                const r = await fetch(API + '/admin.php?action=packages', {
+                const r = await fetch(API + '/admin.php?action=testimonials', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await r.json();
 
-                if (data.success && data.data.packages) {
-                    const packages = data.data.packages;
+                if (data.success && data.data.testimonials) {
+                    testimonialsData = data.data.testimonials;
 
-                    if (packages.length === 0) {
-                        document.getElementById('packagesTable').innerHTML =
-                            `<tr><td colspan="8" class="empty">${t('admin_pkg_no_packages')}</td></tr>`;
+                    if (testimonialsData.length === 0) {
+                        document.getElementById('testimonialsTable').innerHTML =
+                            `<tr><td colspan="8" class="empty">No testimonials yet. Click "Add Testimonial" to create one.</td></tr>`;
                         return;
                     }
 
                     let html = '';
-                    for (const p of packages) {
-                        const limit = p.scan_limit >= 1000 ? (p.scan_limit/1000) + 'K' : p.scan_limit;
-                        const dailyLimit = parseInt(p.daily_scan_limit) || 0;
-                        const statusText = p.is_active ? t('admin_active') : t('admin_inactive');
+                    for (const t of testimonialsData) {
+                        const stars = '⭐'.repeat(parseInt(t.rating) || 5);
+                        const statusText = t.is_active == 1 ? 'Active' : 'Inactive';
                         html += `
                             <tr>
-                                <td><strong>${esc(p.name)}</strong></td>
-                                <td>${limit} ASIN</td>
-                                <td>${dailyLimit > 0 ? dailyLimit + '/day' : t('admin_pkg_unlimited')}</td>
-                                <td>$${parseFloat(p.price).toFixed(2)}</td>
-                                <td>${p.duration_days} ${t('admin_pkg_days')}</td>
-                                <td><span class="badge ${p.is_active ? 'green' : 'red'}">${statusText}</span></td>
-                                <td>${p.is_popular ? '⭐' : '-'}</td>
+                                <td><div class="avatar-preview">${esc(t.avatar || t.name.charAt(0))}</div></td>
+                                <td><strong>${esc(t.name)}</strong></td>
+                                <td>${esc(t.role || '-')}</td>
+                                <td class="testimonial-text">${esc(t.text)}</td>
+                                <td class="stars">${stars}</td>
+                                <td><span class="badge ${t.is_active == 1 ? 'green' : 'red'}">${statusText}</span></td>
+                                <td>${t.sort_order || 0}</td>
                                 <td>
-                                    <button class="btn btn-outline btn-sm" onclick="editPackage(${p.id})">${t('admin_edit')}</button>
+                                    <button class="btn btn-outline btn-sm" onclick="editTestimonial(${t.id})">Edit</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteTestimonial(${t.id})">Delete</button>
                                 </td>
                             </tr>
                         `;
                     }
-                    document.getElementById('packagesTable').innerHTML = html;
-
-                    // Store packages for editing
-                    window.packagesData = packages;
+                    document.getElementById('testimonialsTable').innerHTML = html;
                 } else {
-                    document.getElementById('packagesTable').innerHTML =
-                        '<tr><td colspan="8" class="empty">Error loading packages: ' + (data.message || 'Unknown error') + '</td></tr>';
+                    document.getElementById('testimonialsTable').innerHTML =
+                        '<tr><td colspan="8" class="empty">Error: ' + (data.message || 'Unknown error') + '</td></tr>';
                 }
             } catch (e) {
                 console.error('Load error:', e);
-                document.getElementById('packagesTable').innerHTML =
-                    '<tr><td colspan="8" class="empty">Connection error. Check your network.</td></tr>';
+                document.getElementById('testimonialsTable').innerHTML =
+                    '<tr><td colspan="8" class="empty">Connection error.</td></tr>';
             }
         }
 
-        // Open modal for new package
+        // Open modal for new testimonial
         function openModal() {
-            document.getElementById('modalTitle').textContent = t('admin_pkg_modal_add');
-            document.getElementById('packageForm').reset();
-            document.getElementById('packageId').value = '';
+            document.getElementById('modalTitle').textContent = 'Add Testimonial';
+            document.getElementById('testimonialForm').reset();
+            document.getElementById('testimonialId').value = '';
             document.getElementById('isActive').checked = true;
-            document.getElementById('duration').value = '30';
+            document.getElementById('rating').value = '5';
             document.getElementById('sortOrder').value = '0';
-            document.getElementById('packageModal').classList.add('active');
+            document.getElementById('testimonialModal').classList.add('active');
         }
 
         // Close modal
         function closeModal() {
-            document.getElementById('packageModal').classList.remove('active');
+            document.getElementById('testimonialModal').classList.remove('active');
         }
 
-        // Edit package
-        function editPackage(id) {
-            const pkg = window.packagesData.find(p => p.id == id);
-            if (!pkg) return;
+        // Edit testimonial
+        function editTestimonial(id) {
+            const t = testimonialsData.find(x => x.id == id);
+            if (!t) return;
 
-            document.getElementById('modalTitle').textContent = t('admin_pkg_modal_edit');
-            document.getElementById('packageId').value = pkg.id;
-            document.getElementById('packageName').value = pkg.name;
-            document.getElementById('scanLimit').value = pkg.scan_limit;
-            document.getElementById('dailyScanLimit').value = pkg.daily_scan_limit || 0;
-            document.getElementById('price').value = pkg.price;
-            document.getElementById('duration').value = pkg.duration_days || 30;
-            document.getElementById('sortOrder').value = pkg.sort_order || 0;
-            document.getElementById('description').value = pkg.description || '';
-            document.getElementById('isActive').checked = pkg.is_active == 1;
-            document.getElementById('isPopular').checked = pkg.is_popular == 1;
+            document.getElementById('modalTitle').textContent = 'Edit Testimonial';
+            document.getElementById('testimonialId').value = t.id;
+            document.getElementById('name').value = t.name || '';
+            document.getElementById('role').value = t.role || '';
+            document.getElementById('text').value = t.text || '';
+            document.getElementById('rating').value = t.rating || 5;
+            document.getElementById('sortOrder').value = t.sort_order || 0;
+            document.getElementById('isActive').checked = t.is_active == 1;
 
-            document.getElementById('packageModal').classList.add('active');
+            document.getElementById('testimonialModal').classList.add('active');
         }
 
-        // Save package
-        async function savePackage(e) {
+        // Delete testimonial
+        async function deleteTestimonial(id) {
+            if (!confirm('Are you sure you want to delete this testimonial?')) return;
+
+            try {
+                const r = await fetch(API + '/admin.php?action=testimonial_delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ id })
+                });
+
+                const result = await r.json();
+
+                if (result.success) {
+                    loadTestimonials();
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to delete'));
+                }
+            } catch (e) {
+                console.error('Delete error:', e);
+                alert('Connection error: ' + e.message);
+            }
+        }
+
+        // Save testimonial
+        async function saveTestimonial(e) {
             e.preventDefault();
 
             const data = {
-                id: document.getElementById('packageId').value || null,
-                name: document.getElementById('packageName').value.trim(),
-                scan_limit: parseInt(document.getElementById('scanLimit').value),
-                daily_scan_limit: parseInt(document.getElementById('dailyScanLimit').value) || 0,
-                price: parseFloat(document.getElementById('price').value),
-                duration_days: parseInt(document.getElementById('duration').value) || 30,
+                id: document.getElementById('testimonialId').value || null,
+                name: document.getElementById('name').value.trim(),
+                role: document.getElementById('role').value.trim(),
+                text: document.getElementById('text').value.trim(),
+                rating: parseInt(document.getElementById('rating').value) || 5,
                 sort_order: parseInt(document.getElementById('sortOrder').value) || 0,
-                description: document.getElementById('description').value.trim(),
-                is_active: document.getElementById('isActive').checked ? 1 : 0,
-                is_popular: document.getElementById('isPopular').checked ? 1 : 0
+                is_active: document.getElementById('isActive').checked ? 1 : 0
             };
 
             try {
-                const r = await fetch(API + '/admin.php?action=package_save', {
+                const r = await fetch(API + '/admin.php?action=testimonial_save', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -305,8 +316,8 @@
 
                 if (result.success) {
                     closeModal();
-                    loadPackages();
-                    alert('Package saved successfully!');
+                    loadTestimonials();
+                    alert('Testimonial saved successfully!');
                 } else {
                     alert('Error: ' + (result.message || 'Failed to save'));
                 }
@@ -328,12 +339,12 @@
         }
 
         // Close modal on outside click
-        document.getElementById('packageModal').addEventListener('click', function(e) {
+        document.getElementById('testimonialModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
 
         // Load on start
-        loadPackages();
+        loadTestimonials();
     </script>
 </body>
 </html>

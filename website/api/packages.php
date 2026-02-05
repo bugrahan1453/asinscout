@@ -21,6 +21,13 @@ switch ($action) {
         ]);
         break;
     
+    case 'testimonials':
+        $testimonials = $db->fetchAll(
+            "SELECT id, name, role, avatar, text, rating FROM testimonials WHERE is_active = 1 ORDER BY sort_order, id"
+        ) ?: [];
+        Api::success(['testimonials' => $testimonials]);
+        break;
+
     case 'list':
         $packages = $db->fetchAll(
             "SELECT id, name, slug, scan_limit, daily_scan_limit, duration_days, price, currency, description, features, is_popular
