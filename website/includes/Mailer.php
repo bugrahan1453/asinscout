@@ -115,6 +115,18 @@ class Mailer {
     }
     
     /**
+     * Send plain text email (for contact form etc.)
+     */
+    public static function sendRaw($to, $subject, $body, $replyTo = null) {
+        $mailer = new self();
+        if ($replyTo) {
+            // Prepend Reply-To in subject for easy reply
+            $body = "Reply-To: {$replyTo}\n\n" . $body;
+        }
+        return $mailer->send($to, $subject, $body, false);
+    }
+
+    /**
      * Hoşgeldin emaili
      */
     public static function sendWelcome($email, $name, $credits) {

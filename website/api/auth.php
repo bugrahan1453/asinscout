@@ -216,6 +216,33 @@ switch ($action) {
         Api::success(null, 'Profile updated successfully');
         break;
     
+    case 'contact':
+        Api::rateLimit('contact_' . Api::getIp(), 3, 600); // 3 messages per 10 min
+        $data = Api::getPostData();
+        Api::required($data, ['name', 'email', 'message']);
+        Api::validateEmail($data['email']);
+
+        $subject = trim($data['subject'] ?? 'general');
+        $name = trim($data['name']);
+        $email = strtolower(trim($data['email']));
+        $text = trim($data['message']);
+
+        if (strlen($text) < 10) {
+            Api::error('Message must be at least 10 characters');
+        }
+
+        // Send email to admin
+        $body = "New contact form submission:\n\n";
+        $body .= "Name: {$name}\n";
+        $body .= "Email: {$email}\n";
+        $body .= "Subject: {$subject}\n";
+        $body .= "Message:\n{$text}\n";
+
+        Mailer::sendRaw(SITE_EMAIL, "Contact: {$subject} - {$name}", $body, $email);
+
+        Api::success(null, 'Message sent successfully');
+        break;
+
     default:
         Api::error('Invalid action', 400);
 }

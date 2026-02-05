@@ -23,7 +23,7 @@ switch ($action) {
     
     case 'list':
         $packages = $db->fetchAll(
-            "SELECT id, name, slug, scan_limit, duration_days, price, currency, description, features, is_popular 
+            "SELECT id, name, slug, scan_limit, daily_scan_limit, duration_days, price, currency, description, features, is_popular
              FROM packages WHERE is_active = 1 ORDER BY sort_order"
         );
         
@@ -31,6 +31,7 @@ switch ($action) {
             $pkg['features'] = json_decode($pkg['features'], true) ?: [];
             $pkg['price'] = (float)$pkg['price'];
             $pkg['scan_limit'] = (int)$pkg['scan_limit'];
+            $pkg['daily_scan_limit'] = (int)($pkg['daily_scan_limit'] ?? 0);
             $pkg['duration_days'] = (int)$pkg['duration_days'];
             $pkg['is_popular'] = (bool)$pkg['is_popular'];
         }
