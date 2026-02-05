@@ -77,9 +77,9 @@ switch ($action) {
         Api::required($data, ['email', 'password']);
         
         $user = $db->fetch(
-            "SELECT u.*, p.name as package_name, p.scan_limit as pkg_limit 
-             FROM users u 
-             LEFT JOIN packages p ON u.package_id = p.id 
+            "SELECT u.*, p.name as package_name, p.scan_limit as pkg_limit, p.daily_scan_limit as pkg_daily_limit
+             FROM users u
+             LEFT JOIN packages p ON u.package_id = p.id
              WHERE u.email = ?",
             [strtolower(trim($data['email']))]
         );
@@ -99,8 +99,8 @@ switch ($action) {
         // Paket süresi kontrolü
         $hasActivePackage = $user['package_id'] && $user['package_expires'] && strtotime($user['package_expires']) > time();
 
-        // Günlük tarama bilgisi
-        $dailyLimit = (int)($user['daily_scan_limit'] ?? 0);
+        // Günlük tarama bilgisi (paketten al)
+        $dailyLimit = (int)($user['pkg_daily_limit'] ?? 0);
         $dailyUsed = (int)($user['daily_scans_used'] ?? 0);
         if (($user['last_scan_date'] ?? '') !== date('Y-m-d')) {
             $dailyUsed = 0;
@@ -127,9 +127,9 @@ switch ($action) {
         $user = Auth::requireAuth();
         
         $fullUser = $db->fetch(
-            "SELECT u.*, p.name as package_name 
-             FROM users u 
-             LEFT JOIN packages p ON u.package_id = p.id 
+            "SELECT u.*, p.name as package_name, p.daily_scan_limit as pkg_daily_limit
+             FROM users u
+             LEFT JOIN packages p ON u.package_id = p.id
              WHERE u.id = ?",
             [$user['id']]
         );
@@ -143,7 +143,7 @@ switch ($action) {
         $hasActivePackage = $fullUser['package_id'] && $fullUser['package_expires'] && strtotime($fullUser['package_expires']) > time();
         
         // Günlük tarama bilgisi
-        $dailyLimit = (int)($fullUser['daily_scan_limit'] ?? 0);
+        $dailyLimit = (int)($fullUser['pkg_daily_limit'] ?? 0);
         $dailyUsed = (int)($fullUser['daily_scans_used'] ?? 0);
         if (($fullUser['last_scan_date'] ?? '') !== date('Y-m-d')) {
             $dailyUsed = 0;
