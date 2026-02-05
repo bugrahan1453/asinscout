@@ -190,23 +190,23 @@ switch ($action) {
         $page = max(1, (int)($_GET['page'] ?? 1));
         $limit = 50;
         $offset = ($page - 1) * $limit;
-        
-        $total = $db->fetch("SELECT COUNT(*) as cnt FROM orders")['cnt'];
-        
+
+        $totalRow = $db->fetch("SELECT COUNT(*) as cnt FROM orders");
+        $total = $totalRow ? (int)$totalRow['cnt'] : 0;
+
         $orders = $db->fetchAll(
             "SELECT o.*, u.email, u.name, p.name as package_name, p.scan_limit
              FROM orders o
              JOIN users u ON o.user_id = u.id
              JOIN packages p ON o.package_id = p.id
-             ORDER BY o.created_at DESC LIMIT ? OFFSET ?",
-            [$limit, $offset]
+             ORDER BY o.created_at DESC LIMIT $limit OFFSET $offset"
         );
-        
+
         Api::success([
-            'orders' => $orders,
-            'total' => (int)$total,
+            'orders' => $orders ?: [],
+            'total' => $total,
             'page' => $page,
-            'pages' => ceil($total / $limit)
+            'pages' => max(1, ceil($total / $limit))
         ]);
         break;
     
@@ -307,10 +307,9 @@ switch ($action) {
             $params[] = $affiliateId;
         }
 
-        $total = $db->fetch("SELECT COUNT(*) as cnt FROM affiliate_earnings ae $where", $params)['cnt'];
+        $totalRow = $db->fetch("SELECT COUNT(*) as cnt FROM affiliate_earnings ae $where", $params);
+        $total = $totalRow ? (int)$totalRow['cnt'] : 0;
 
-        $params[] = $limit;
-        $params[] = $offset;
         $earnings = $db->fetchAll(
             "SELECT ae.*, a.name as affiliate_name, a.code as affiliate_code,
                     u.email as user_email, u.name as user_name,
@@ -320,7 +319,7 @@ switch ($action) {
              JOIN users u ON ae.user_id = u.id
              JOIN orders o ON ae.order_id = o.id
              JOIN packages p ON o.package_id = p.id
-             $where ORDER BY ae.created_at DESC LIMIT ? OFFSET ?",
+             $where ORDER BY ae.created_at DESC LIMIT $limit OFFSET $offset",
             $params
         );
 
@@ -336,11 +335,11 @@ switch ($action) {
         );
 
         Api::success([
-            'earnings' => $earnings,
-            'stats' => $stats,
-            'total' => (int)$total,
+            'earnings' => $earnings ?: [],
+            'stats' => $stats ?: ['total_commission' => 0, 'total_orders' => 0, 'total_order_amount' => 0],
+            'total' => $total,
             'page' => $page,
-            'pages' => ceil($total / $limit)
+            'pages' => max(1, ceil($total / $limit))
         ]);
         break;
 
