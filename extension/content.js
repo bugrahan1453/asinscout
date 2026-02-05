@@ -8,6 +8,30 @@
   let scanning = false, stopRequested = false;
   const SORTS = ['', 'price-asc-rank', 'price-desc-rank', 'review-rank', 'date-desc-rank'];
 
+  // Adaptive throttle controller - starts fast, backs off on captcha
+  const throttle = {
+    delay: 50,
+    min: 30,
+    max: 3000,
+    successes: 0,
+    captchas: 0,
+    onSuccess() {
+      this.successes++;
+      this.captchas = 0;
+      if (this.successes > 3) this.delay = Math.max(this.min, this.delay * 0.85);
+    },
+    onCaptcha() {
+      this.captchas++;
+      this.successes = 0;
+      this.delay = Math.min(this.max, this.delay * 3);
+    },
+    onEmpty() {
+      this.delay = Math.min(this.max, this.delay * 1.15);
+    },
+    async wait() { await sleep(this.delay); },
+    reset() { this.delay = 50; this.successes = 0; this.captchas = 0; }
+  };
+
   chrome.runtime.onMessage.addListener((msg, sender, send) => {
     if (msg.action === 'getPageInfo') { send(analyzeCurrentPage()); }
     else if (msg.action === 'scanThisPage') { send({ asins: extractAsinsFromDOM() }); }
@@ -25,15 +49,18 @@
     let scanned = 0;
     const keywords = {};
     const brands = new Set();
+    let captchaHits = 0;
+    throttle.reset();
 
     if (mode === 'single') {
       for (let p = 1; p <= 30 && !stopRequested; p++) {
         const r = await fetchPage(addPage(baseUrl, p));
         scanned++;
+        if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Waiting... (${captchaHits}x)`); await sleep(throttle.delay); continue; }
         r.asins.forEach(a => allAsins.add(a));
         report(allAsins, scanned, `${allAsins.size} ASIN | s.${p}`);
         if (r.asins.length < 3) break;
-        await sleep(250);
+        await throttle.wait();
       }
       finish(allAsins, scanned);
       return;
@@ -46,15 +73,19 @@
     for (const sort of SORTS) {
       if (stopRequested) break;
       const url = sort ? addSort(baseUrl, sort) : baseUrl;
+      let emptyStreak = 0;
       for (let p = 1; p <= 25 && !stopRequested; p++) {
         const r = await fetchPage(addPage(url, p));
         scanned++;
+        if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Auto-recovering... (${Math.round(throttle.delay)}ms)`); await sleep(throttle.delay); continue; }
         harvest(r.titles, keywords, r.brands, brands);
         let nc = 0;
         r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
+        if (nc === 0) emptyStreak++; else emptyStreak = 0;
         if (p % 5 === 1) report(allAsins, scanned, `${allAsins.size} | Sort:${sort||'def'} s.${p} +${nc}`);
         if (r.asins.length < 2 && p > 8) break;
-        await sleep(180);
+        if (emptyStreak > 3) break;
+        await throttle.wait();
       }
     }
 
@@ -63,91 +94,43 @@
     // Akıllı adım: Düşük fiyatta ince, yüksekte geniş
     // ============================================
     report(allAsins, scanned, `💰 FAZ 2: Full fiyat tarama ($0-$10K+)...`);
-    
-    // $0-$50: $0.25 adım (200 aralık) - EN YOĞUN
-    for (let lo = 0; lo < 50 && !stopRequested; lo += 0.25) {
-      const hi = lo + 0.25;
-      const url = addPriceFilter(baseUrl, lo, hi);
-      for (let p = 1; p <= 10 && !stopRequested; p++) {
-        const r = await fetchPage(addPage(url, p));
-        scanned++;
-        let nc = 0;
-        r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
-        if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo.toFixed(2)}-${hi.toFixed(2)} s.${p} +${nc}`);
-        if (r.asins.length < 2) break;
-        await sleep(100);
+
+    // Helper: scan a price range with adaptive throttling + captcha recovery
+    async function scanPriceRange(ranges, step, maxPages, label) {
+      let emptyRanges = 0;
+      for (const [lo, hi] of ranges) {
+        if (stopRequested) break;
+        if (emptyRanges > 15) break; // Skip if too many empty ranges in a row
+        const url = addPriceFilter(baseUrl, lo, hi);
+        let rangeNew = 0;
+        for (let p = 1; p <= maxPages && !stopRequested; p++) {
+          const r = await fetchPage(addPage(url, p));
+          scanned++;
+          if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Auto-recovering... (${Math.round(throttle.delay)}ms)`); await sleep(throttle.delay); continue; }
+          let nc = 0;
+          r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; rangeNew++; } });
+          if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo}${hi < 1000 ? '-$' + hi : '-$' + hi} s.${p} +${nc}`);
+          if (r.asins.length < 2) break;
+          await throttle.wait();
+        }
+        if (rangeNew === 0) emptyRanges++; else emptyRanges = 0;
       }
     }
 
-    // $50-$200: $0.50 adım (300 aralık)
-    for (let lo = 50; lo < 200 && !stopRequested; lo += 0.5) {
-      const url = addPriceFilter(baseUrl, lo, lo + 0.5);
-      for (let p = 1; p <= 8 && !stopRequested; p++) {
-        const r = await fetchPage(addPage(url, p));
-        scanned++;
-        let nc = 0;
-        r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
-        if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo}-${lo+0.5} +${nc}`);
-        if (r.asins.length < 2) break;
-        await sleep(100);
-      }
-    }
+    // Build price ranges
+    const pr1 = []; for (let lo = 0; lo < 50; lo += 0.25) pr1.push([lo, lo + 0.25]);
+    const pr2 = []; for (let lo = 50; lo < 200; lo += 0.5) pr2.push([lo, lo + 0.5]);
+    const pr3 = []; for (let lo = 200; lo < 500; lo += 1) pr3.push([lo, lo + 1]);
+    const pr4 = []; for (let lo = 500; lo < 1000; lo += 2) pr4.push([lo, lo + 2]);
+    const pr5 = []; for (let lo = 1000; lo < 5000; lo += 10) pr5.push([lo, lo + 10]);
+    const pr6 = []; for (let lo = 5000; lo < 50000; lo += 100) pr6.push([lo, lo + 100]);
 
-    // $200-$500: $1 adım (300 aralık)
-    for (let lo = 200; lo < 500 && !stopRequested; lo += 1) {
-      const url = addPriceFilter(baseUrl, lo, lo + 1);
-      for (let p = 1; p <= 6 && !stopRequested; p++) {
-        const r = await fetchPage(addPage(url, p));
-        scanned++;
-        let nc = 0;
-        r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
-        if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo}-${lo+1} +${nc}`);
-        if (r.asins.length < 2) break;
-        await sleep(90);
-      }
-    }
-
-    // $500-$1000: $2 adım (250 aralık)
-    for (let lo = 500; lo < 1000 && !stopRequested; lo += 2) {
-      const url = addPriceFilter(baseUrl, lo, lo + 2);
-      for (let p = 1; p <= 5 && !stopRequested; p++) {
-        const r = await fetchPage(addPage(url, p));
-        scanned++;
-        let nc = 0;
-        r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
-        if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo}-${lo+2} +${nc}`);
-        if (r.asins.length < 2) break;
-        await sleep(90);
-      }
-    }
-
-    // $1000-$5000: $10 adım (400 aralık)
-    for (let lo = 1000; lo < 5000 && !stopRequested; lo += 10) {
-      const url = addPriceFilter(baseUrl, lo, lo + 10);
-      for (let p = 1; p <= 4 && !stopRequested; p++) {
-        const r = await fetchPage(addPage(url, p));
-        scanned++;
-        let nc = 0;
-        r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
-        if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo}-${lo+10} +${nc}`);
-        if (r.asins.length < 2) break;
-        await sleep(80);
-      }
-    }
-
-    // $5000-$50000: $100 adım (450 aralık) - Pahalı ürünler
-    for (let lo = 5000; lo < 50000 && !stopRequested; lo += 100) {
-      const url = addPriceFilter(baseUrl, lo, lo + 100);
-      for (let p = 1; p <= 3 && !stopRequested; p++) {
-        const r = await fetchPage(addPage(url, p));
-        scanned++;
-        let nc = 0;
-        r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
-        if (nc > 0) report(allAsins, scanned, `${allAsins.size} | $${lo}-${lo+100} +${nc}`);
-        if (r.asins.length < 2) break;
-        await sleep(80);
-      }
-    }
+    await scanPriceRange(pr1, 0.25, 10, '$0-$50');
+    await scanPriceRange(pr2, 0.5, 8, '$50-$200');
+    await scanPriceRange(pr3, 1, 6, '$200-$500');
+    await scanPriceRange(pr4, 2, 5, '$500-$1K');
+    await scanPriceRange(pr5, 10, 4, '$1K-$5K');
+    await scanPriceRange(pr6, 100, 3, '$5K-$50K');
     // ============================================
     // FAZ 3: KATEGORİ × FİYAT × SORT (Üçlü Kombo)
     // ============================================
@@ -159,20 +142,24 @@
     
     for (const cat of cats) {
       if (stopRequested) break;
-      
+
       // Önce kategorinin kendisi
       for (const sort of SORTS.slice(0, 3)) {
         if (stopRequested) break;
         const url = sort ? addSort(cat.url, sort) : cat.url;
+        let emptyStreak = 0;
         for (let p = 1; p <= 20 && !stopRequested; p++) {
           const r = await fetchPage(addPage(url, p));
           scanned++;
+          if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Auto-recovering... (${Math.round(throttle.delay)}ms)`); await sleep(throttle.delay); continue; }
           harvest(r.titles, keywords, r.brands, brands);
           let nc = 0;
           r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
+          if (nc === 0) emptyStreak++; else emptyStreak = 0;
           if (nc > 0) report(allAsins, scanned, `${allAsins.size} | ${cat.name.substring(0,15)} ${sort||'def'} s.${p} +${nc}`);
           if (r.asins.length < 2 && p > 3) break;
-          await sleep(150);
+          if (emptyStreak > 3) break;
+          await throttle.wait();
         }
       }
 
@@ -183,11 +170,12 @@
         for (let p = 1; p <= 10 && !stopRequested; p++) {
           const r = await fetchPage(addPage(url, p));
           scanned++;
+          if (r.captcha) { captchaHits++; await sleep(throttle.delay); continue; }
           let nc = 0;
           r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
           if (nc > 0) report(allAsins, scanned, `${allAsins.size} | ${cat.name.substring(0,12)} $${lo}-${hi} +${nc}`);
           if (r.asins.length < 2) break;
-          await sleep(120);
+          await throttle.wait();
         }
       }
     }
@@ -202,18 +190,22 @@
       for (const brand of brandList) {
         if (stopRequested) break;
         const brandUrl = addBrand(baseUrl, brand);
-        
+
         for (const sort of SORTS.slice(0, 2)) {
           if (stopRequested) break;
           const url = sort ? addSort(brandUrl, sort) : brandUrl;
+          let emptyStreak = 0;
           for (let p = 1; p <= 15 && !stopRequested; p++) {
             const r = await fetchPage(addPage(url, p));
             scanned++;
+            if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Auto-recovering...`); await sleep(throttle.delay); continue; }
             let nc = 0;
             r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
+            if (nc === 0) emptyStreak++; else emptyStreak = 0;
             if (nc > 0) report(allAsins, scanned, `${allAsins.size} | Marka:${brand.substring(0,12)} +${nc}`);
             if (r.asins.length < 2 && p > 2) break;
-            await sleep(130);
+            if (emptyStreak > 2) break;
+            await throttle.wait();
           }
         }
       }
@@ -226,20 +218,24 @@
     
     for (const stars of ['4', '3', '2', '1']) {
       if (stopRequested) break;
-      
+
       for (const sort of SORTS.slice(0, 3)) {
         if (stopRequested) break;
         let url = addRating(baseUrl, stars);
         if (sort) url = addSort(url, sort);
-        
+        let emptyStreak = 0;
+
         for (let p = 1; p <= 20 && !stopRequested; p++) {
           const r = await fetchPage(addPage(url, p));
           scanned++;
+          if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Auto-recovering...`); await sleep(throttle.delay); continue; }
           let nc = 0;
           r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
+          if (nc === 0) emptyStreak++; else emptyStreak = 0;
           if (nc > 0) report(allAsins, scanned, `${allAsins.size} | ${stars}★+ ${sort||'def'} +${nc}`);
           if (r.asins.length < 2 && p > 5) break;
-          await sleep(150);
+          if (emptyStreak > 3) break;
+          await throttle.wait();
         }
       }
     }
@@ -260,12 +256,21 @@
       const asin = toCrawl[crawlIndex++];
       if (crawled.has(asin)) continue;
       crawled.add(asin);
-      
+
       const related = await fetchRelated(asin, getOrigin(baseUrl));
       scanned++;
-      
+
+      // Handle captcha from spider
+      if (related && related.captcha) {
+        captchaHits++;
+        report(allAsins, scanned, `⚠️ Spider captcha! Waiting... (${Math.round(throttle.delay)}ms)`);
+        await sleep(throttle.delay);
+        continue;
+      }
+
+      const relatedAsins = Array.isArray(related) ? related : (related?.asins || []);
       let nc = 0;
-      for (const ra of related) {
+      for (const ra of relatedAsins) {
         if (!allAsins.has(ra)) {
           allAsins.add(ra);
           nc++;
@@ -275,12 +280,12 @@
           }
         }
       }
-      
+
       if (crawlIndex % 50 === 0) {
         report(allAsins, scanned, `${allAsins.size} | 🕷️ ${crawlIndex}/${Math.min(toCrawl.length, maxCrawl)} +${newFromCrawl} yeni`);
       }
-      
-      await sleep(100);
+
+      await throttle.wait();
     }
     
     report(allAsins, scanned, `🕷️ Spider bitti: +${newFromCrawl} yeni (${phase5Count} → ${allAsins.size})`);
@@ -297,18 +302,22 @@
       for (const kw of kws) {
         if (stopRequested) break;
         const kwUrl = `${origin}/s?k=${encodeURIComponent(kw)}${seller ? '&me=' + seller : ''}`;
-        
+
         for (const sort of SORTS.slice(0, 2)) {
           if (stopRequested) break;
           const url = sort ? addSort(kwUrl, sort) : kwUrl;
+          let emptyStreak = 0;
           for (let p = 1; p <= 10 && !stopRequested; p++) {
             const r = await fetchPage(addPage(url, p));
             scanned++;
+            if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Auto-recovering...`); await sleep(throttle.delay); continue; }
             let nc = 0;
             r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
+            if (nc === 0) emptyStreak++; else emptyStreak = 0;
             if (nc > 0) report(allAsins, scanned, `${allAsins.size} | KW:"${kw.substring(0,10)}" +${nc}`);
             if (r.asins.length < 2 && p > 2) break;
-            await sleep(120);
+            if (emptyStreak > 2) break;
+            await throttle.wait();
           }
         }
       }
@@ -332,20 +341,24 @@
       for (const filter of dealFilters) {
         if (stopRequested) break;
         const url = addRhFilter(baseUrl, filter);
-        
+        let emptyStreak = 0;
+
         for (let p = 1; p <= 15 && !stopRequested; p++) {
           const r = await fetchPage(addPage(url, p));
           scanned++;
+          if (r.captcha) { captchaHits++; report(allAsins, scanned, `⚠️ Captcha! Auto-recovering...`); await sleep(throttle.delay); continue; }
           let nc = 0;
           r.asins.forEach(a => { if (!allAsins.has(a)) { allAsins.add(a); nc++; } });
+          if (nc === 0) emptyStreak++; else emptyStreak = 0;
           if (nc > 0) report(allAsins, scanned, `${allAsins.size} | Filter s.${p} +${nc}`);
           if (r.asins.length < 2 && p > 3) break;
-          await sleep(150);
+          if (emptyStreak > 3) break;
+          await throttle.wait();
         }
       }
     }
 
-    finish(allAsins, scanned);
+    finish(allAsins, scanned, captchaHits);
   }
 
   // ===== SPIDER CRAWL =====
@@ -353,17 +366,18 @@
     const found = new Set();
     try {
       const resp = await fetch(`${origin}/dp/${asin}`, { credentials: 'include' });
-      if (!resp.ok) return [];
+      if (!resp.ok) { throttle.onEmpty(); return []; }
       const html = await resp.text();
-      if (html.includes('captcha')) return [];
-      
+      if (html.includes('captcha')) { throttle.onCaptcha(); return { asins: [], captcha: true }; }
+      throttle.onSuccess();
+
       let m;
       for (const p of [/data-asin="([A-Z0-9]{10})"/gi, /\/dp\/([A-Z0-9]{10})/gi, /"asin"\s*:\s*"([A-Z0-9]{10})"/gi]) {
         p.lastIndex = 0;
         while ((m = p.exec(html)) !== null) if (/^[A-Z0-9]{10}$/.test(m[1])) found.add(m[1]);
       }
       found.delete(asin);
-    } catch(e) {}
+    } catch(e) { throttle.onEmpty(); }
     return Array.from(found);
   }
 
@@ -396,7 +410,7 @@
         if (depth < 1) queue.push(fullUrl);
       }
       depth++;
-      await sleep(150);
+      await throttle.wait();
     }
     return cats;
   }
@@ -405,11 +419,31 @@
   async function fetchPage(url) {
     try {
       const r = await fetch(url, { credentials: 'include', headers: { 'Accept': 'text/html' } });
-      if (!r.ok) return { asins: [], titles: [], brands: [] };
+      if (!r.ok) { throttle.onEmpty(); return { asins: [], titles: [], brands: [], captcha: false }; }
       const html = await r.text();
-      if (!html || html.length < 500 || html.includes('captcha')) return { asins: [], titles: [], brands: [] };
-      return { asins: extractAsins(html), titles: extractTitles(html), brands: extractBrands(html) };
-    } catch(e) { return { asins: [], titles: [], brands: [] }; }
+      if (!html || html.length < 500) { throttle.onEmpty(); return { asins: [], titles: [], brands: [], captcha: false }; }
+      if (html.includes('captcha')) { throttle.onCaptcha(); return { asins: [], titles: [], brands: [], captcha: true }; }
+      const result = { asins: extractAsins(html), titles: extractTitles(html), brands: extractBrands(html), captcha: false };
+      if (result.asins.length > 0) throttle.onSuccess(); else throttle.onEmpty();
+      return result;
+    } catch(e) { throttle.onEmpty(); return { asins: [], titles: [], brands: [], captcha: false }; }
+  }
+
+  // Fetch multiple pages concurrently (2 at a time)
+  async function fetchPages(urls) {
+    const results = [];
+    for (let i = 0; i < urls.length && !stopRequested; i += 2) {
+      const batch = urls.slice(i, Math.min(i + 2, urls.length));
+      const br = await Promise.all(batch.map(u => fetchPage(u)));
+      results.push(...br);
+      if (br.some(r => r.captcha)) {
+        report(null, 0, `⚠️ Captcha detected! Slowing down... (${Math.round(throttle.delay)}ms)`);
+        await sleep(throttle.delay);
+      } else {
+        await throttle.wait();
+      }
+    }
+    return results;
   }
 
   async function fetchRaw(url) {
@@ -466,8 +500,8 @@
   function getOrigin(u){try{return new URL(u).origin;}catch(e){return '';}}
   function extractSeller(u){const m=u.match(/[?&]me=([^&]+)/);return m?m[1]:null;}
   function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-  function report(a,s,st){try{chrome.runtime.sendMessage({action:'progressUpdate',asins:Array.from(a),scanned:s,status:st});}catch(e){}}
-  function finish(a,s){scanning=false;chrome.runtime.sendMessage({action:'scanComplete',asins:Array.from(a),scanned:s,reason:stopRequested?'Durduruldu':'Tamamlandı'});}
+  function report(a,s,st){try{chrome.runtime.sendMessage({action:'progressUpdate',asins:a?Array.from(a):[],scanned:s,status:st});}catch(e){}}
+  function finish(a,s,captchas){scanning=false;const reason=stopRequested?'Durduruldu':'Tamamlandı';chrome.runtime.sendMessage({action:'scanComplete',asins:Array.from(a),scanned:s,reason,captchas:captchas||0});}
 
   function analyzeCurrentPage(){
     const u=location.href;
