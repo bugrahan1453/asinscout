@@ -49,34 +49,33 @@ switch ($action) {
         $limit = 50;
         $offset = ($page - 1) * $limit;
         $search = $_GET['search'] ?? '';
-        
+
         $where = "WHERE role = 'user'";
         $params = [];
-        
+
         if ($search) {
             $where .= " AND (email LIKE ? OR name LIKE ?)";
             $params[] = "%$search%";
             $params[] = "%$search%";
         }
-        
-        $total = $db->fetch("SELECT COUNT(*) as cnt FROM users $where", $params)['cnt'];
-        
-        $params[] = $limit;
-        $params[] = $offset;
+
+        $totalRow = $db->fetch("SELECT COUNT(*) as cnt FROM users $where", $params);
+        $total = $totalRow ? (int)$totalRow['cnt'] : 0;
+
         $users = $db->fetchAll(
             "SELECT u.id, u.email, u.name, u.scan_limit, u.daily_scan_limit, u.daily_scans_used, u.package_expires, u.total_scans, u.total_asins,
                     u.status, u.created_at, u.last_login, p.name as package_name
              FROM users u
              LEFT JOIN packages p ON u.package_id = p.id
-             $where ORDER BY u.created_at DESC LIMIT ? OFFSET ?",
+             $where ORDER BY u.created_at DESC LIMIT $limit OFFSET $offset",
             $params
         );
-        
+
         Api::success([
-            'users' => $users,
-            'total' => (int)$total,
+            'users' => $users ?: [],
+            'total' => $total,
             'page' => $page,
-            'pages' => ceil($total / $limit)
+            'pages' => max(1, ceil($total / $limit))
         ]);
         break;
     
