@@ -158,16 +158,20 @@
             for(let i = 0; i < chunks; i++){
                 const start = i * chunkSize;
                 const end = Math.min((i + 1) * chunkSize, total);
-                html += `<button class="btn btn-outline" style="padding:6px 12px;font-size:12px;margin:2px;" onclick="copyChunk(${start},${end})">${fmt(start)}-${fmt(end)}</button>`;
+                html += `<button id="chunk_${i}" class="btn btn-outline" style="padding:6px 12px;font-size:12px;margin:2px;transition:all 0.2s;" onclick="copyChunk(${i},${start},${end})">${fmt(start)}-${fmt(end)}</button>`;
             }
             document.getElementById('chunkButtons').innerHTML = html;
             document.getElementById('chunkButtons').style.display='flex';
         }
 
-        function copyChunk(start, end){
+        function copyChunk(idx, start, end){
             const chunk = allAsins.slice(start, end);
             navigator.clipboard.writeText(chunk.join('\n'));
-            alert(chunk.length + ' ASIN kopyalandı! (' + start + '-' + end + ')');
+            const btn = document.getElementById('chunk_' + idx);
+            btn.style.background = 'var(--green)';
+            btn.style.borderColor = 'var(--green)';
+            btn.style.color = '#fff';
+            btn.innerHTML = '✓ ' + fmt(start) + '-' + fmt(end);
         }
 
         function copyAsins(){
