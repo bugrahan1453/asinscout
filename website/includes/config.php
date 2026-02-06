@@ -45,6 +45,7 @@ define('SMTP_USER', 'support@asinscout.com');
 define('SMTP_PASS', 'CHANGE_ME'); // cPanel email password
 define('SMTP_FROM', 'support@asinscout.com');
 define('SMTP_FROM_NAME', 'ASIN Scout Pro');
+define('SMTP_ENCRYPTION', 'none'); // none, tls, ssl
 
 // Uygulama Ayarları
 define('FREE_TRIAL_LIMIT', 1000); // Ücretsiz deneme limiti

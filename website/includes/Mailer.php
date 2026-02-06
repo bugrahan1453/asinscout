@@ -12,8 +12,9 @@ class Mailer {
     private $pass;
     private $from;
     private $fromName;
+    private $encryption;
     private $debug = false;
-    
+
     public function __construct() {
         $this->host = SMTP_HOST;
         $this->port = SMTP_PORT;
@@ -21,6 +22,7 @@ class Mailer {
         $this->pass = SMTP_PASS;
         $this->from = SMTP_FROM;
         $this->fromName = SMTP_FROM_NAME;
+        $this->encryption = defined('SMTP_ENCRYPTION') ? SMTP_ENCRYPTION : 'none';
     }
     
     /**
@@ -28,26 +30,32 @@ class Mailer {
      */
     public function send($to, $subject, $body, $isHtml = true) {
         try {
+            // SSL/TLS prefix for direct SSL connections
+            $prefix = '';
+            if ($this->encryption === 'ssl' || ($this->port == 465 && $this->encryption !== 'none')) {
+                $prefix = 'ssl://';
+            }
+
             // SMTP bağlantısı
             $this->socket = @fsockopen(
-                ($this->port == 465 ? 'ssl://' : '') . $this->host,
+                $prefix . $this->host,
                 $this->port,
                 $errno,
                 $errstr,
                 30
             );
-            
+
             if (!$this->socket) {
-                throw new Exception("SMTP connection failed: $errstr");
+                throw new Exception("SMTP connection failed: $errstr ($errno)");
             }
-            
+
             $this->getResponse(); // Welcome message
-            
+
             // EHLO
             $this->sendCommand("EHLO " . gethostname());
-            
-            // STARTTLS for port 587
-            if ($this->port == 587) {
+
+            // STARTTLS only if encryption is 'tls'
+            if ($this->encryption === 'tls') {
                 $this->sendCommand("STARTTLS");
                 stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
                 $this->sendCommand("EHLO " . gethostname());
@@ -95,22 +103,34 @@ class Mailer {
         } catch (Exception $e) {
             if ($this->socket) fclose($this->socket);
             error_log("Mailer Error: " . $e->getMessage());
-            return false;
+            throw $e; // Re-throw for better error messages in API
         }
     }
     
     private function sendCommand($command) {
         fwrite($this->socket, $command . "\r\n");
-        return $this->getResponse();
+        $response = $this->getResponse();
+
+        // Check for SMTP error codes (4xx, 5xx)
+        $code = substr($response, 0, 3);
+        if ($code[0] === '4' || $code[0] === '5') {
+            // Don't throw for certain expected responses
+            if (strpos($command, 'QUIT') === false) {
+                throw new Exception("SMTP Error: $response");
+            }
+        }
+
+        return $response;
     }
-    
+
     private function getResponse() {
         $response = '';
+        stream_set_timeout($this->socket, 30);
         while ($line = fgets($this->socket, 515)) {
             $response .= $line;
             if (substr($line, 3, 1) == ' ') break;
         }
-        if ($this->debug) echo $response . "\n";
+        if ($this->debug) error_log("SMTP Response: " . trim($response));
         return $response;
     }
     
