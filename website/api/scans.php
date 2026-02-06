@@ -64,7 +64,7 @@ switch ($action) {
         }
 
         // Günlük tarama hakkı kontrolü
-        $dailyLimit = (int)($fullUser['daily_scan_limit'] ?? 0);
+        $dailyLimit = (int)($fullUser['pkg_daily_limit'] ?? 0); // Paketten oku!
         $dailyUsed = (int)($fullUser['daily_scans_used'] ?? 0);
         $lastScanDate = $fullUser['last_scan_date'] ?? null;
         $today = date('Y-m-d');
