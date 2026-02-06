@@ -7,7 +7,7 @@
 
   let scanning = false, stopRequested = false, pauseRequested = false;
   const SORTS = ['', 'price-asc-rank', 'price-desc-rank', 'review-rank', 'date-desc-rank'];
-  const PARALLEL_COUNT = 5; // Aynı anda kaç sayfa çekilecek
+  const PARALLEL_COUNT = 2; // Aynı anda 2 sayfa (5 çok agresifti, Amazon engelliyor)
 
   // Pencere kapatma uyarısı
   function beforeUnloadHandler(e) {
@@ -28,11 +28,11 @@
     window.removeEventListener('beforeunload', beforeUnloadHandler);
   }
 
-  // Adaptive throttle controller with smarter rate limiting
+  // Adaptive throttle controller - daha konservatif
   const throttle = {
-    delay: 80,
-    min: 40,
-    max: 5000,
+    delay: 150,      // Başlangıç gecikmesi (daha yavaş)
+    min: 100,        // Minimum gecikme (asla bunun altına düşme)
+    max: 8000,       // Maksimum gecikme
     successes: 0,
     captchas: 0,
     errors: 0,
@@ -41,9 +41,9 @@
     onSuccess() {
       this.successes++;
       this.errors = 0;
-      // Captcha'dan 10 saniye geçtiyse hızlan
-      if (this.successes > 5 && Date.now() - this.lastCaptchaTime > 10000) {
-        this.delay = Math.max(this.min, this.delay * 0.9);
+      // Captcha'dan 30 saniye geçtiyse yavaşça hızlan
+      if (this.successes > 10 && Date.now() - this.lastCaptchaTime > 30000) {
+        this.delay = Math.max(this.min, this.delay * 0.95);
       }
     },
 
@@ -51,32 +51,32 @@
       this.captchas++;
       this.successes = 0;
       this.lastCaptchaTime = Date.now();
-      // Captcha'da agresif yavaşla
-      this.delay = Math.min(this.max, this.delay * 4);
+      // Captcha'da ÇOK agresif yavaşla
+      this.delay = Math.min(this.max, this.delay * 5);
     },
 
     onError() {
       this.errors++;
-      if (this.errors > 3) {
-        this.delay = Math.min(this.max, this.delay * 1.5);
+      if (this.errors > 2) {
+        this.delay = Math.min(this.max, this.delay * 2);
       }
     },
 
     onEmpty() {
-      this.delay = Math.min(this.max, this.delay * 1.1);
+      this.delay = Math.min(this.max, this.delay * 1.05);
     },
 
     async wait() {
       await sleep(this.delay);
     },
 
-    // Paralel istekler arasında daha kısa bekleme
+    // Paralel istekler arasında bekleme
     async parallelWait() {
-      await sleep(Math.max(20, this.delay / PARALLEL_COUNT));
+      await sleep(Math.max(100, this.delay));
     },
 
     reset() {
-      this.delay = 80;
+      this.delay = 150;
       this.successes = 0;
       this.captchas = 0;
       this.errors = 0;
@@ -143,9 +143,9 @@
 
         const batch = urls.slice(i, Math.min(i + PARALLEL_COUNT, urls.length));
 
-        // Paralel fetch
+        // Paralel fetch - istekler arasında 100ms fark
         const promises = batch.map(async (url, idx) => {
-          await sleep(idx * 30); // Stagger requests slightly
+          await sleep(idx * 100); // İstekler arasında 100ms fark
           return fetchPage(url);
         });
 
@@ -155,8 +155,8 @@
         // Captcha kontrolü
         if (batchResults.some(r => r.captcha)) {
           hasCaptcha = true;
-          report(allAsins, scanned, `⚠️ Captcha! Yavaşlıyor... (${throttle.getStatus()})`);
-          await sleep(throttle.delay * 2);
+          report(allAsins, scanned, `⚠️ Captcha! 5sn bekleniyor... (${throttle.getStatus()})`);
+          await sleep(5000); // Captcha'da 5 saniye bekle
         } else {
           await throttle.parallelWait();
         }
