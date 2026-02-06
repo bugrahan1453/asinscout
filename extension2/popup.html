@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=340">
+<title>ASIN Scout Pro TURBO</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#1a1a2e;--bg2:#252540;--or:#ff6b2c;--gn:#22c97a;--rd:#ff4d5e;--yl:#ff9500;--t1:#fff;--t2:#b8b8d0;--t3:#6b6b80;--brd:#333355}
+body{width:340px;min-height:400px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--t1)}
+.hdr{padding:12px 16px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#252540,#1a1a2e);border-bottom:1px solid var(--brd)}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,#ff2c6b,var(--or));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff}
+.hdr-txt h1{font-size:14px;color:var(--t1);display:flex;align-items:center;gap:4px}
+.hdr-txt h1 span{color:var(--or)}
+.hdr-txt p{font-size:10px;color:var(--t3)}
+.turbo-badge{background:linear-gradient(135deg,var(--or),#ff2c6b);color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700}
+.screen{display:none;padding:16px}
+.screen.active{display:block}
+.auth-title{font-size:18px;font-weight:600;margin-bottom:4px}
+.auth-sub{font-size:12px;color:var(--t3);margin-bottom:16px}
+.inp-grp{margin-bottom:12px}
+.inp-grp label{font-size:11px;color:var(--t2);display:block;margin-bottom:4px}
+.inp-grp input{width:100%;padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;color:var(--t1);font-size:13px}
+.inp-grp input:focus{outline:none;border-color:var(--or)}
+.btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-or{background:linear-gradient(135deg,var(--or),#ff2c6b);color:#fff}
+.btn-gn{background:var(--gn);color:#fff}
+.btn-yl{background:var(--yl);color:#fff}
+.btn-gray{background:var(--bg2);color:var(--t2);border:1px solid var(--brd)}
+.btn-rd{background:var(--rd);color:#fff}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.msg{padding:10px;border-radius:8px;font-size:12px;margin-bottom:12px;display:none}
+.msg.error{display:block;background:rgba(255,77,94,0.15);color:var(--rd)}
+.msg.success{display:block;background:rgba(34,201,122,0.15);color:var(--gn)}
+
+/* Stats */
+.stats{padding:12px 16px;display:flex;gap:12px;border-bottom:1px solid var(--brd)}
+.stat{flex:1;text-align:center}
+.stat-val{font-size:20px;font-weight:700;color:var(--or)}
+.stat-lbl{font-size:10px;color:var(--t3)}
+.sname{font-size:11px;color:var(--t2);text-align:center;padding:8px;background:var(--bg2);display:none}
+.sname.on{display:block}
+
+/* Buttons */
+.btns{padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap}
+.btns .btn{flex:1;min-width:45%;margin:0;padding:10px 8px;font-size:11px}
+.btn-clr{background:transparent;color:var(--rd);border:1px solid var(--rd);min-width:auto!important;flex:0!important;padding:10px 12px!important}
+
+/* Status */
+.status{padding:8px 16px;border-bottom:1px solid var(--brd);display:none}
+.status.on{display:block}
+.status-txt{font-size:10px;color:var(--or);background:var(--bg2);border-radius:6px;padding:8px;text-align:center}
+
+/* Limit info */
+.limit-info{padding:8px 16px;font-size:11px;color:var(--t3);text-align:center;background:var(--bg2);border-bottom:1px solid var(--brd)}
+
+/* Scan History */
+.history-section{padding:12px 16px;border-top:1px solid var(--brd)}
+.history-title{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.history-title span{color:var(--t3);font-weight:normal;font-size:10px;cursor:pointer}
+.history-title span:hover{color:var(--rd)}
+.history-list{max-height:150px;overflow-y:auto}
+.history-item{background:var(--bg2);border-radius:6px;padding:8px;margin-bottom:6px;cursor:pointer;transition:all 0.2s}
+.history-item:hover{border:1px solid var(--or)}
+.history-item-name{font-size:11px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-item-info{font-size:9px;color:var(--t3);display:flex;justify-content:space-between;margin-top:4px}
+.history-item-badge{font-size:8px;padding:2px 4px;border-radius:3px;background:var(--gn);color:#fff}
+.history-item-badge.incomplete{background:var(--yl)}
+
+/* Links */
+.links{padding:10px 16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.links a{font-size:11px;color:var(--t2);text-decoration:none}
+.links a:hover{color:var(--or)}
+
+/* Toast */
+.toast{position:fixed;bottom:10px;left:50%;transform:translateX(-50%) translateY(60px);padding:8px 16px;background:var(--gn);color:#fff;border-radius:8px;font-size:12px;font-weight:600;transition:transform .3s;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Preloader */
+.preloader{display:flex;justify-content:center;align-items:center}
+.preloader-logo{width:60px;height:60px;background:linear-gradient(135deg,#ff2c6b,var(--or));border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;color:#fff;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,107,44,0.4)}50%{transform:scale(1.05);box-shadow:0 0 20px 10px rgba(255,107,44,0)}}
+
+/* Warning Banner */
+.warning-banner{background:linear-gradient(135deg,var(--yl),#ff6b00);color:#fff;padding:8px 12px;font-size:10px;text-align:center;display:none}
+.warning-banner.on{display:block}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--brd)}
+.tab{flex:1;padding:10px;text-align:center;font-size:11px;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:var(--or);border-bottom-color:var(--or)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo">A</div>
+  <div class="hdr-txt">
+    <h1>ASIN<span>Scout</span> Pro <span class="turbo-badge">TURBO</span></h1>
+    <p>5x Faster Parallel Scanning</p>
+  </div>
+</div>
+
+<!-- Warning Banner - Tarama sırasında görünür -->
+<div class="warning-banner" id="warningBanner">
+  Tarama devam ediyor - Pencereyi kapatmayın!
+</div>
+
+<!-- Loading Screen -->
+<div class="screen active" id="loadingScreen" style="text-align:center;padding:50px 20px;">
+  <div class="preloader">
+    <div class="preloader-logo">A</div>
+  </div>
+  <div style="color:var(--t2);font-size:11px;margin-top:15px;">Yükleniyor...</div>
+</div>
+
+<!-- Login Screen -->
+<div class="screen" id="loginScreen">
+  <div class="auth-title">Welcome Back</div>
+  <div class="auth-sub">Login to continue</div>
+  <div class="msg" id="loginMsg"></div>
+  <div class="inp-grp"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+  <div class="inp-grp"><label>Password</label><input type="password" id="loginPass" placeholder="********"></div>
+  <button class="btn btn-or" id="loginBtn">Login</button>
+  <button class="btn btn-gray" onclick="showScreen('register')">Create Account</button>
+</div>
+
+<!-- Register Screen -->
+<div class="screen" id="registerScreen">
+  <div class="auth-title">Create Account</div>
+  <div class="auth-sub">Start scanning Amazon stores</div>
+  <div class="msg" id="regMsg"></div>
+  <div class="inp-grp"><label>Full Name</label><input type="text" id="regName" placeholder="John Doe"></div>
+  <div class="inp-grp"><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
+  <div class="inp-grp"><label>Password</label><input type="password" id="regPass" placeholder="Min 6 characters"></div>
+  <button class="btn btn-or" id="regBtn">Register</button>
+  <button class="btn btn-gray" onclick="showScreen('login')">Already have account</button>
+</div>
+
+<!-- App Screen -->
+<div class="screen" id="appScreen">
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="scan">Tarama</div>
+    <div class="tab" data-tab="history">Gecmis</div>
+  </div>
+
+  <!-- Scan Tab -->
+  <div class="tab-content active" id="scanTab">
+    <div class="limit-info" id="limitInfo"></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="stTotal">0</div><div class="stat-lbl">Toplam ASIN</div></div>
+      <div class="stat"><div class="stat-val" id="stScanned">0</div><div class="stat-lbl">Sayfa</div></div>
+    </div>
+    <div class="sname" id="sname"></div>
+    <div class="btns">
+      <button class="btn btn-or" id="bScan">Taramayı Baslat</button>
+      <button class="btn btn-yl" id="bPause" style="display:none">Duraklat</button>
+      <button class="btn btn-gn" id="bResume" style="display:none">Devam Et</button>
+      <button class="btn btn-rd" id="bStop" style="display:none">Durdur</button>
+      <button class="btn btn-gray" id="bTxt" disabled>TXT</button>
+      <button class="btn btn-gray" id="bExcel" disabled>Excel</button>
+      <button class="btn btn-gray" id="bCp" disabled>Kopyala</button>
+      <button class="btn btn-clr" id="bClr" style="display:none">Temizle</button>
+    </div>
+    <div class="status" id="statusBox"><div class="status-txt" id="statusTxt"></div></div>
+  </div>
+
+  <!-- History Tab -->
+  <div class="tab-content" id="historyTab">
+    <div class="history-section" style="border-top:none;padding-top:8px">
+      <div class="history-title">
+        Son Taramalar
+        <span id="clearHistory">Temizle</span>
+      </div>
+      <div class="history-list" id="historyList">
+        <div style="text-align:center;color:var(--t3);font-size:11px;padding:20px;">
+          Henuz tarama yok
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="links">
+    <a href="https://asinscout.com/dashboard.html" target="_blank">Dashboard</a>
+    <a href="https://asinscout.com/pricing.html" target="_blank">Paket Al</a>
+    <a href="#" id="logoutLink">Cikis</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>

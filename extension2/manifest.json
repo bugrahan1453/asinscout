@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "ASIN Scout Pro v2 (TURBO)",
+  "version": "2.1.0",
+  "description": "Amazon Store ASIN Scanner - Turbo Edition with Parallel Fetching",
+  "permissions": ["activeTab", "scripting", "downloads", "storage"],
+  "host_permissions": [
+    "https://*.amazon.com/*", "https://*.amazon.co.uk/*", "https://*.amazon.de/*",
+    "https://*.amazon.fr/*", "https://*.amazon.it/*", "https://*.amazon.es/*",
+    "https://*.amazon.ca/*", "https://*.amazon.com.mx/*", "https://*.amazon.co.jp/*",
+    "https://*.amazon.com.au/*", "https://*.amazon.in/*", "https://*.amazon.com.tr/*",
+    "https://*.amazon.ae/*", "https://*.amazon.sa/*", "https://*.amazon.nl/*",
+    "https://*.amazon.com.br/*", "https://*.amazon.sg/*", "https://*.amazon.pl/*",
+    "https://*.amazon.se/*"
+  ],
+  "background": {"service_worker": "background.js"},
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {"16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png"}
+  },
+  "icons": {"16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png"}
+}
