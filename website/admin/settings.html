@@ -241,7 +241,7 @@
             btn.innerHTML = '⏳ Gönderiliyor...';
 
             try {
-                const res = await fetch(API + '/admin.php?action=test_smtp', {
+                const res = await fetch(API_BASE + '/admin.php?action=test_smtp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') },
                     body: JSON.stringify({})
