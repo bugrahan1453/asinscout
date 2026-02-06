@@ -235,8 +235,30 @@
             }
         }
 
-        function testEmail() {
-            alert('Test email feature coming soon. For now, save settings and test by registering a new user.');
+        async function testEmail() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Gönderiliyor...';
+
+            try {
+                const res = await fetch(API + '/admin.php?action=test_smtp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('✅ Test emaili gönderildi!\n\nGönderilen adres: ' + (data.data.sent_to || 'admin email'));
+                } else {
+                    alert('❌ Email gönderilemedi!\n\nHata: ' + (data.message || 'Bilinmeyen hata'));
+                }
+            } catch (e) {
+                alert('❌ Bağlantı hatası: ' + e.message);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '📤 <span data-i18n="admin_settings_test_email">Test E-postası Gönder</span>';
         }
 
         function logout() { localStorage.clear(); window.location.href = '../login.html'; }
