@@ -346,50 +346,104 @@
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.dispatchEvent(new Event('change', { bubbles: true }));
 
-    // Biraz bekle, sonra Add Products butonuna bas
+    // React/Vue gibi framework'ler icin ekstra event'ler
+    textarea.dispatchEvent(new Event('blur', { bubbles: true }));
+    textarea.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+
+    showStatus(`${formatNumber(chunk.length)} ASIN yuklendi, buton aranıyor...`);
+
+    // Biraz bekle, sonra Add Products butonuna bas (form'un hazir olmasini bekle)
     setTimeout(() => {
       clickAddProducts();
-    }, 1000);
+    }, 2000);
   }
 
   function clickAddProducts() {
-    // "Add Products" butonunu bul
-    const buttons = document.querySelectorAll('button');
+    // "Add Products" butonunu bul - Seller Running icin ozel
     let addBtn = null;
 
+    // Yontem 1: Buton metnine gore ara
+    const buttons = document.querySelectorAll('button, input[type="submit"], a.btn, .button');
     for (const btn of buttons) {
-      const text = btn.textContent.toLowerCase().trim();
-      if (text.includes('add products') || text.includes('add') || text.includes('submit')) {
-        // Disabled olmayan butonu al
+      const text = (btn.textContent || btn.value || '').toLowerCase().trim();
+      // "Add Products" veya benzeri metinleri ara
+      if (text.includes('add product') || text === 'add' || text === 'submit' || text === 'ekle') {
         if (!btn.disabled && btn.offsetParent !== null) {
           addBtn = btn;
+          console.log('ASIN Scout: Buton bulundu (metin):', text);
           break;
         }
       }
     }
 
-    // Alternatif: Submit button type
+    // Yontem 2: Form submit butonu
     if (!addBtn) {
-      addBtn = document.querySelector('button[type="submit"]:not([disabled])');
+      const form = document.querySelector('form');
+      if (form) {
+        addBtn = form.querySelector('button[type="submit"], input[type="submit"], button:not([type="button"])');
+        if (addBtn) console.log('ASIN Scout: Buton bulundu (form submit)');
+      }
     }
 
-    // Alternatif: Primary/main action button
+    // Yontem 3: Primary/ana aksiyon butonu
     if (!addBtn) {
-      addBtn = document.querySelector('.btn-primary:not([disabled]), .primary-button:not([disabled]), [class*="submit"]:not([disabled])');
+      addBtn = document.querySelector(
+        'button.btn-primary, button.primary, button[class*="primary"], ' +
+        'button[class*="submit"], button[class*="action"], ' +
+        '.btn-primary, .primary-button'
+      );
+      if (addBtn) console.log('ASIN Scout: Buton bulundu (primary class)');
+    }
+
+    // Yontem 4: Sayfadaki son/buyuk buton
+    if (!addBtn) {
+      const allBtns = Array.from(document.querySelectorAll('button:not([disabled])'));
+      // Gorunur butonlari filtrele
+      const visibleBtns = allBtns.filter(b => b.offsetParent !== null && b.offsetHeight > 30);
+      if (visibleBtns.length > 0) {
+        addBtn = visibleBtns[visibleBtns.length - 1]; // Son buyuk buton
+        console.log('ASIN Scout: Buton bulundu (son buton):', addBtn.textContent);
+      }
     }
 
     if (!addBtn) {
       showStatus('Add Products butonu bulunamadi! Manuel olarak tiklayin.', true);
-      // Yine de devam etmeyi dene
-      waitForCompletion();
+      console.log('ASIN Scout: Buton bulunamadi! Sayfadaki butonlar:',
+        Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim())
+      );
+      // 10 saniye bekle, belki manuel tiklayacak
+      setTimeout(() => waitForCompletion(), 10000);
       return;
     }
 
     showStatus('Add Products butonuna tiklaniyor...');
-    addBtn.click();
 
-    // Yukleme tamamlanmasini bekle
-    waitForCompletion();
+    // Butonu gorunur alana kaydir
+    addBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Biraz bekle ve tikla
+    setTimeout(() => {
+      // Birden fazla tiklama yontemi dene
+      try {
+        // Yontem 1: Normal click
+        addBtn.click();
+
+        // Yontem 2: Mouse event
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        addBtn.dispatchEvent(clickEvent);
+
+        console.log('ASIN Scout: Butona tiklandi');
+      } catch (e) {
+        console.error('ASIN Scout: Tiklama hatasi:', e);
+      }
+
+      // Yukleme tamamlanmasini bekle
+      waitForCompletion();
+    }, 500);
   }
 
   function waitForCompletion() {
