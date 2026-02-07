@@ -33,8 +33,10 @@
         // 30 dakikadan eski degilse devam et
         if (age < 30 * 60 * 1000) {
           // Eger urun ekleme sayfasinda degilsek, oraya yonlendir
-          if (!window.location.href.includes('/inventory/add')) {
-            console.log('ASIN Scout: Auto mode aktif, urun ekleme sayfasina yonlendiriliyor...');
+          // Not: /inventory/added farkli sayfa! Sadece /inventory/add olmali
+          const isOnAddPage = window.location.pathname === '/inventory/add';
+          if (!isOnAddPage) {
+            console.log('ASIN Scout: Auto mode aktif, urun ekleme sayfasina yonlendiriliyor...', window.location.pathname);
             window.location.href = ADD_PRODUCTS_URL;
             return;
           }
