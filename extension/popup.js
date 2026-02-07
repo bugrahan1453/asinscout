@@ -402,5 +402,64 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('regPass').onkeydown = (e) => { if (e.key === 'Enter') $('regBtn').click(); };
   $('storeNameInput').onkeydown = (e) => { if (e.key === 'Enter') $('confirmStoreName').click(); };
 
+  // Aktif taramalar panelini guncelle
+  function updateActiveScansPanel() {
+    chrome.runtime.sendMessage({ action: 'getAllActiveScans' }, resp => {
+      if (!resp || !resp.scans || resp.scans.length === 0) {
+        $('activeScansPanel').style.display = 'none';
+        return;
+      }
+
+      $('activeScansPanel').style.display = 'block';
+      const list = $('activeScansList');
+      list.innerHTML = '';
+
+      for (const scan of resp.scans) {
+        const item = document.createElement('div');
+        item.className = 'scan-item' + (scan.tabId === tabId ? ' current' : '');
+
+        const statusIcon = scan.scanning ? '🔄' : '✅';
+        const statusText = scan.scanning ? 'Taraniyor...' : 'Tamamlandi';
+
+        item.innerHTML = `
+          <div class="scan-info">
+            <div class="scan-name">${statusIcon} ${scan.storeName || 'Magaza'}</div>
+            <div class="scan-stats">${fmtNum(scan.asinCount)} ASIN ${scan.scanning ? '- ' + statusText : ''}</div>
+          </div>
+          <div class="scan-actions">
+            <button class="scan-btn scan-btn-go" data-tab="${scan.tabId}">Git</button>
+            ${scan.scanning ? '<button class="scan-btn scan-btn-stop" data-tab="' + scan.tabId + '">Durdur</button>' : ''}
+          </div>
+        `;
+        list.appendChild(item);
+      }
+
+      // Event listeners for buttons
+      list.querySelectorAll('.scan-btn-go').forEach(btn => {
+        btn.onclick = () => {
+          const tid = parseInt(btn.dataset.tab);
+          chrome.tabs.update(tid, { active: true });
+          chrome.tabs.get(tid, tab => {
+            if (tab && tab.windowId) {
+              chrome.windows.update(tab.windowId, { focused: true });
+            }
+          });
+        };
+      });
+
+      list.querySelectorAll('.scan-btn-stop').forEach(btn => {
+        btn.onclick = () => {
+          const tid = parseInt(btn.dataset.tab);
+          chrome.runtime.sendMessage({ action: 'stopScan', tabId: tid });
+          setTimeout(updateActiveScansPanel, 500);
+        };
+      });
+    });
+  }
+
+  // Aktif taramalar panelini periyodik guncelle
+  updateActiveScansPanel();
+  setInterval(updateActiveScansPanel, 2000);
+
   window.showScreen = showScreen;
 });

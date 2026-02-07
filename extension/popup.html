@@ -71,6 +71,21 @@ body{width:380px;font-family:'Inter',system-ui,sans-serif;background:var(--bg);c
 .chunk-btn{padding:6px 10px;font-size:10px;background:var(--bg3);border:1px solid var(--brd);border-radius:6px;color:var(--t2);cursor:pointer;transition:all 0.2s}
 .chunk-btn:hover{border-color:var(--or);color:var(--or)}
 .chunk-btn.copied{background:var(--gn);border-color:var(--gn);color:#fff}
+/* Active Scans Panel */
+.active-scans{padding:10px 16px;border-bottom:1px solid var(--brd);background:var(--bg2)}
+.active-scans-title{font-size:10px;color:var(--t2);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.active-scans-title::before{content:'';width:6px;height:6px;background:var(--gn);border-radius:50%;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.active-scans-list{display:flex;flex-direction:column;gap:6px}
+.scan-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:8px 10px}
+.scan-item.current{border-color:var(--or)}
+.scan-info{flex:1;min-width:0}
+.scan-name{font-size:11px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scan-stats{font-size:10px;color:var(--gn)}
+.scan-actions{display:flex;gap:4px}
+.scan-btn{padding:4px 8px;font-size:9px;border-radius:4px;border:none;cursor:pointer;font-weight:600}
+.scan-btn-go{background:var(--bl);color:#fff}
+.scan-btn-stop{background:var(--rd);color:#fff}
 /* Store Name Input Modal */
 .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100}
 .modal.on{display:flex}
@@ -111,6 +126,13 @@ body{width:380px;font-family:'Inter',system-ui,sans-serif;background:var(--bg);c
     <div class="pkg-badge" id="pkgBadge">Paket Yok</div>
   </div>
   <div class="limit-info" id="limitInfo">Tarama limiti: <strong>0</strong> ASIN</div>
+
+  <!-- Aktif Taramalar Paneli -->
+  <div class="active-scans" id="activeScansPanel" style="display:none">
+    <div class="active-scans-title">Aktif Taramalar</div>
+    <div class="active-scans-list" id="activeScansList"></div>
+  </div>
+
   <div class="sec">
     <div class="badge no" id="badge"><span id="badgeTxt">Yukleniyor...</span></div>
     <div class="sname" id="sname" style="display:none"></div>

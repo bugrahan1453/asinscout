@@ -229,6 +229,24 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     return true;
   }
 
+  // Tum aktif taramalari getir
+  else if (msg.action === 'getAllActiveScans') {
+    const activeScans = [];
+    for (const tid in tabStates) {
+      const s = tabStates[tid];
+      if (s.scanning || s.asins.length > 0) {
+        activeScans.push({
+          tabId: parseInt(tid),
+          storeName: s.storeName,
+          scanning: s.scanning,
+          asinCount: s.asins.length,
+          scanned: s.scanned
+        });
+      }
+    }
+    send({ scans: activeScans });
+  }
+
   return true;
 });
 
