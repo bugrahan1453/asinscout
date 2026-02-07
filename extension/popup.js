@@ -154,6 +154,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('badgeTxt').textContent = 'Amazon Degil';
   }
 
+  let pendingTab = null; // Bekleyen tab
+
   // Tarama baslat
   $('bScan').onclick = async () => {
     if (scanLimit <= 0) {
@@ -163,6 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     tabId = tab.id;
+    pendingTab = tab;
 
     // Magaza adi yoksa modal goster
     if (!storeName) {
@@ -171,8 +174,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    startScan(tab);
+    // Onceki tarama kontrolu
+    checkAndStartScan(tab);
   };
+
+  // Onceki tarama kontrolu yap
+  async function checkAndStartScan(tab) {
+    $('bScan').disabled = true;
+    $('bScan').textContent = 'Kontrol ediliyor...';
+
+    chrome.runtime.sendMessage({ action: 'checkPreviousScan', storeName }, resp => {
+      $('bScan').disabled = false;
+      $('bScan').textContent = 'Taramayi Baslat';
+
+      if (resp && resp.found) {
+        // Onceden tarandi - uyari goster
+        const scanDate = new Date(resp.scan.date).toLocaleDateString('tr-TR');
+        const asinCount = resp.scan.asin_count || 0;
+        $('prevScanInfo').textContent = scanDate + ' tarihinde ' + asinCount + ' ASIN bulunmustu.';
+        $('warningModal').classList.add('on');
+      } else {
+        // Ilk kez taraniyor
+        startScan(tab);
+      }
+    });
+  }
 
   // Modal onay
   $('confirmStoreName').onclick = async () => {
@@ -184,11 +210,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('storeModal').classList.remove('on');
 
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    startScan(tab);
+    pendingTab = tab;
+    // Onceki tarama kontrolu
+    checkAndStartScan(tab);
   };
 
   $('cancelStoreName').onclick = () => {
     $('storeModal').classList.remove('on');
+  };
+
+  // Tekrar tarama onay
+  $('confirmRescan').onclick = () => {
+    $('warningModal').classList.remove('on');
+    if (pendingTab) startScan(pendingTab);
+  };
+
+  $('cancelRescan').onclick = () => {
+    $('warningModal').classList.remove('on');
   };
 
   function startScan(tab) {

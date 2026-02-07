@@ -200,8 +200,42 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     send({ ok: true });
   }
 
+  // Onceki tarama kontrolu
+  else if (msg.action === 'checkPreviousScan') {
+    checkPreviousScan(msg.storeName).then(send);
+    return true;
+  }
+
   return true;
 });
+
+// Onceki taramalari kontrol et
+async function checkPreviousScan(storeName) {
+  if (!token || !storeName) return { found: false };
+  try {
+    const r = await fetch(API_BASE + '/scans.php?action=list&limit=100', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const d = await r.json();
+    if (d.success && d.data.scans) {
+      const normalizedName = storeName.toLowerCase().trim();
+      const found = d.data.scans.find(s =>
+        s.store_name && s.store_name.toLowerCase().trim() === normalizedName
+      );
+      if (found) {
+        return {
+          found: true,
+          scan: {
+            id: found.id,
+            date: found.created_at,
+            asin_count: found.asin_count
+          }
+        };
+      }
+    }
+    return { found: false };
+  } catch(e) { return { found: false }; }
+}
 
 async function handleLogin(email, password) {
   try {
