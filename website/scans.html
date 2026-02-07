@@ -41,6 +41,8 @@
         .btn-copy{background:rgba(77,142,255,0.15);color:var(--blue);border:1px solid rgba(77,142,255,0.3)}
         .btn-copy:hover{background:rgba(77,142,255,0.25)}
         .btn-copy.copied{background:var(--green);border-color:var(--green);color:#fff}
+        .btn-sr{background:linear-gradient(135deg,#7c5ce0,#6b4ecf);color:#fff;border:none}
+        .btn-sr:hover{box-shadow:0 2px 8px rgba(124,92,224,0.4)}
         .empty{text-align:center;padding:60px;color:var(--text2)}
         .pagination{display:flex;justify-content:center;gap:8px;margin-top:20px}
         .pagination button{padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer}
@@ -138,6 +140,7 @@
                         <td><span class="badge ${s.status==='completed'?'green':'red'}">${s.status}</span></td>
                         <td>${new Date(s.created_at).toLocaleDateString()}</td>
                         <td>
+                            <button class="btn btn-sr" onclick="loadToSR(${s.id},'${esc(s.store_name||'Unknown')}',this)">SR</button>
                             <button class="btn btn-copy" onclick="copyAsins(${s.id},this)">Kopyala</button>
                             <a href="scan-detail.html?id=${s.id}" class="btn btn-outline">${t('scans_view')}</a>
                             <a href="${API}/scans.php?action=download&id=${s.id}&format=txt&token=${token}" class="btn btn-outline">TXT</a>
@@ -241,6 +244,49 @@
         }
 
         function fmtRange(n){ return n.toLocaleString('tr-TR'); }
+
+        // Seller Running'e yukle
+        async function loadToSR(scanId, storeName, btn) {
+            // Extension yuklu mu kontrol et
+            const hasExtension = document.documentElement.hasAttribute('data-asinscout-extension');
+            if (!hasExtension) {
+                alert('ASIN Scout eklentisi yuklü degil!\n\nOnce eklentiyi yukleyin, sonra sayfayi yenileyin.');
+                return;
+            }
+
+            btn.textContent = '...';
+            try {
+                const r = await fetch(API + '/scans.php?action=asins&id=' + scanId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const d = await r.json();
+                if (d.success && d.data.asins && d.data.asins.length > 0) {
+                    // Custom event ile eklentiye gonder
+                    window.dispatchEvent(new CustomEvent('asinscout-sr-load', {
+                        detail: {
+                            asins: d.data.asins,
+                            storeName: storeName,
+                            scanId: scanId
+                        }
+                    }));
+                    btn.textContent = '✓';
+                    btn.style.background = 'linear-gradient(135deg,#22c97a,#1db36a)';
+                    setTimeout(() => {
+                        btn.textContent = 'SR';
+                        btn.style.background = '';
+                    }, 2000);
+                } else {
+                    btn.textContent = '!';
+                    alert('ASIN bulunamadi!');
+                    setTimeout(() => { btn.textContent = 'SR'; }, 2000);
+                }
+            } catch(e) {
+                btn.textContent = '!';
+                alert('Hata: ' + e.message);
+                setTimeout(() => { btn.textContent = 'SR'; }, 2000);
+            }
+        }
+
         // Re-render on language change
         window.addEventListener('languageChanged',()=>{loadScans(currentPage);});
         loadScans();

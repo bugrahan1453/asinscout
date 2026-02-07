@@ -25,6 +25,10 @@
       "matches": ["https://sellerrunning.threecolts.com/inventory/add*"],
       "js": ["inject-sellerrunning.js"],
       "css": ["inject-sellerrunning.css"]
+    },
+    {
+      "matches": ["https://asinscout.com/*", "https://www.asinscout.com/*"],
+      "js": ["inject-website.js"]
     }
   ]
 }

@@ -20,15 +20,40 @@
   }
 
   function loadAsins() {
-    chrome.runtime.sendMessage({ action: 'getAsins' }, resp => {
-      if (resp && resp.asins && resp.asins.length > 0) {
-        allAsins = resp.asins;
-        storeName = resp.storeName || '';
-        updateToggleButton();
-        if (panelVisible) {
-          updatePanel();
+    // Oncelik 1: Website'den gelen pending ASIN'ler (SR Yukle butonu)
+    chrome.storage.local.get(['pendingAsins', 'pendingStoreName', 'pendingTimestamp'], data => {
+      if (data.pendingAsins && data.pendingAsins.length > 0) {
+        // 5 dakikadan eski degilse kullan
+        const age = Date.now() - (data.pendingTimestamp || 0);
+        if (age < 5 * 60 * 1000) {
+          allAsins = data.pendingAsins;
+          storeName = data.pendingStoreName || '';
+          updateToggleButton();
+
+          // Paneli otomatik ac
+          if (!panelVisible) {
+            showPanel();
+          } else {
+            updatePanel();
+          }
+
+          // Kullanildiktan sonra temizle
+          chrome.storage.local.remove(['pendingAsins', 'pendingStoreName', 'pendingTimestamp']);
+          return;
         }
       }
+
+      // Oncelik 2: Aktif taramadan gelen ASIN'ler
+      chrome.runtime.sendMessage({ action: 'getAsins' }, resp => {
+        if (resp && resp.asins && resp.asins.length > 0) {
+          allAsins = resp.asins;
+          storeName = resp.storeName || '';
+          updateToggleButton();
+          if (panelVisible) {
+            updatePanel();
+          }
+        }
+      });
     });
   }
 
