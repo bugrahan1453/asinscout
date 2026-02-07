@@ -427,6 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="scan-stats">${fmtNum(scan.asinCount)} ASIN ${scan.scanning ? '- ' + statusText : ''}</div>
           </div>
           <div class="scan-actions">
+            ${!scan.scanning && scan.asinCount > 0 ? '<button class="scan-btn scan-btn-sr" data-tab="' + scan.tabId + '" data-name="' + (scan.storeName || 'Magaza') + '">SR</button>' : ''}
             <button class="scan-btn scan-btn-go" data-tab="${scan.tabId}">Git</button>
             ${scan.scanning ? '<button class="scan-btn scan-btn-stop" data-tab="' + scan.tabId + '">Durdur</button>' : ''}
           </div>
@@ -452,6 +453,37 @@ document.addEventListener('DOMContentLoaded', async () => {
           const tid = parseInt(btn.dataset.tab);
           chrome.runtime.sendMessage({ action: 'stopScan', tabId: tid });
           setTimeout(updateActiveScansPanel, 500);
+        };
+      });
+
+      // SR Yukle butonlari
+      list.querySelectorAll('.scan-btn-sr').forEach(btn => {
+        btn.onclick = () => {
+          const tid = parseInt(btn.dataset.tab);
+          const name = btn.dataset.name;
+          btn.textContent = '...';
+
+          chrome.runtime.sendMessage({ action: 'getAsinsForTab', tabId: tid }, r => {
+            if (r && r.asins && r.asins.length > 0) {
+              // ASIN'leri storage'a kaydet ve SR ac
+              chrome.storage.local.set({
+                pendingAsins: r.asins,
+                pendingStoreName: name,
+                pendingTimestamp: Date.now()
+              }, () => {
+                btn.textContent = '✓';
+                btn.classList.add('done');
+                window.open('https://sellerrunning.threecolts.com/inventory/add', '_blank');
+                setTimeout(() => {
+                  btn.textContent = 'SR';
+                  btn.classList.remove('done');
+                }, 2000);
+              });
+            } else {
+              btn.textContent = '!';
+              setTimeout(() => { btn.textContent = 'SR'; }, 2000);
+            }
+          });
         };
       });
     });
