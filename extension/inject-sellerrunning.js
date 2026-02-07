@@ -32,19 +32,55 @@
         const age = Date.now() - (data.srAutoTimestamp || 0);
         // 30 dakikadan eski degilse devam et
         if (age < 30 * 60 * 1000) {
-          // Eger urun ekleme sayfasinda degilsek, oraya yonlendir
-          // Not: /inventory/added farkli sayfa! Sadece /inventory/add olmali
-          const isOnAddPage = window.location.pathname === '/inventory/add';
+          const currentPath = window.location.pathname;
+          const isOnAddPage = currentPath === '/inventory/add';
+          const isOnAddedPage = currentPath === '/inventory/added';
+
+          // /inventory/added sayfasindaysak - urunler yuklendi demektir
+          // Chunk'i artir ve /inventory/add'e yonlendir
+          if (isOnAddedPage) {
+            const nextChunk = (data.srAutoChunk || 0) + 1;
+            const chunkSize = 5000;
+            const totalChunks = Math.ceil(data.srAutoAsins.length / chunkSize);
+
+            console.log('ASIN Scout: Added sayfasinda, chunk artiriliyor:', nextChunk, '/', totalChunks);
+
+            // Tum chunk'lar bitti mi?
+            if (nextChunk >= totalChunks) {
+              console.log('ASIN Scout: Tum chunklar tamamlandi!');
+              clearAutoMode();
+              alert('✅ Tüm ASIN\'ler başarıyla yüklendi!');
+              return;
+            }
+
+            // Sonraki chunk'i kaydet ve yonlendir
+            chrome.storage.local.set({
+              srAutoMode: true,
+              srAutoAsins: data.srAutoAsins,
+              srAutoChunk: nextChunk,
+              srAutoStore: data.srAutoStore,
+              srAutoTimestamp: Date.now()
+            }, () => {
+              console.log('ASIN Scout: Chunk kaydedildi, yonlendiriliyor...', nextChunk);
+              window.location.href = ADD_PRODUCTS_URL;
+            });
+            return;
+          }
+
+          // Baska bir sayfadaysak (added degil), sadece yonlendir
           if (!isOnAddPage) {
-            console.log('ASIN Scout: Auto mode aktif, urun ekleme sayfasina yonlendiriliyor...', window.location.pathname);
+            console.log('ASIN Scout: Auto mode aktif, urun ekleme sayfasina yonlendiriliyor...', currentPath);
             window.location.href = ADD_PRODUCTS_URL;
             return;
           }
 
+          // /inventory/add sayfasindayiz - devam et
           allAsins = data.srAutoAsins;
           storeName = data.srAutoStore || '';
           currentAutoChunk = data.srAutoChunk || 0;
           isAutoMode = true;
+
+          console.log('ASIN Scout: Add sayfasinda, chunk yukleniyor:', currentAutoChunk);
 
           updateToggleButton();
           showPanel();
