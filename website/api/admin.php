@@ -270,6 +270,7 @@ try {
                 'code' => $code,
                 'commission_rate' => $rate,
                 'is_active' => (int)($data['is_active'] ?? 1),
+                'user_id' => isset($data['user_id']) && $data['user_id'] ? (int)$data['user_id'] : null,
                 'notes' => trim($data['notes'] ?? '')
             ];
 

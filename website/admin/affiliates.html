@@ -199,12 +199,20 @@
                     <input type="number" id="affRate" placeholder="5" min="0" max="100" step="0.5" value="5">
                 </div>
             </div>
-            <div class="form-group">
-                <label>Status</label>
-                <select id="affActive">
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="affActive">
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Bağlı Kullanıcı</label>
+                    <select id="affUserId">
+                        <option value="">-- Seçiniz --</option>
+                    </select>
+                </div>
             </div>
             <div class="form-group">
                 <label>Notes</label>
@@ -343,6 +351,25 @@
             } catch (err) { console.error(err); }
         }
 
+        // Kullanıcıları yükle
+        let usersData = [];
+        async function loadUsers() {
+            try {
+                const resp = await fetch(API_BASE + '/admin.php?action=users&limit=1000', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    usersData = data.data.users || [];
+                    const select = document.getElementById('affUserId');
+                    select.innerHTML = '<option value="">-- Seçiniz --</option>';
+                    for (const u of usersData) {
+                        select.innerHTML += `<option value="${u.id}">${esc(u.name)} (${esc(u.email)})</option>`;
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+
         // Modal
         function openModal(id) {
             document.getElementById('editId').value = '';
@@ -350,6 +377,7 @@
             document.getElementById('affCode').value = '';
             document.getElementById('affRate').value = '5';
             document.getElementById('affActive').value = '1';
+            document.getElementById('affUserId').value = '';
             document.getElementById('affNotes').value = '';
             document.getElementById('modalTitle').textContent = 'New Affiliate';
             document.getElementById('modalOverlay').classList.add('active');
@@ -367,6 +395,7 @@
             document.getElementById('affCode').value = a.code;
             document.getElementById('affRate').value = parseFloat(a.commission_rate);
             document.getElementById('affActive').value = a.is_active;
+            document.getElementById('affUserId').value = a.user_id || '';
             document.getElementById('affNotes').value = a.notes || '';
             document.getElementById('modalTitle').textContent = 'Edit Affiliate';
             document.getElementById('modalOverlay').classList.add('active');
@@ -378,6 +407,7 @@
                 code: document.getElementById('affCode').value.trim().toLowerCase(),
                 commission_rate: parseFloat(document.getElementById('affRate').value) || 5,
                 is_active: parseInt(document.getElementById('affActive').value),
+                user_id: document.getElementById('affUserId').value || null,
                 notes: document.getElementById('affNotes').value.trim()
             };
 
@@ -439,6 +469,7 @@
         });
 
         loadAffiliates();
+        loadUsers();
     </script>
 </body>
 </html>
