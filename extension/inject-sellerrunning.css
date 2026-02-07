@@ -1,0 +1,212 @@
+/* ASIN Scout - Seller Running Integration */
+.asin-scout-panel {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 320px;
+  background: linear-gradient(145deg, #1a1a2e, #16213e);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  z-index: 99999;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: #f0f0f5;
+  overflow: hidden;
+}
+
+.asin-scout-header {
+  background: linear-gradient(135deg, #ff6b2c, #ff2c6b);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.asin-scout-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.asin-scout-logo-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.asin-scout-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.asin-scout-close:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.asin-scout-body {
+  padding: 16px;
+}
+
+.asin-scout-info {
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.asin-scout-total {
+  font-size: 28px;
+  font-weight: 700;
+  color: #22c97a;
+}
+
+.asin-scout-label {
+  font-size: 11px;
+  color: #9898a8;
+  margin-top: 2px;
+}
+
+.asin-scout-store {
+  font-size: 12px;
+  color: #ff6b2c;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.asin-scout-chunks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.asin-scout-chunk-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.asin-scout-chunk-btn:hover {
+  background: rgba(255,107,44,0.1);
+  border-color: #ff6b2c;
+}
+
+.asin-scout-chunk-btn.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.asin-scout-chunk-btn.done {
+  background: rgba(34,201,122,0.15);
+  border-color: #22c97a;
+}
+
+.asin-scout-chunk-range {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.asin-scout-chunk-count {
+  font-size: 11px;
+  color: #9898a8;
+}
+
+.asin-scout-chunk-status {
+  font-size: 20px;
+}
+
+.asin-scout-no-data {
+  text-align: center;
+  padding: 30px 20px;
+  color: #9898a8;
+}
+
+.asin-scout-no-data-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.asin-scout-no-data-text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.asin-scout-toggle {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: linear-gradient(135deg, #ff6b2c, #ff2c6b);
+  color: #fff;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(255,107,44,0.4);
+  transition: transform 0.2s;
+}
+
+.asin-scout-toggle:hover {
+  transform: scale(1.05);
+}
+
+.asin-scout-toggle-badge {
+  background: #fff;
+  color: #ff6b2c;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Toast */
+.asin-scout-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #22c97a;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 999999;
+  transition: transform 0.3s;
+}
+
+.asin-scout-toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.asin-scout-toast.error {
+  background: #ff4d5e;
+}

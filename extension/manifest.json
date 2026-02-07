@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "ASIN Scout Pro",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Amazon Store ASIN Scanner",
-  "permissions": ["activeTab", "scripting", "downloads", "storage"],
+  "permissions": ["activeTab", "scripting", "downloads", "storage", "tabs"],
   "host_permissions": [
     "https://*.amazon.com/*", "https://*.amazon.co.uk/*", "https://*.amazon.de/*",
     "https://*.amazon.fr/*", "https://*.amazon.it/*", "https://*.amazon.es/*",
@@ -11,12 +11,20 @@
     "https://*.amazon.com.au/*", "https://*.amazon.in/*", "https://*.amazon.com.tr/*",
     "https://*.amazon.ae/*", "https://*.amazon.sa/*", "https://*.amazon.nl/*",
     "https://*.amazon.com.br/*", "https://*.amazon.sg/*", "https://*.amazon.pl/*",
-    "https://*.amazon.se/*"
+    "https://*.amazon.se/*",
+    "https://sellerrunning.threecolts.com/*"
   ],
   "background": {"service_worker": "background.js"},
   "action": {
     "default_popup": "popup.html",
     "default_icon": {"16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png"}
   },
-  "icons": {"16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png"}
+  "icons": {"16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png"},
+  "content_scripts": [
+    {
+      "matches": ["https://sellerrunning.threecolts.com/inventory/add*"],
+      "js": ["inject-sellerrunning.js"],
+      "css": ["inject-sellerrunning.css"]
+    }
+  ]
 }
