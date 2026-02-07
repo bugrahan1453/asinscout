@@ -67,6 +67,7 @@
         <ul class="sidebar-menu">
             <a href="dashboard.html" class="active" data-i18n="sidebar_dashboard">📊 Dashboard</a>
             <a href="scans.html" data-i18n="sidebar_scans">📁 My Scans</a>
+            <a href="affiliate.html" id="affiliateLink" style="display:none">🤝 Affiliate</a>
             <a href="pricing.html" data-i18n="sidebar_buy">💳 Buy Package</a>
             <a href="settings.html" data-i18n="sidebar_settings">⚙️ Settings</a>
             <a href="#" onclick="logout()" data-i18n="sidebar_logout">🚪 Logout</a>
@@ -113,6 +114,8 @@
                     const u=d.data.user,s=d.data.stats;
                     document.getElementById('totalScans').textContent=s.total_scans||0;
                     document.getElementById('totalAsins').textContent=fmt(s.total_asins||0);
+                    // Affiliate menüsünü göster
+                    if(u.is_affiliate){document.getElementById('affiliateLink').style.display='block';}
                     if(u.package_name&&u.scan_limit>0){
                         document.getElementById('packageName').textContent=u.package_name+' Package';
                         document.getElementById('scanLimit').textContent=fmt(u.scan_limit);

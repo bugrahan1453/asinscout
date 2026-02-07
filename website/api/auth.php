@@ -157,6 +157,12 @@ switch ($action) {
             $dailyUsed = 0;
         }
 
+        // Kullanıcı affiliate mi kontrol et
+        $affiliate = $db->fetch(
+            "SELECT id, code FROM affiliates WHERE user_id = ? AND is_active = 1",
+            [$user['id']]
+        );
+
         Api::success([
             'user' => [
                 'id' => $fullUser['id'],
@@ -168,7 +174,9 @@ switch ($action) {
                 'package_expires' => $hasActivePackage ? $fullUser['package_expires'] : null,
                 'daily_scan_limit' => $dailyLimit,
                 'daily_scans_used' => $dailyUsed,
-                'daily_remaining' => $dailyLimit > 0 ? max(0, $dailyLimit - $dailyUsed) : -1
+                'daily_remaining' => $dailyLimit > 0 ? max(0, $dailyLimit - $dailyUsed) : -1,
+                'is_affiliate' => $affiliate ? true : false,
+                'affiliate_code' => $affiliate ? $affiliate['code'] : null
             ],
             'stats' => [
                 'total_scans' => (int)$stats['total_scans'],
@@ -274,6 +282,82 @@ switch ($action) {
         Mailer::sendRaw(SITE_EMAIL, "Contact: {$subject} - {$name}", $body, $email);
 
         Api::success(null, 'Message sent successfully');
+        break;
+
+    case 'affiliate_dashboard':
+        $user = Auth::requireAuth();
+
+        // Kullanıcının affiliate kaydı var mı kontrol et (email ile eşleştir)
+        $affiliate = $db->fetch(
+            "SELECT * FROM affiliates WHERE user_id = ? OR LOWER(name) = LOWER(?)",
+            [$user['id'], $user['email']]
+        );
+
+        if (!$affiliate) {
+            Api::error('Affiliate kaydınız bulunamadı', 404);
+        }
+
+        // Referral olan kullanıcılar
+        $referrals = $db->fetchAll(
+            "SELECT id, name, email, created_at FROM users WHERE referred_by = ? ORDER BY created_at DESC LIMIT 100",
+            [$affiliate['id']]
+        );
+
+        // Kazançlar (detaylı)
+        $earnings = $db->fetchAll(
+            "SELECT ae.*, u.name as user_name, u.email as user_email,
+                    o.amount as order_amount, p.name as package_name
+             FROM affiliate_earnings ae
+             JOIN users u ON ae.user_id = u.id
+             JOIN orders o ON ae.order_id = o.id
+             JOIN packages p ON o.package_id = p.id
+             WHERE ae.affiliate_id = ?
+             ORDER BY ae.created_at DESC",
+            [$affiliate['id']]
+        );
+
+        // Toplam istatistikler
+        $totalReferrals = count($referrals);
+        $totalOrders = count($earnings);
+        $totalEarnings = array_sum(array_column($earnings, 'commission_amount'));
+        $pendingEarnings = array_sum(array_map(function($e) {
+            return $e['status'] !== 'paid' ? $e['commission_amount'] : 0;
+        }, $earnings));
+        $paidEarnings = $totalEarnings - $pendingEarnings;
+
+        Api::success([
+            'affiliate' => [
+                'id' => $affiliate['id'],
+                'name' => $affiliate['name'],
+                'code' => $affiliate['code'],
+                'commission_rate' => $affiliate['commission_rate'],
+                'link' => SITE_URL . '/register.html?ref=' . $affiliate['code']
+            ],
+            'stats' => [
+                'total_referrals' => $totalReferrals,
+                'total_orders' => $totalOrders,
+                'total_earnings' => round($totalEarnings, 2),
+                'pending_earnings' => round($pendingEarnings, 2),
+                'paid_earnings' => round($paidEarnings, 2)
+            ],
+            'referrals' => array_map(function($r) {
+                return [
+                    'name' => $r['name'],
+                    'email' => substr($r['email'], 0, 3) . '***' . strstr($r['email'], '@'),
+                    'date' => $r['created_at']
+                ];
+            }, $referrals),
+            'earnings' => array_map(function($e) {
+                return [
+                    'user' => $e['user_name'],
+                    'package' => $e['package_name'],
+                    'order_amount' => $e['order_amount'],
+                    'commission' => $e['commission_amount'],
+                    'status' => $e['status'],
+                    'date' => $e['created_at']
+                ];
+            }, $earnings)
+        ]);
         break;
 
     default:

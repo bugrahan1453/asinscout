@@ -73,6 +73,7 @@
         <ul class="sidebar-menu">
             <a href="dashboard.html" data-i18n="sidebar_dashboard">📊 Dashboard</a>
             <a href="scans.html" class="active" data-i18n="sidebar_scans">📁 My Scans</a>
+            <a href="affiliate.html" id="affiliateLink" style="display:none">🤝 Affiliate</a>
             <a href="pricing.html" data-i18n="sidebar_buy">💳 Buy Package</a>
             <a href="settings.html" data-i18n="sidebar_settings">⚙️ Settings</a>
             <a href="#" onclick="logout()" data-i18n="sidebar_logout">🚪 Logout</a>
@@ -116,6 +117,7 @@
         document.getElementById('userName').textContent=user.name||'User';
         document.getElementById('userEmail').textContent=user.email||'';
         document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
+        if(user.is_affiliate){document.getElementById('affiliateLink').style.display='block';}
 
         let currentPage=1,totalPages=1;
 
