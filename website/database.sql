@@ -244,6 +244,7 @@ CREATE TABLE IF NOT EXISTS `affiliates` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL COMMENT 'Affiliate ismi (admin belirler)',
   `code` varchar(50) NOT NULL COMMENT 'Referans kodu (link için)',
+  `user_id` int(11) DEFAULT NULL COMMENT 'Bağlı kullanıcı ID',
   `commission_rate` decimal(5,2) NOT NULL DEFAULT 5.00 COMMENT 'Komisyon oranı (%)',
   `total_earnings` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Toplam kazanç',
   `total_referrals` int(11) NOT NULL DEFAULT 0 COMMENT 'Toplam yönlendirilen kullanıcı',
