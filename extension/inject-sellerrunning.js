@@ -32,6 +32,13 @@
         const age = Date.now() - (data.srAutoTimestamp || 0);
         // 30 dakikadan eski degilse devam et
         if (age < 30 * 60 * 1000) {
+          // Eger urun ekleme sayfasinda degilsek, oraya yonlendir
+          if (!window.location.href.includes('/inventory/add')) {
+            console.log('ASIN Scout: Auto mode aktif, urun ekleme sayfasina yonlendiriliyor...');
+            window.location.href = ADD_PRODUCTS_URL;
+            return;
+          }
+
           allAsins = data.srAutoAsins;
           storeName = data.srAutoStore || '';
           currentAutoChunk = data.srAutoChunk || 0;
