@@ -10,6 +10,9 @@
   let isAutoMode = false;
   let currentAutoChunk = 0;
 
+  // Seller Running ürün ekleme sayfası URL'si
+  const ADD_PRODUCTS_URL = 'https://sellerrunning.threecolts.com/inventory/add';
+
   // Sayfa yuklendiginde ASIN'leri al
   init();
 
@@ -382,28 +385,52 @@
 
   function waitForCompletion() {
     let checkCount = 0;
-    const maxChecks = 60; // 60 saniye max
+    const maxChecks = 90; // 90 saniye max
+    let initialUrl = window.location.href;
 
     showStatus('Urunler yukleniyor, lutfen bekleyin...');
 
     const checkInterval = setInterval(() => {
       checkCount++;
 
+      // Sayfa degisti mi kontrol et (urunler eklendikten sonra baska sayfaya yonlendirilmis olabilir)
+      if (window.location.href !== initialUrl) {
+        clearInterval(checkInterval);
+        showStatus('Urunler eklendi! Sonraki parcaya geciliyor...');
+        markChunkComplete();
+        return;
+      }
+
       // Basari mesaji veya loading durumu kontrol et
+      const pageText = document.body.textContent.toLowerCase();
       const successIndicators = [
         document.querySelector('.success-message'),
         document.querySelector('.alert-success'),
-        document.querySelector('[class*="success"]'),
-        document.body.textContent.includes('successfully added'),
-        document.body.textContent.includes('başarıyla eklendi')
+        document.querySelector('[class*="success"]:not([class*="btn"])'),
+        document.querySelector('.toast-success'),
+        document.querySelector('.notification-success'),
+        pageText.includes('successfully'),
+        pageText.includes('added'),
+        pageText.includes('imported'),
+        pageText.includes('completed')
       ];
 
-      const isLoading = document.querySelector('.loading, .spinner, [class*="loading"], [class*="spinner"]');
+      const isLoading = document.querySelector('.loading, .spinner, [class*="loading"], [class*="spinner"], [class*="progress"]');
 
       // Basari durumu
       if (successIndicators.some(Boolean) && !isLoading) {
         clearInterval(checkInterval);
-        markChunkComplete();
+        showStatus('Urunler eklendi! Sonraki parcaya geciliyor...');
+        setTimeout(() => markChunkComplete(), 1500);
+        return;
+      }
+
+      // Textarea bosaldiysa (form submit edilmis demektir)
+      const textarea = findTextarea();
+      if (textarea && textarea.value.trim() === '' && checkCount > 5) {
+        clearInterval(checkInterval);
+        showStatus('Form gonderildi! Sonraki parcaya geciliyor...');
+        setTimeout(() => markChunkComplete(), 1500);
         return;
       }
 
@@ -441,11 +468,11 @@
       srAutoTimestamp: Date.now()
     });
 
-    showStatus(`Parca ${currentAutoChunk}/${totalChunks} tamamlandi! Sayfa yenileniyor...`);
+    showStatus(`Parca ${currentAutoChunk}/${totalChunks} tamamlandi! Urun ekleme sayfasina yonlendiriliyor...`);
 
-    // Sayfayi yenile - sonraki chunk otomatik yuklenecek
+    // Urun ekleme sayfasina git - sonraki chunk otomatik yuklenecek
     setTimeout(() => {
-      location.reload();
+      window.location.href = ADD_PRODUCTS_URL;
     }, 2000);
   }
 
