@@ -38,6 +38,9 @@
         .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
         .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
         .btn-red{background:rgba(255,77,94,0.15);color:var(--red);border:1px solid rgba(255,77,94,0.3)}
+        .btn-copy{background:rgba(77,142,255,0.15);color:var(--blue);border:1px solid rgba(77,142,255,0.3)}
+        .btn-copy:hover{background:rgba(77,142,255,0.25)}
+        .btn-copy.copied{background:var(--green);border-color:var(--green);color:#fff}
         .empty{text-align:center;padding:60px;color:var(--text2)}
         .pagination{display:flex;justify-content:center;gap:8px;margin-top:20px}
         .pagination button{padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer}
@@ -111,6 +114,7 @@
                         <td><span class="badge ${s.status==='completed'?'green':'red'}">${s.status}</span></td>
                         <td>${new Date(s.created_at).toLocaleDateString()}</td>
                         <td>
+                            <button class="btn btn-copy" onclick="copyAsins(${s.id},this)" title="Kopyala">📋</button>
                             <a href="scan-detail.html?id=${s.id}" class="btn btn-outline">${t('scans_view')}</a>
                             <a href="${API}/scans.php?action=download&id=${s.id}&format=txt&token=${token}" class="btn btn-outline">TXT</a>
                             <a href="${API}/scans.php?action=download&id=${s.id}&format=excel&token=${token}" class="btn btn-outline">Excel</a>
@@ -137,6 +141,22 @@
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         function esc(s){return String(s||'').replace(/</g,'&lt;');}
+        async function copyAsins(scanId,btn){
+            btn.textContent='...';
+            try{
+                const r=await fetch(API+'/scans.php?action=asins&id='+scanId,{headers:{'Authorization':'Bearer '+token}});
+                const d=await r.json();
+                if(d.success&&d.data.asins){
+                    await navigator.clipboard.writeText(d.data.asins.join('\\n'));
+                    btn.textContent='✓';
+                    btn.classList.add('copied');
+                    setTimeout(()=>{btn.textContent='📋';btn.classList.remove('copied');},2000);
+                }else{
+                    btn.textContent='!';
+                    setTimeout(()=>{btn.textContent='📋';},2000);
+                }
+            }catch(e){btn.textContent='!';setTimeout(()=>{btn.textContent='📋';},2000);}
+        }
         // Re-render on language change
         window.addEventListener('languageChanged',()=>{loadScans(currentPage);});
         loadScans();

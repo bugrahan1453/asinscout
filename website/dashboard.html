@@ -48,6 +48,9 @@
         .btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none}
         .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
         .btn-sm{padding:6px 12px;font-size:12px}
+        .btn-copy{background:rgba(77,142,255,0.15);border:1px solid rgba(77,142,255,0.3);color:var(--blue);margin-right:6px}
+        .btn-copy:hover{background:rgba(77,142,255,0.25)}
+        .btn-copy.copied{background:var(--green);border-color:var(--green);color:#fff}
         .empty{text-align:center;padding:60px 20px;color:var(--text2)}
         .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.5}
         .empty-title{font-size:18px;color:var(--text);margin-bottom:8px}
@@ -127,7 +130,7 @@
                 if(sd.success&&sd.data.scans&&sd.data.scans.length>0){
                     let h='<table><thead><tr><th>'+t('dash_store')+'</th><th>'+t('dash_asins')+'</th><th>'+t('dash_status')+'</th><th>'+t('dash_date')+'</th><th></th></tr></thead><tbody>';
                     for(const sc of sd.data.scans){
-                        h+=`<tr><td>${esc(sc.store_name)}</td><td><strong>${fmt(sc.asin_count)}</strong></td><td><span class="badge green">${sc.status}</span></td><td>${new Date(sc.created_at).toLocaleDateString()}</td><td><a href="scan-detail.html?id=${sc.id}" class="btn btn-outline btn-sm">${t('dash_view')}</a></td></tr>`;
+                        h+=`<tr><td>${esc(sc.store_name)}</td><td><strong>${fmt(sc.asin_count)}</strong></td><td><span class="badge green">${sc.status}</span></td><td>${new Date(sc.created_at).toLocaleDateString()}</td><td><button class="btn btn-copy btn-sm" onclick="copyAsins(${sc.id},this)" title="Kopyala">📋</button><a href="scan-detail.html?id=${sc.id}" class="btn btn-outline btn-sm">${t('dash_view')}</a></td></tr>`;
                     }
                     document.getElementById('recentScans').innerHTML=h+'</tbody></table>';
                 }
@@ -136,6 +139,22 @@
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         function esc(s){return String(s||'').replace(/</g,'&lt;');}
+        async function copyAsins(scanId,btn){
+            btn.textContent='...';
+            try{
+                const r=await fetch(API+'/scans.php?action=asins&id='+scanId,{headers:{'Authorization':'Bearer '+token}});
+                const d=await r.json();
+                if(d.success&&d.data.asins){
+                    await navigator.clipboard.writeText(d.data.asins.join('\\n'));
+                    btn.textContent='✓';
+                    btn.classList.add('copied');
+                    setTimeout(()=>{btn.textContent='📋';btn.classList.remove('copied');},2000);
+                }else{
+                    btn.textContent='!';
+                    setTimeout(()=>{btn.textContent='📋';},2000);
+                }
+            }catch(e){btn.textContent='!';setTimeout(()=>{btn.textContent='📋';},2000);}
+        }
         // Re-render on language change
         window.addEventListener('languageChanged',()=>{load();});
         load();

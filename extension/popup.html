@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
 <style>
@@ -37,10 +37,10 @@ body{width:380px;font-family:'Inter',system-ui,sans-serif;background:var(--bg);c
 .badge.no{background:#ff4d5e20;color:var(--rd)}
 .sname{font-size:13px;font-weight:600;color:var(--or);margin-top:5px}
 .pgurl{font-size:9px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stats{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--brd)}
-.st{flex:1;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:8px;text-align:center}
-.st-n{font-size:18px;font-weight:700;color:var(--or)}.st-n.gn{color:var(--gn)}.st-n.bl{color:var(--bl)}
-.st-l{font-size:8px;color:var(--t2);margin-top:2px;text-transform:uppercase}
+.stats{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--brd);justify-content:center}
+.st{flex:1;max-width:200px;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:12px;text-align:center}
+.st-n{font-size:24px;font-weight:700;color:var(--gn)}
+.st-l{font-size:9px;color:var(--t2);margin-top:2px;text-transform:uppercase}
 .acts{padding:12px 16px;display:flex;flex-direction:column;gap:6px}
 .btn-scan{background:linear-gradient(135deg,var(--or),#ff8f5c);color:#fff;padding:14px;font-size:14px}
 .btn-stop{background:var(--bg3);color:var(--rd);border:1px solid #ff4d5e40}
@@ -49,9 +49,6 @@ body{width:380px;font-family:'Inter',system-ui,sans-serif;background:var(--bg);c
 .btn-dl{background:var(--bg3);color:var(--gn);border:1px solid #22c97a30;font-size:11px}
 .btn-cp{background:var(--bg3);color:var(--bl);border:1px solid #4d8eff30;font-size:11px}
 .btn-clr{background:var(--bg3);color:var(--t3);border:1px solid var(--brd);font-size:11px}
-.status{padding:8px 16px;border-bottom:1px solid var(--brd);display:none}
-.status.on{display:block}
-.status-txt{font-size:10px;color:var(--or);background:var(--bg2);border-radius:6px;padding:8px;text-align:center}
 .limit-info{padding:8px 16px;font-size:11px;color:var(--t3);text-align:center;background:var(--bg2);border-bottom:1px solid var(--brd)}
 .links{padding:10px 16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .links a{font-size:11px;color:var(--t2);text-decoration:none}.links a:hover{color:var(--or)}
@@ -60,47 +57,116 @@ body{width:380px;font-family:'Inter',system-ui,sans-serif;background:var(--bg);c
 .preloader{display:flex;justify-content:center;align-items:center}
 .preloader-logo{width:60px;height:60px;background:linear-gradient(135deg,#ff2c6b,var(--or));border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;color:#fff;animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,107,44,0.4)}50%{transform:scale(1.05);box-shadow:0 0 20px 10px rgba(255,107,44,0)}}
+/* Progress Bar */
+.progress-wrap{padding:0 16px 12px;display:none}
+.progress-wrap.on{display:block}
+.progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--or),#ff2c6b);width:0%;transition:width 0.3s;border-radius:3px}
+.progress-txt{font-size:9px;color:var(--t3);text-align:center;margin-top:4px}
+/* Copy Chunks */
+.copy-chunks{padding:8px 16px;border-bottom:1px solid var(--brd);display:none}
+.copy-chunks.on{display:block}
+.copy-chunks-title{font-size:10px;color:var(--t2);margin-bottom:6px}
+.chunk-btns{display:flex;flex-wrap:wrap;gap:4px}
+.chunk-btn{padding:6px 10px;font-size:10px;background:var(--bg3);border:1px solid var(--brd);border-radius:6px;color:var(--t2);cursor:pointer;transition:all 0.2s}
+.chunk-btn:hover{border-color:var(--or);color:var(--or)}
+.chunk-btn.copied{background:var(--gn);border-color:var(--gn);color:#fff}
+/* Store Name Input Modal */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100}
+.modal.on{display:flex}
+.modal-box{background:var(--bg2);border-radius:12px;padding:20px;width:90%;max-width:320px}
+.modal-title{font-size:14px;font-weight:600;margin-bottom:12px}
 </style>
 </head>
 <body>
-<div class="hdr"><div class="logo">A</div><div class="hdr-txt"><h1>ASIN<span>Scout</span> Pro</h1><p>Amazon Store Scanner</p></div></div>
+<div class="hdr"><div class="logo">A</div><div class="hdr-txt"><h1>ASIN<span>Scout</span> Pro</h1><p>Amazon Magaza Tarayici</p></div></div>
+
 <div class="screen active" id="loadingScreen" style="text-align:center;padding:50px 20px;">
-  <div class="preloader">
-    <div class="preloader-logo">A</div>
-  </div>
-  <div style="color:var(--t2);font-size:11px;margin-top:15px;">Yükleniyor...</div>
+  <div class="preloader"><div class="preloader-logo">A</div></div>
+  <div style="color:var(--t2);font-size:11px;margin-top:15px;">Yukleniyor...</div>
 </div>
+
 <div class="screen" id="loginScreen">
-  <div class="auth-title">Welcome Back</div><div class="auth-sub">Login to continue</div>
+  <div class="auth-title">Hos Geldiniz</div><div class="auth-sub">Devam etmek icin giris yapin</div>
   <div class="msg" id="loginMsg"></div>
-  <div class="inp-grp"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
-  <div class="inp-grp"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
-  <button class="btn btn-or" id="loginBtn">Login</button>
-  <button class="btn btn-gray" onclick="showScreen('register')">Create Account</button>
+  <div class="inp-grp"><label>E-posta</label><input type="email" id="loginEmail" placeholder="ornek@mail.com"></div>
+  <div class="inp-grp"><label>Sifre</label><input type="password" id="loginPass" placeholder="********"></div>
+  <button class="btn btn-or" id="loginBtn">Giris Yap</button>
+  <button class="btn btn-gray" onclick="showScreen('register')">Hesap Olustur</button>
 </div>
+
 <div class="screen" id="registerScreen">
-  <div class="auth-title">Create Account</div><div class="auth-sub">Start scanning Amazon stores</div>
+  <div class="auth-title">Hesap Olustur</div><div class="auth-sub">Amazon magazalarini taramaya baslayin</div>
   <div class="msg" id="regMsg"></div>
-  <div class="inp-grp"><label>Name</label><input type="text" id="regName" placeholder="John Doe"></div>
-  <div class="inp-grp"><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
-  <div class="inp-grp"><label>Password</label><input type="password" id="regPass" placeholder="Min 6 characters"></div>
-  <button class="btn btn-or" id="regBtn">Create Account</button>
-  <div class="auth-link">Have account? <a onclick="showScreen('login')">Login</a></div>
+  <div class="inp-grp"><label>Ad Soyad</label><input type="text" id="regName" placeholder="Adiniz Soyadiniz"></div>
+  <div class="inp-grp"><label>E-posta</label><input type="email" id="regEmail" placeholder="ornek@mail.com"></div>
+  <div class="inp-grp"><label>Sifre</label><input type="password" id="regPass" placeholder="En az 6 karakter"></div>
+  <button class="btn btn-or" id="regBtn">Kayit Ol</button>
+  <div class="auth-link">Hesabiniz var mi? <a onclick="showScreen('login')">Giris Yap</a></div>
 </div>
+
 <div class="screen" id="appScreen">
-  <div class="user-bar"><div class="user-info"><div class="avatar" id="userAvatar">U</div><div><div class="user-name" id="userName">User</div><div class="user-email" id="userEmail">...</div></div></div><div class="pkg-badge" id="pkgBadge">No Package</div></div>
-  <div class="limit-info" id="limitInfo">Scan limit: <strong>0</strong> ASINs</div>
-  <div class="sec"><div class="badge no" id="badge"><span id="badgeTxt">Loading...</span></div><div class="sname" id="sname" style="display:none"></div><div class="pgurl" id="pgurl"></div></div>
-  <div class="stats"><div class="st"><div class="st-n" id="stPage">0</div><div class="st-l">This Page</div></div><div class="st"><div class="st-n gn" id="stTotal">0</div><div class="st-l">Total</div></div><div class="st"><div class="st-n bl" id="stScanned">0</div><div class="st-l">Pages</div></div></div>
-  <div class="acts">
-    <button class="btn btn-scan" id="bScan" disabled>🔍 Start Scan</button>
-    <button class="btn btn-stop" id="bStop" style="display:none">⏹ Stop</button>
-    <div class="row"><button class="btn btn-dl" id="bTxt" disabled>📄 TXT</button><button class="btn btn-dl" id="bExcel" disabled>📊 Excel</button><button class="btn btn-cp" id="bCp" disabled>📋 Copy</button></div>
-    <button class="btn btn-clr" id="bClr" style="display:none">🗑️ Clear</button>
+  <div class="user-bar">
+    <div class="user-info"><div class="avatar" id="userAvatar">U</div><div><div class="user-name" id="userName">Kullanici</div><div class="user-email" id="userEmail">...</div></div></div>
+    <div class="pkg-badge" id="pkgBadge">Paket Yok</div>
   </div>
-  <div class="status" id="statusBox"><div class="status-txt" id="statusTxt"></div></div>
-  <div class="links"><a href="https://asinscout.com/dashboard.html" target="_blank">📊 Dashboard</a><a href="https://asinscout.com/pricing.html" target="_blank">💳 Buy Package</a><a href="#" id="logoutLink">🚪 Logout</a></div>
+  <div class="limit-info" id="limitInfo">Tarama limiti: <strong>0</strong> ASIN</div>
+  <div class="sec">
+    <div class="badge no" id="badge"><span id="badgeTxt">Yukleniyor...</span></div>
+    <div class="sname" id="sname" style="display:none"></div>
+    <div class="pgurl" id="pgurl"></div>
+  </div>
+
+  <!-- Sadece Taranan ASIN gosteriliyor -->
+  <div class="stats">
+    <div class="st">
+      <div class="st-n" id="stTotal">0</div>
+      <div class="st-l">Taranan ASIN</div>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-txt" id="progressTxt">Tarama devam ediyor...</div>
+  </div>
+
+  <div class="acts">
+    <button class="btn btn-scan" id="bScan" disabled>Taramayi Baslat</button>
+    <button class="btn btn-stop" id="bStop" style="display:none">Durdur</button>
+    <div class="row">
+      <button class="btn btn-dl" id="bTxt" disabled>TXT</button>
+      <button class="btn btn-dl" id="bExcel" disabled>Excel</button>
+      <button class="btn btn-cp" id="bCp" disabled>Kopyala</button>
+    </div>
+    <button class="btn btn-clr" id="bClr" style="display:none">Temizle</button>
+  </div>
+
+  <!-- 5K Chunk Copy Buttons -->
+  <div class="copy-chunks" id="copyChunks">
+    <div class="copy-chunks-title">Parcali Kopyala (5K'lik gruplar):</div>
+    <div class="chunk-btns" id="chunkBtns"></div>
+  </div>
+
+  <div class="links">
+    <a href="https://asinscout.com/dashboard.html" target="_blank">Panel</a>
+    <a href="https://asinscout.com/pricing.html" target="_blank">Paket Al</a>
+    <a href="#" id="logoutLink">Cikis</a>
+  </div>
 </div>
+
+<!-- Store Name Modal -->
+<div class="modal" id="storeModal">
+  <div class="modal-box">
+    <div class="modal-title">Magaza Adi Girin</div>
+    <div class="inp-grp" style="margin-top:10px">
+      <input type="text" id="storeNameInput" placeholder="Magaza adi...">
+    </div>
+    <button class="btn btn-or" id="confirmStoreName">Taramayi Baslat</button>
+    <button class="btn btn-gray" id="cancelStoreName">Iptal</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="popup.js"></script>
 </body>

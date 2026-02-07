@@ -1,84 +1,284 @@
-// ASIN Scout Pro v2 - Paket bazlı sistem
-const API_BASE = 'https://asinscout.com/api'; // KENDİ DOMAİNİNİZİ YAZIN
+// ASIN Scout Pro v3 - Multi-tab destekli
+const API_BASE = 'https://asinscout.com/api';
 
-const S = { scanning: false, storeName: '', scanned: 0, asins: [], set: new Set(), lastUpdate: '', tabId: null, scanId: null, token: null, user: null, isLoggedIn: false };
+// Her tab icin ayri state
+const tabStates = {};
+let token = null, user = null, isLoggedIn = false;
 
-chrome.storage.local.get(['token', 'user'], (d) => { if (d.token) { S.token = d.token; S.user = d.user; S.isLoggedIn = true; refreshProfile(); } });
+// Storage'dan yukle
+chrome.storage.local.get(['token', 'user', 'tabStates'], (d) => {
+  if (d.token) { token = d.token; user = d.user; isLoggedIn = true; refreshProfile(); }
+  if (d.tabStates) Object.assign(tabStates, d.tabStates);
+});
+
+// Tab kapandiginda state'i temizle
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabStates[tabId]) {
+    delete tabStates[tabId];
+    saveTabStates();
+  }
+});
+
+function getTabState(tabId) {
+  if (!tabStates[tabId]) {
+    tabStates[tabId] = {
+      scanning: false,
+      storeName: '',
+      scanned: 0,
+      asins: [],
+      set: new Set(),
+      lastUpdate: '',
+      scanId: null
+    };
+  }
+  return tabStates[tabId];
+}
 
 chrome.runtime.onMessage.addListener((msg, sender, send) => {
+  // Auth islemleri
   if (msg.action === 'login') { handleLogin(msg.email, msg.password).then(send); return true; }
   if (msg.action === 'register') { handleRegister(msg.email, msg.password, msg.name).then(send); return true; }
-  if (msg.action === 'logout') { S.token = null; S.user = null; S.isLoggedIn = false; chrome.storage.local.remove(['token', 'user']); send({ ok: true }); }
+  if (msg.action === 'logout') {
+    token = null; user = null; isLoggedIn = false;
+    chrome.storage.local.remove(['token', 'user']);
+    send({ ok: true });
+  }
+
   if (msg.action === 'getAuthState') {
-    // Service worker uyandıysa storage'dan yükle
-    if (!S.isLoggedIn && !S.token) {
+    if (!isLoggedIn && !token) {
       chrome.storage.local.get(['token', 'user'], (d) => {
-        if (d.token) { S.token = d.token; S.user = d.user; S.isLoggedIn = true; }
-        send({ isLoggedIn: S.isLoggedIn, user: S.user });
+        if (d.token) { token = d.token; user = d.user; isLoggedIn = true; }
+        send({ isLoggedIn, user });
       });
       return true;
     }
-    send({ isLoggedIn: S.isLoggedIn, user: S.user });
+    send({ isLoggedIn, user });
   }
+
   if (msg.action === 'refreshProfile') { refreshProfile().then(send); return true; }
+
+  // Tarama islemleri - tab bazli
   if (msg.action === 'startScan') {
-    if (!S.isLoggedIn || !S.user?.scan_limit) { send({ error: 'No package' }); return; }
-    S.asins = []; S.set = new Set(); S.scanned = 0; S.scanning = true; S.storeName = msg.storeName || ''; S.tabId = msg.tabId; S.lastUpdate = 'Starting...';
+    if (!isLoggedIn || !user?.scan_limit) { send({ error: 'Paket yok' }); return; }
+
+    const tabId = msg.tabId;
+    const state = getTabState(tabId);
+
+    state.asins = [];
+    state.set = new Set();
+    state.scanned = 0;
+    state.scanning = true;
+    state.storeName = msg.storeName || '';
+    state.lastUpdate = 'Baslatiliyor...';
+
     startScanApi(msg.baseUrl, msg.storeName).then(r => {
-      if (r.scan_id) { S.scanId = r.scan_id; save(); badge('...', '#ff6b2c'); injectAndStart(msg.tabId, msg.baseUrl, S.user.scan_limit); }
-      else { S.scanning = false; S.lastUpdate = r.error || 'Error'; save(); }
+      if (r.scan_id) {
+        state.scanId = r.scan_id;
+        saveTabStates();
+        badge('...', '#ff6b2c', tabId);
+        injectAndStart(tabId, msg.baseUrl, user.scan_limit);
+      } else {
+        state.scanning = false;
+        state.lastUpdate = r.error || 'Hata';
+        saveTabStates();
+      }
     });
     send({ ok: true });
   }
-  else if (msg.action === 'stopScan') { S.scanning = false; S.lastUpdate = 'Stopped: ' + S.asins.length + ' ASIN'; save(); badge(String(S.asins.length), '#ff4d5e'); if (S.tabId) try { chrome.tabs.sendMessage(S.tabId, { action: 'stopFetchScan' }); } catch(e) {} send({ ok: true }); }
-  else if (msg.action === 'progressUpdate') { if (!S.scanning) return; S.asins = msg.asins || []; S.set = new Set(S.asins); S.scanned = msg.scanned || S.scanned; S.lastUpdate = msg.status || S.lastUpdate; save(); badge(fmtNum(S.asins.length), '#ff6b2c'); }
-  else if (msg.action === 'scanComplete') { S.scanning = false; S.asins = msg.asins || []; S.scanned = msg.scanned || S.scanned; S.lastUpdate = '✅ ' + S.asins.length + ' ASIN'; if (S.scanId && S.asins.length > 0) completeScanApi(S.scanId, S.asins, S.scanned, msg.duration || 0); badge(fmtNum(S.asins.length), '#22c97a'); save(); refreshProfile(); }
-  else if (msg.action === 'getState') { send({ scanning: S.scanning, storeName: S.storeName, scanned: S.scanned, total: S.asins.length, lastUpdate: S.lastUpdate, isLoggedIn: S.isLoggedIn, user: S.user }); }
-  else if (msg.action === 'getAsins') { send({ asins: S.asins, storeName: S.storeName }); }
-  else if (msg.action === 'clearAll') { S.asins = []; S.set = new Set(); S.scanned = 0; S.storeName = ''; S.lastUpdate = ''; S.scanning = false; save(); badge('', '#22c97a'); send({ ok: true }); }
+
+  else if (msg.action === 'stopScan') {
+    const tabId = msg.tabId || sender.tab?.id;
+    if (tabId && tabStates[tabId]) {
+      const state = tabStates[tabId];
+      state.scanning = false;
+      state.lastUpdate = 'Durduruldu: ' + state.asins.length + ' ASIN';
+      saveTabStates();
+      badge(fmtNum(state.asins.length), '#ff4d5e', tabId);
+      try { chrome.tabs.sendMessage(tabId, { action: 'stopFetchScan' }); } catch(e) {}
+    }
+    send({ ok: true });
+  }
+
+  else if (msg.action === 'progressUpdate') {
+    const tabId = sender.tab?.id;
+    if (!tabId || !tabStates[tabId]) return;
+    const state = tabStates[tabId];
+    if (!state.scanning) return;
+
+    state.asins = msg.asins || [];
+    state.set = new Set(state.asins);
+    state.scanned = msg.scanned || state.scanned;
+    // Detayli status gosterme - sadece ASIN sayisi
+    state.lastUpdate = state.asins.length + ' ASIN bulundu';
+    saveTabStates();
+    badge(fmtNum(state.asins.length), '#ff6b2c', tabId);
+  }
+
+  else if (msg.action === 'scanComplete') {
+    const tabId = sender.tab?.id;
+    if (!tabId || !tabStates[tabId]) return;
+    const state = tabStates[tabId];
+
+    state.scanning = false;
+    state.asins = msg.asins || [];
+    state.scanned = msg.scanned || state.scanned;
+    state.lastUpdate = 'Tamamlandi: ' + state.asins.length + ' ASIN';
+
+    if (state.scanId && state.asins.length > 0) {
+      completeScanApi(state.scanId, state.asins, state.scanned, msg.duration || 0);
+    }
+
+    badge(fmtNum(state.asins.length), '#22c97a', tabId);
+    saveTabStates();
+    refreshProfile();
+  }
+
+  // Tab bazli state getir
+  else if (msg.action === 'getStateForTab') {
+    const tabId = msg.tabId;
+    if (tabId && tabStates[tabId]) {
+      const s = tabStates[tabId];
+      send({
+        scanning: s.scanning,
+        storeName: s.storeName,
+        scanned: s.scanned,
+        total: s.asins.length,
+        lastUpdate: s.lastUpdate,
+        user
+      });
+    } else {
+      send(null);
+    }
+    return true;
+  }
+
+  // Genel state (eski uyumluluk + aktif tarama)
+  else if (msg.action === 'getState') {
+    // Aktif tarama olan tab'i bul
+    let activeState = null;
+    for (const tid in tabStates) {
+      if (tabStates[tid].scanning || tabStates[tid].asins.length > 0) {
+        activeState = tabStates[tid];
+        break;
+      }
+    }
+    if (activeState) {
+      send({
+        scanning: activeState.scanning,
+        storeName: activeState.storeName,
+        scanned: activeState.scanned,
+        total: activeState.asins.length,
+        lastUpdate: activeState.lastUpdate,
+        user
+      });
+    } else {
+      send({ scanning: false, storeName: '', scanned: 0, total: 0, lastUpdate: '', user });
+    }
+  }
+
+  else if (msg.action === 'getAsins') {
+    // Aktif taramanin ASIN'lerini getir
+    let asins = [], storeName = '';
+    for (const tid in tabStates) {
+      if (tabStates[tid].asins.length > 0) {
+        asins = tabStates[tid].asins;
+        storeName = tabStates[tid].storeName;
+        break;
+      }
+    }
+    send({ asins, storeName });
+  }
+
+  else if (msg.action === 'clearAll') {
+    for (const tid in tabStates) {
+      tabStates[tid] = {
+        scanning: false, storeName: '', scanned: 0, asins: [], set: new Set(), lastUpdate: '', scanId: null
+      };
+    }
+    saveTabStates();
+    badge('', '#22c97a');
+    send({ ok: true });
+  }
+
   return true;
 });
 
 async function handleLogin(email, password) {
   try {
-    const r = await fetch(API_BASE + '/auth.php?action=login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const r = await fetch(API_BASE + '/auth.php?action=login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
     const d = await r.json();
-    if (d.success) { S.token = d.data.token; S.user = d.data.user; S.isLoggedIn = true; chrome.storage.local.set({ token: S.token, user: S.user }); return { ok: true, user: S.user }; }
+    if (d.success) {
+      token = d.data.token;
+      user = d.data.user;
+      isLoggedIn = true;
+      chrome.storage.local.set({ token, user });
+      return { ok: true, user };
+    }
     return { error: d.message };
-  } catch(e) { return { error: 'Connection error' }; }
+  } catch(e) { return { error: 'Baglanti hatasi' }; }
 }
 
 async function handleRegister(email, password, name) {
   try {
-    const r = await fetch(API_BASE + '/auth.php?action=register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, name }) });
+    const r = await fetch(API_BASE + '/auth.php?action=register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name })
+    });
     const d = await r.json();
-    if (d.success) { S.token = d.data.token; S.user = d.data.user; S.isLoggedIn = true; chrome.storage.local.set({ token: S.token, user: S.user }); return { ok: true, user: S.user, message: d.message }; }
+    if (d.success) {
+      token = d.data.token;
+      user = d.data.user;
+      isLoggedIn = true;
+      chrome.storage.local.set({ token, user });
+      return { ok: true, user, message: d.message };
+    }
     return { error: d.message };
-  } catch(e) { return { error: 'Connection error' }; }
+  } catch(e) { return { error: 'Baglanti hatasi' }; }
 }
 
 async function refreshProfile() {
-  if (!S.token) return { error: 'Not logged in' };
+  if (!token) return { error: 'Giris yapilmamis' };
   try {
-    const r = await fetch(API_BASE + '/auth.php?action=profile', { headers: { 'Authorization': 'Bearer ' + S.token } });
+    const r = await fetch(API_BASE + '/auth.php?action=profile', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     const d = await r.json();
-    if (d.success) { S.user = d.data.user; chrome.storage.local.set({ user: S.user }); return { ok: true, user: S.user }; }
+    if (d.success) {
+      user = d.data.user;
+      chrome.storage.local.set({ user });
+      return { ok: true, user };
+    }
     return { error: d.message };
-  } catch(e) { return { error: 'Connection error' }; }
+  } catch(e) { return { error: 'Baglanti hatasi' }; }
 }
 
 async function startScanApi(url, name) {
-  if (!S.token) return { error: 'Not logged in' };
+  if (!token) return { error: 'Giris yapilmamis' };
   try {
-    const r = await fetch(API_BASE + '/scans.php?action=start', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.token }, body: JSON.stringify({ store_url: url, store_name: name }) });
+    const r = await fetch(API_BASE + '/scans.php?action=start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ store_url: url, store_name: name })
+    });
     const d = await r.json();
     return d.success ? { scan_id: d.data.scan_id } : { error: d.message };
-  } catch(e) { return { error: 'Connection error' }; }
+  } catch(e) { return { error: 'Baglanti hatasi' }; }
 }
 
 async function completeScanApi(scanId, asins, pages, duration) {
-  if (!S.token) return;
-  try { await fetch(API_BASE + '/scans.php?action=complete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.token }, body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages, duration }) }); } catch(e) {}
+  if (!token) return;
+  try {
+    await fetch(API_BASE + '/scans.php?action=complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages, duration })
+    });
+  } catch(e) {}
 }
 
 async function injectAndStart(tabId, baseUrl, scanLimit) {
@@ -86,16 +286,40 @@ async function injectAndStart(tabId, baseUrl, scanLimit) {
     await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
     await new Promise(r => setTimeout(r, 500));
     chrome.tabs.sendMessage(tabId, { action: 'startFetchScan', baseUrl, scanLimit, mode: 'full' }, r => {
-      if (chrome.runtime.lastError) { S.scanning = false; S.lastUpdate = 'Error: Refresh page'; save(); badge('ERR', '#ff4d5e'); }
+      if (chrome.runtime.lastError && tabStates[tabId]) {
+        tabStates[tabId].scanning = false;
+        tabStates[tabId].lastUpdate = 'Hata: Sayfayi yenileyin';
+        saveTabStates();
+        badge('ERR', '#ff4d5e', tabId);
+      }
     });
-  } catch(e) { S.scanning = false; S.lastUpdate = 'Error: ' + e.message; save(); badge('ERR', '#ff4d5e'); }
+  } catch(e) {
+    if (tabStates[tabId]) {
+      tabStates[tabId].scanning = false;
+      tabStates[tabId].lastUpdate = 'Hata: ' + e.message;
+      saveTabStates();
+      badge('ERR', '#ff4d5e', tabId);
+    }
+  }
 }
 
-function fmtNum(n) { return n >= 10000 ? Math.round(n/1000) + 'K' : String(n); }
-function save() { chrome.storage.local.set({ asins: S.asins, storeName: S.storeName, scanned: S.scanned, scanning: S.scanning, lastUpdate: S.lastUpdate }); }
-function badge(t, c) { try { chrome.action.setBadgeBackgroundColor({ color: c }); chrome.action.setBadgeText({ text: t }); } catch(e) {} }
+function fmtNum(n) {
+  if (n >= 10000) return Math.round(n/1000) + 'K';
+  return String(n);
+}
 
-chrome.storage.local.get(['asins', 'storeName', 'scanned', 'lastUpdate'], d => {
-  if (d.asins) { S.asins = d.asins; S.set = new Set(d.asins); }
-  S.storeName = d.storeName || ''; S.scanned = d.scanned || 0; S.lastUpdate = d.lastUpdate || '';
-});
+function saveTabStates() {
+  // Set'leri kaydetmeden once array'e cevir
+  const toSave = {};
+  for (const tid in tabStates) {
+    toSave[tid] = { ...tabStates[tid], set: undefined };
+  }
+  chrome.storage.local.set({ tabStates: toSave });
+}
+
+function badge(text, color, tabId) {
+  try {
+    chrome.action.setBadgeBackgroundColor({ color });
+    chrome.action.setBadgeText({ text });
+  } catch(e) {}
+}
