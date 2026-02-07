@@ -517,26 +517,32 @@
     const chunkSize = 5000;
     const totalChunks = Math.ceil(allAsins.length / chunkSize);
 
+    console.log('ASIN Scout: Chunk tamamlandi, siradaki:', currentAutoChunk, '/', totalChunks);
+
     if (currentAutoChunk >= totalChunks) {
       completeAutoUpload();
       return;
     }
 
-    // Sonraki chunk icin state'i guncelle
+    showStatus(`Parca ${currentAutoChunk}/${totalChunks} tamamlandi! Kaydediliyor...`);
+
+    // Sonraki chunk icin state'i guncelle - STORAGE KAYDEDILMEDEN SAYFAYI YONLENDIRME!
     chrome.storage.local.set({
       srAutoMode: true,
       srAutoAsins: allAsins,
       srAutoChunk: currentAutoChunk,
       srAutoStore: storeName,
       srAutoTimestamp: Date.now()
+    }, () => {
+      // Storage kaydedildikten sonra yonlendir
+      console.log('ASIN Scout: Storage kaydedildi, chunk:', currentAutoChunk);
+      showStatus(`Parca ${currentAutoChunk}/${totalChunks} - Urun ekleme sayfasina yonlendiriliyor...`);
+
+      // Urun ekleme sayfasina git - sonraki chunk otomatik yuklenecek
+      setTimeout(() => {
+        window.location.href = ADD_PRODUCTS_URL;
+      }, 1500);
     });
-
-    showStatus(`Parca ${currentAutoChunk}/${totalChunks} tamamlandi! Urun ekleme sayfasina yonlendiriliyor...`);
-
-    // Urun ekleme sayfasina git - sonraki chunk otomatik yuklenecek
-    setTimeout(() => {
-      window.location.href = ADD_PRODUCTS_URL;
-    }, 2000);
   }
 
   function completeAutoUpload() {
