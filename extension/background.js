@@ -189,6 +189,16 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     send({ asins, storeName });
   }
 
+  // Tab bazli ASIN getir (multi-tab)
+  else if (msg.action === 'getAsinsForTab') {
+    const tid = msg.tabId;
+    if (tid && tabStates[tid]) {
+      send({ asins: tabStates[tid].asins, storeName: tabStates[tid].storeName });
+    } else {
+      send({ asins: [], storeName: '' });
+    }
+  }
+
   else if (msg.action === 'clearAll') {
     for (const tid in tabStates) {
       tabStates[tid] = {
@@ -197,6 +207,19 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     }
     saveTabStates();
     badge('', '#22c97a');
+    send({ ok: true });
+  }
+
+  // Sadece bir tab'i temizle (multi-tab)
+  else if (msg.action === 'clearTab') {
+    const tid = msg.tabId;
+    if (tid && tabStates[tid]) {
+      tabStates[tid] = {
+        scanning: false, storeName: '', scanned: 0, asins: [], set: new Set(), lastUpdate: '', scanId: null
+      };
+      saveTabStates();
+      badge('', '#22c97a', tid);
+    }
     send({ ok: true });
   }
 

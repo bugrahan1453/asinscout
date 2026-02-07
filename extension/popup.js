@@ -79,18 +79,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function initApp() {
-    // Mevcut durumu al
-    chrome.runtime.sendMessage({ action: 'getStateForTab', tabId: tabId }, st => {
-      if (!st) {
-        // Fallback: genel state
-        chrome.runtime.sendMessage({ action: 'getState' }, st2 => {
-          if (st2) applyState(st2);
-        });
-        return;
-      }
-      applyState(st);
-    });
-
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab?.url || !tab.url.includes('amazon')) { showNA(); return; }
@@ -99,6 +87,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const mpMatch = tab.url.match(/amazon\.([a-z.]+)/i);
       if (mpMatch) currentMarketplace = 'amazon.' + mpMatch[1];
+
+      // Bu tab'in state'ini al
+      chrome.runtime.sendMessage({ action: 'getStateForTab', tabId: tabId }, st => {
+        if (st) applyState(st);
+        // State yoksa veya tarama yoksa, yeni tarama icin hazir
+      });
 
       await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
       await new Promise(r => setTimeout(r, 400));
@@ -119,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       $('sname').style.display = 'block';
     }
     if (st.total > 0) {
-      chrome.runtime.sendMessage({ action: 'getAsins' }, r => {
+      chrome.runtime.sendMessage({ action: 'getAsinsForTab', tabId: tabId }, r => {
         if (r?.asins) {
           allAsins = r.asins;
           enableExport();
@@ -249,7 +243,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (window.__poll) clearInterval(window.__poll);
     window.__poll = setInterval(() => {
-      chrome.runtime.sendMessage({ action: 'getState' }, s => {
+      // Bu tab'in state'ini al (multi-tab destegi)
+      chrome.runtime.sendMessage({ action: 'getStateForTab', tabId: tabId }, s => {
         if (!s) return;
         $('stTotal').textContent = fmtNum(s.total);
 
@@ -272,7 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('bStop').style.display = 'none';
     $('progressWrap').classList.remove('on');
 
-    chrome.runtime.sendMessage({ action: 'getAsins' }, r => {
+    chrome.runtime.sendMessage({ action: 'getAsinsForTab', tabId: tabId }, r => {
       if (r?.asins) {
         allAsins = r.asins;
         $('stTotal').textContent = fmtNum(allAsins.length);
@@ -285,13 +280,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Durdur
   $('bStop').onclick = () => {
-    chrome.runtime.sendMessage({ action: 'stopScan' });
+    chrome.runtime.sendMessage({ action: 'stopScan', tabId: tabId });
     $('bScan').style.display = 'flex';
     $('bScan').textContent = 'Taramayi Baslat';
     $('bStop').style.display = 'none';
     $('progressWrap').classList.remove('on');
     if (window.__poll) clearInterval(window.__poll);
-    chrome.runtime.sendMessage({ action: 'getAsins' }, r => {
+    chrome.runtime.sendMessage({ action: 'getAsinsForTab', tabId: tabId }, r => {
       if (r?.asins) {
         allAsins = r.asins;
         enableExport();
@@ -335,9 +330,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  // Temizle
+  // Temizle (sadece bu tab)
   $('bClr').onclick = () => {
-    chrome.runtime.sendMessage({ action: 'clearAll' }, () => {
+    chrome.runtime.sendMessage({ action: 'clearTab', tabId: tabId }, () => {
       allAsins = [];
       storeName = '';
       $('stTotal').textContent = '0';
