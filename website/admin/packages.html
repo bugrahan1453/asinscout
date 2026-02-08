@@ -219,6 +219,7 @@
                                 <td>${p.is_popular ? '⭐' : '-'}</td>
                                 <td>
                                     <button class="btn btn-outline btn-sm" onclick="editPackage(${p.id})">${t('admin_edit')}</button>
+                                    <button class="btn btn-sm" style="background:rgba(255,77,94,0.15);color:#ff4d5e;border:1px solid rgba(255,77,94,0.3);margin-left:4px" onclick="deletePackage(${p.id}, '${esc(p.name)}')">${t('admin_delete') || 'Delete'}</button>
                                 </td>
                             </tr>
                         `;
@@ -312,6 +313,34 @@
                 }
             } catch (e) {
                 console.error('Save error:', e);
+                alert('Connection error: ' + e.message);
+            }
+        }
+
+        // Delete package
+        async function deletePackage(id, name) {
+            if (!confirm('Delete package "' + name + '"? This cannot be undone.')) return;
+
+            try {
+                const r = await fetch(API + '/admin.php?action=package_delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ id })
+                });
+
+                const result = await r.json();
+
+                if (result.success) {
+                    loadPackages();
+                    alert('Package deleted!');
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to delete'));
+                }
+            } catch (e) {
+                console.error('Delete error:', e);
                 alert('Connection error: ' + e.message);
             }
         }

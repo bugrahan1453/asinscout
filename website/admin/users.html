@@ -187,6 +187,7 @@
                                 <td>${fmtDate(u.created_at)}</td>
                                 <td>
                                     <button class="btn btn-primary" onclick="openPackageModal(${u.id}, '${esc(u.email)}')">📦 ${t('admin_users_assign')}</button>
+                                    ${u.role !== 'admin' ? `<button class="btn" style="background:rgba(255,77,94,0.15);color:#ff4d5e;border:1px solid rgba(255,77,94,0.3);margin-left:4px" onclick="deleteUser(${u.id}, '${esc(u.email)}')">🗑️</button>` : ''}
                                 </td>
                             </tr>
                         `;
@@ -269,6 +270,33 @@
         function logout() { localStorage.clear(); window.location.href = '../login.html'; }
         function esc(s) { return String(s||'').replace(/</g,'&lt;').replace(/'/g,'&#39;'); }
         function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '-'; }
+
+        async function deleteUser(userId, email) {
+            if (!confirm('Delete user "' + email + '"? This will delete all their scans and data. This cannot be undone.')) return;
+
+            try {
+                const r = await fetch(API + '/admin.php?action=user_delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                const d = await r.json();
+
+                if (d.success) {
+                    loadUsers(currentPage, currentSearch);
+                    alert('User deleted!');
+                } else {
+                    alert('Error: ' + (d.message || 'Failed to delete'));
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Connection error');
+            }
+        }
 
         loadPackages();
         loadUsers();
