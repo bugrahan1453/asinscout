@@ -399,6 +399,9 @@
     textarea.dispatchEvent(new Event('blur', { bubbles: true }));
     textarea.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
 
+    // SKU Prefix alanini doldur (Turkce tarih)
+    fillSkuPrefix();
+
     showStatus(`${formatNumber(chunk.length)} ASIN yuklendi, buton aranıyor...`);
 
     // Biraz bekle, sonra Add Products butonuna bas (form'un hazir olmasini bekle)
@@ -631,6 +634,9 @@
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.dispatchEvent(new Event('change', { bubbles: true }));
 
+    // SKU Prefix alanini doldur (Turkce tarih)
+    fillSkuPrefix();
+
     // Mark as done
     setTimeout(() => {
       btn.classList.remove('loading');
@@ -652,6 +658,54 @@
     }
     // Fallback - ilk textarea
     return textareas[0] || null;
+  }
+
+  function fillSkuPrefix() {
+    // Turkce ay isimleri
+    const turkishMonths = [
+      'OCAK', 'SUBAT', 'MART', 'NISAN', 'MAYIS', 'HAZIRAN',
+      'TEMMUZ', 'AGUSTOS', 'EYLUL', 'EKIM', 'KASIM', 'ARALIK'
+    ];
+
+    const now = new Date();
+    const month = turkishMonths[now.getMonth()];
+    const day = String(now.getDate()).padStart(2, '0');
+    const skuPrefix = month + day; // Ornek: SUBAT08
+
+    // SKU Prefix input'unu bul
+    const inputs = document.querySelectorAll('input[type="text"], input:not([type])');
+    for (const input of inputs) {
+      // Label veya placeholder'a gore bul
+      const label = input.closest('label') || document.querySelector(`label[for="${input.id}"]`);
+      const labelText = label ? label.textContent.toLowerCase() : '';
+      const placeholder = (input.placeholder || '').toLowerCase();
+      const name = (input.name || '').toLowerCase();
+
+      if (labelText.includes('sku') || labelText.includes('prefix') ||
+          placeholder.includes('sku') || placeholder.includes('prefix') ||
+          name.includes('sku') || name.includes('prefix')) {
+        input.value = skuPrefix;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('ASIN Scout: SKU Prefix ayarlandi:', skuPrefix);
+        return;
+      }
+    }
+
+    // Fallback: Textarea'dan sonraki ilk input'u dene
+    const textarea = findTextarea();
+    if (textarea) {
+      const form = textarea.closest('form');
+      if (form) {
+        const skuInput = form.querySelector('input[type="text"]:not([style*="display: none"])');
+        if (skuInput && skuInput !== textarea) {
+          skuInput.value = skuPrefix;
+          skuInput.dispatchEvent(new Event('input', { bubbles: true }));
+          skuInput.dispatchEvent(new Event('change', { bubbles: true }));
+          console.log('ASIN Scout: SKU Prefix ayarlandi (fallback):', skuPrefix);
+        }
+      }
+    }
   }
 
   function formatNumber(n) {
