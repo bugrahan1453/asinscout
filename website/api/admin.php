@@ -115,6 +115,7 @@ try {
             if (isset($data['name'])) $updates['name'] = trim($data['name']);
             if (isset($data['status'])) $updates['status'] = in_array($data['status'], ['active', 'suspended']) ? $data['status'] : 'active';
             if (isset($data['scan_limit'])) $updates['scan_limit'] = max(0, (int)$data['scan_limit']);
+            if (isset($data['daily_scan_limit'])) $updates['daily_scan_limit'] = max(0, (int)$data['daily_scan_limit']);
             if (isset($data['package_id'])) {
                 $updates['package_id'] = (int)$data['package_id'] ?: null;
                 if ($updates['package_id']) {
@@ -133,6 +134,30 @@ try {
             Api::success(null, 'User updated');
             break;
 
+        case 'user_delete':
+            $data = Api::getPostData();
+            Api::required($data, ['user_id']);
+
+            $userId = (int)$data['user_id'];
+
+            // Admin kendini silemesin
+            if ($userId === $user['id']) {
+                Api::error('Kendi hesabınızı silemezsiniz');
+            }
+
+            // Admin hesabı silmeye çalışıyor mu?
+            $targetUser = $db->fetch("SELECT role FROM users WHERE id = ?", [$userId]);
+            if ($targetUser && $targetUser['role'] === 'admin') {
+                Api::error('Admin hesapları silinemez');
+            }
+
+            // İlişkili verileri sil (cascade ile otomatik silinmeli ama güvenlik için)
+            $db->query("DELETE FROM scans WHERE user_id = ?", [$userId]);
+            $db->query("DELETE FROM users WHERE id = ?", [$userId]);
+
+            Api::success(null, 'User deleted');
+            break;
+
         case 'assign_package':
             $data = Api::getPostData();
             Api::required($data, ['user_id']);
@@ -148,8 +173,8 @@ try {
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+' . $pkg['duration_days'] . ' days'));
 
                 $db->query(
-                    "UPDATE users SET package_id = ?, scan_limit = ?, package_expires = ? WHERE id = ?",
-                    [$pkg['id'], $pkg['scan_limit'], $expiresAt, $userId]
+                    "UPDATE users SET package_id = ?, scan_limit = ?, daily_scan_limit = ?, package_expires = ? WHERE id = ?",
+                    [$pkg['id'], $pkg['scan_limit'], $pkg['daily_scan_limit'] ?? 0, $expiresAt, $userId]
                 );
             } elseif (isset($data['scan_limit']) && $data['scan_limit']) {
                 $scanLimit = (int)$data['scan_limit'];
@@ -182,6 +207,7 @@ try {
                 'name' => $data['name'],
                 'slug' => $data['slug'] ?? strtolower(preg_replace('/[^a-z0-9]+/', '-', $data['name'])),
                 'scan_limit' => (int)$data['scan_limit'],
+                'daily_scan_limit' => (int)($data['daily_scan_limit'] ?? 0),
                 'duration_days' => (int)($data['duration_days'] ?? 30),
                 'price' => (float)$data['price'],
                 'currency' => $data['currency'] ?? 'USD',
@@ -199,6 +225,20 @@ try {
             }
 
             Api::success(null, 'Package saved');
+            break;
+
+        case 'package_delete':
+            $data = Api::getPostData();
+            Api::required($data, ['id']);
+
+            // Pakete bağlı kullanıcı var mı kontrol et
+            $usersWithPackage = $db->fetch("SELECT COUNT(*) as cnt FROM users WHERE package_id = ?", [(int)$data['id']]);
+            if ($usersWithPackage && $usersWithPackage['cnt'] > 0) {
+                Api::error('Bu pakete bağlı ' . $usersWithPackage['cnt'] . ' kullanıcı var. Önce kullanıcıları başka pakete taşıyın.');
+            }
+
+            $db->query("DELETE FROM packages WHERE id = ?", [(int)$data['id']]);
+            Api::success(null, 'Package deleted');
             break;
 
         case 'orders':
