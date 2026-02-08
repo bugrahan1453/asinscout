@@ -28,8 +28,13 @@ function getTabState(tabId) {
       asins: [],
       set: new Set(),
       lastUpdate: '',
-      scanId: null
+      scanId: null,
+      createdAt: Date.now()
     };
+  }
+  // Eski state'lerde createdAt yoksa ekle
+  if (!tabStates[tabId].createdAt) {
+    tabStates[tabId].createdAt = Date.now();
   }
   return tabStates[tabId];
 }
@@ -202,7 +207,7 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
   else if (msg.action === 'clearAll') {
     for (const tid in tabStates) {
       tabStates[tid] = {
-        scanning: false, storeName: '', scanned: 0, asins: [], set: new Set(), lastUpdate: '', scanId: null
+        scanning: false, storeName: '', scanned: 0, asins: [], set: new Set(), lastUpdate: '', scanId: null, createdAt: Date.now()
       };
     }
     saveTabStates();
@@ -215,7 +220,7 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     const tid = msg.tabId;
     if (tid && tabStates[tid]) {
       tabStates[tid] = {
-        scanning: false, storeName: '', scanned: 0, asins: [], set: new Set(), lastUpdate: '', scanId: null
+        scanning: false, storeName: '', scanned: 0, asins: [], set: new Set(), lastUpdate: '', scanId: null, createdAt: Date.now()
       };
       saveTabStates();
       badge('', '#22c97a', tid);
@@ -232,19 +237,40 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
   // Tum aktif taramalari getir
   else if (msg.action === 'getAllActiveScans') {
     const activeScans = [];
+    const now = Date.now();
+    const maxAge = 24 * 60 * 60 * 1000; // 24 saat
+
     for (const tid in tabStates) {
       const s = tabStates[tid];
+      const age = now - (s.createdAt || 0);
+
+      // 24 saatten eski olanlari atla
+      if (age > maxAge) {
+        // Eski state'i temizle
+        delete tabStates[tid];
+        continue;
+      }
+
       if (s.scanning || s.asins.length > 0) {
         activeScans.push({
           tabId: parseInt(tid),
           storeName: s.storeName,
           scanning: s.scanning,
           asinCount: s.asins.length,
-          scanned: s.scanned
+          scanned: s.scanned,
+          createdAt: s.createdAt || now
         });
       }
     }
-    send({ scans: activeScans });
+
+    // En yeniden eskiye sirala ve max 10 tane al
+    activeScans.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    const limitedScans = activeScans.slice(0, 10);
+
+    // Eski state'ler silindiyse kaydet
+    saveTabStates();
+
+    send({ scans: limitedScans });
   }
 
   return true;
