@@ -488,9 +488,110 @@
         console.error('ASIN Scout SF: Tiklama hatasi:', e);
       }
 
-      // Yukleme tamamlanmasini bekle
-      waitForCompletion();
+      // Onay popup'ini bekle ve onayla
+      setTimeout(() => {
+        waitForConfirmationPopup();
+      }, 1000);
     }, 500);
+  }
+
+  function waitForConfirmationPopup() {
+    let popupCheckCount = 0;
+    const maxPopupChecks = 30; // 30 saniye max popup bekleme
+
+    showStatus('Onay popup\'i bekleniyor...');
+
+    const popupInterval = setInterval(() => {
+      popupCheckCount++;
+
+      // Onay popup'ini ara
+      const confirmBtn = findConfirmButton();
+
+      if (confirmBtn) {
+        clearInterval(popupInterval);
+        console.log('ASIN Scout SF: Onay butonu bulundu, tiklaniyor...');
+        showStatus('Onay butonuna tiklaniyor...');
+
+        // Onayla butonuna tikla
+        try {
+          confirmBtn.click();
+          confirmBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          console.log('ASIN Scout SF: Onay butonuna tiklandi');
+        } catch (e) {
+          console.error('ASIN Scout SF: Onay tiklama hatasi:', e);
+        }
+
+        // Yukleme tamamlanmasini bekle
+        setTimeout(() => {
+          waitForCompletion();
+        }, 1000);
+        return;
+      }
+
+      // Popup yok ama belki direkt isleme gecti
+      if (popupCheckCount >= 5) {
+        // Basari mesaji veya yukleme durumu kontrol et
+        const pageText = document.body.textContent.toLowerCase();
+        const isLoading = document.querySelector('.loading, .spinner, [class*="loading"], [class*="spinner"]');
+        const hasSuccess = pageText.includes('successfully') || pageText.includes('basariyla') ||
+                          pageText.includes('eklendi') || pageText.includes('tamamlandi');
+
+        if (isLoading || hasSuccess) {
+          clearInterval(popupInterval);
+          console.log('ASIN Scout SF: Popup yok, direkt isleme gecildi');
+          waitForCompletion();
+          return;
+        }
+      }
+
+      // Timeout
+      if (popupCheckCount >= maxPopupChecks) {
+        clearInterval(popupInterval);
+        console.log('ASIN Scout SF: Popup bulunamadi, devam ediliyor');
+        waitForCompletion();
+        return;
+      }
+
+      showStatus(`Onay popup'i bekleniyor... (${popupCheckCount}s)`);
+    }, 1000);
+  }
+
+  function findConfirmButton() {
+    // "Onayla", "Confirm", "Evet", "Yes", "OK" gibi onay butonlarini ara
+    const allButtons = document.querySelectorAll('button, [role="button"], .btn, a.button');
+
+    for (const btn of allButtons) {
+      const text = (btn.textContent || '').toLowerCase().trim();
+      const isVisible = btn.offsetParent !== null && btn.offsetHeight > 0;
+
+      if (!isVisible) continue;
+
+      // Onay butonlari
+      if (text.includes('onayla') || text.includes('confirm') || text.includes('evet') ||
+          text.includes('yes') || text === 'ok' || text === 'tamam') {
+        // Iptal/Cancel butonlarini disla
+        if (!text.includes('iptal') && !text.includes('cancel') && !text.includes('hayir') && !text.includes('no')) {
+          console.log('ASIN Scout SF: Onay butonu bulundu:', text);
+          return btn;
+        }
+      }
+    }
+
+    // Class'a gore ara (yesil/primary butonlar genelde onay)
+    const greenBtn = document.querySelector(
+      '.modal button[class*="success"], .modal button[class*="confirm"], ' +
+      '.modal button[class*="primary"], .modal button[class*="green"], ' +
+      '[class*="modal"] button[class*="success"], [class*="modal"] button[class*="confirm"], ' +
+      '[class*="dialog"] button[class*="success"], [class*="dialog"] button[class*="confirm"], ' +
+      '.swal2-confirm, .confirm-btn, .btn-confirm'
+    );
+
+    if (greenBtn && greenBtn.offsetParent !== null) {
+      console.log('ASIN Scout SF: Onay butonu bulundu (class):', greenBtn.textContent);
+      return greenBtn;
+    }
+
+    return null;
   }
 
   function waitForCompletion() {
