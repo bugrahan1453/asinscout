@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ASIN Scout Pro",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Amazon Store ASIN Scanner",
   "permissions": ["activeTab", "scripting", "downloads", "storage", "tabs"],
   "host_permissions": [
@@ -13,6 +13,7 @@
     "https://*.amazon.com.br/*", "https://*.amazon.sg/*", "https://*.amazon.pl/*",
     "https://*.amazon.se/*",
     "https://sellerrunning.threecolts.com/*",
+    "https://panel.sellerflash.com/*",
     "https://asinscout.com/*",
     "https://www.asinscout.com/*"
   ],
@@ -27,6 +28,11 @@
       "matches": ["https://sellerrunning.threecolts.com/*"],
       "js": ["inject-sellerrunning.js"],
       "css": ["inject-sellerrunning.css"]
+    },
+    {
+      "matches": ["https://panel.sellerflash.com/*"],
+      "js": ["inject-sellerflash.js"],
+      "css": ["inject-sellerflash.css"]
     },
     {
       "matches": ["https://asinscout.com/*", "https://www.asinscout.com/*"],
