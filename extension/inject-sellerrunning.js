@@ -30,8 +30,8 @@
     chrome.storage.local.get(['srAutoMode', 'srAutoAsins', 'srAutoChunk', 'srAutoStore', 'srAutoTimestamp'], data => {
       if (data.srAutoMode && data.srAutoAsins && data.srAutoAsins.length > 0) {
         const age = Date.now() - (data.srAutoTimestamp || 0);
-        // 30 dakikadan eski degilse devam et
-        if (age < 30 * 60 * 1000) {
+        // 3 saat (180 dakika) timeout - buyuk yuklemeler icin
+        if (age < 180 * 60 * 1000) {
           const currentPath = window.location.pathname;
           const isOnAddPage = currentPath === '/inventory/add';
           const isOnAddedPage = currentPath === '/inventory/added';
