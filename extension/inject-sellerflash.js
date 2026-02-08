@@ -521,10 +521,11 @@
           console.error('ASIN Scout SF: Onay tiklama hatasi:', e);
         }
 
-        // Yukleme tamamlanmasini bekle
+        // Hemen chunk'i tamamlandi olarak isaretle ve sayfayi yenile
+        // Boylece sayfa ne yaparsa yapsin biz kontrol ediyoruz
         setTimeout(() => {
-          waitForCompletion();
-        }, 1000);
+          markChunkCompleteAndRefresh();
+        }, 2000);
         return;
       }
 
@@ -539,16 +540,22 @@
         if (isLoading || hasSuccess) {
           clearInterval(popupInterval);
           console.log('ASIN Scout SF: Popup yok, direkt isleme gecildi');
-          waitForCompletion();
+          // 5 saniye bekle ve sonraki chunk'a gec
+          setTimeout(() => {
+            markChunkCompleteAndRefresh();
+          }, 5000);
           return;
         }
       }
 
-      // Timeout
-      if (popupCheckCount >= maxPopupChecks) {
+      // Timeout - 10 saniye sonra popup yoksa yine de devam et
+      if (popupCheckCount >= 10) {
         clearInterval(popupInterval);
-        console.log('ASIN Scout SF: Popup bulunamadi, devam ediliyor');
-        waitForCompletion();
+        console.log('ASIN Scout SF: Popup bulunamadi, yine de devam ediliyor');
+        // Muhtemelen islem tamamlandi, sonraki chunk'a gec
+        setTimeout(() => {
+          markChunkCompleteAndRefresh();
+        }, 3000);
         return;
       }
 
@@ -592,6 +599,41 @@
     }
 
     return null;
+  }
+
+  function markChunkCompleteAndRefresh() {
+    const chunkSize = 5000;
+    const totalChunks = Math.ceil(allAsins.length / chunkSize);
+    const nextChunk = currentAutoChunk + 1;
+
+    console.log('ASIN Scout SF: Chunk tamamlandi, siradaki:', nextChunk, '/', totalChunks);
+
+    if (nextChunk >= totalChunks) {
+      // Tum chunklar tamamlandi
+      clearAutoMode();
+      showStatus('Tum ASIN\'ler basariyla yuklendi!');
+      alert('Tum ASIN\'ler basariyla yuklendi! (' + allAsins.length + ' ASIN)');
+      return;
+    }
+
+    showStatus(`Parca ${nextChunk + 1}/${totalChunks} icin hazirlaniliyor...`);
+
+    // Sonraki chunk'i kaydet
+    chrome.storage.local.set({
+      sfAutoMode: true,
+      sfAutoAsins: allAsins,
+      sfAutoChunk: nextChunk,
+      sfAutoStore: storeName,
+      sfAutoTimestamp: Date.now()
+    }, () => {
+      console.log('ASIN Scout SF: Sonraki chunk kaydedildi:', nextChunk);
+      showStatus(`Sayfa yenileniyor, parca ${nextChunk + 1} yuklenecek...`);
+
+      // 3 saniye bekle ve sayfayi yenile
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    });
   }
 
   function waitForCompletion() {
