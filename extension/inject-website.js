@@ -1,5 +1,5 @@
 // ASIN Scout - Website Integration
-// Bu script asinscout.com'da calisir ve SR yuklemesi icin kopru gorevi gorur
+// Bu script asinscout.com'da calisir ve SR/SF yuklemesi icin kopru gorevi gorur
 
 (function() {
   'use strict';
@@ -23,6 +23,28 @@
 
       // Seller Running sayfasini ac
       window.open('https://sellerrunning.threecolts.com/inventory/add', '_blank');
+    });
+  });
+
+  // Website'den gelen "SF Yukle" isteklerini dinle
+  window.addEventListener('asinscout-sf-load', async (e) => {
+    const { asins, storeName, scanId } = e.detail;
+
+    if (!asins || asins.length === 0) {
+      console.log('ASIN Scout: No ASINs to load');
+      return;
+    }
+
+    // ASIN'leri chrome.storage'a kaydet (SF icin ayri key)
+    chrome.storage.local.set({
+      pendingAsinsSF: asins,
+      pendingStoreNameSF: storeName || 'Scan #' + scanId,
+      pendingTimestampSF: Date.now()
+    }, () => {
+      console.log('ASIN Scout: ' + asins.length + ' ASINs saved for SF');
+
+      // Seller Flash sayfasini ac
+      window.open('https://panel.sellerflash.com/inventory/newV2', '_blank');
     });
   });
 
