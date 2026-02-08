@@ -153,6 +153,12 @@
                     <textarea id="description" rows="2" placeholder="Package description..."></textarea>
                 </div>
 
+                <div class="form-group">
+                    <label data-i18n="admin_pkg_features_label">Features (one per line)</label>
+                    <textarea id="features" rows="5" placeholder="Unlimited usage&#10;All marketplaces&#10;Priority support&#10;CSV export"></textarea>
+                    <small style="color:var(--text2);font-size:11px;margin-top:4px;display:block">Each line will be shown as a feature on the homepage.</small>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-check">
@@ -247,6 +253,7 @@
             document.getElementById('isActive').checked = true;
             document.getElementById('duration').value = '30';
             document.getElementById('sortOrder').value = '0';
+            document.getElementById('features').value = '';
             document.getElementById('packageModal').classList.add('active');
         }
 
@@ -272,12 +279,30 @@
             document.getElementById('isActive').checked = pkg.is_active == 1;
             document.getElementById('isPopular').checked = pkg.is_popular == 1;
 
+            // Parse features JSON array to lines
+            let featuresText = '';
+            if (pkg.features) {
+                try {
+                    const featuresArr = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : pkg.features;
+                    if (Array.isArray(featuresArr)) {
+                        featuresText = featuresArr.join('\n');
+                    }
+                } catch(e) {
+                    featuresText = '';
+                }
+            }
+            document.getElementById('features').value = featuresText;
+
             document.getElementById('packageModal').classList.add('active');
         }
 
         // Save package
         async function savePackage(e) {
             e.preventDefault();
+
+            // Parse features from textarea (one per line) to array
+            const featuresText = document.getElementById('features').value.trim();
+            const featuresArr = featuresText ? featuresText.split('\n').map(f => f.trim()).filter(f => f) : [];
 
             const data = {
                 id: document.getElementById('packageId').value || null,
@@ -288,6 +313,7 @@
                 duration_days: parseInt(document.getElementById('duration').value) || 30,
                 sort_order: parseInt(document.getElementById('sortOrder').value) || 0,
                 description: document.getElementById('description').value.trim(),
+                features: featuresArr,
                 is_active: document.getElementById('isActive').checked ? 1 : 0,
                 is_popular: document.getElementById('isPopular').checked ? 1 : 0
             };
