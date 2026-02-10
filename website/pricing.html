@@ -99,6 +99,18 @@
 
         <div class="message" id="message"></div>
 
+        <!-- Discount Code Section -->
+        <div class="discount-section" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:30px">
+            <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+                <div style="flex:1;min-width:200px">
+                    <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:6px" data-i18n="pricing_discount_label">Discount Code</label>
+                    <input type="text" id="discountCode" placeholder="INDIRIM2024" style="width:100%;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;text-transform:uppercase">
+                </div>
+                <button onclick="applyDiscount()" style="padding:12px 24px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:14px;font-weight:600" data-i18n="pricing_apply_btn">Apply</button>
+            </div>
+            <div id="discountResult" style="margin-top:12px;font-size:13px;display:none"></div>
+        </div>
+
         <div class="pricing-grid" id="pricingGrid"></div>
     </main>
     <script src="assets/js/i18n.js"></script>
@@ -138,9 +150,52 @@
         }
 
         let paymentInProgress=false;
+        let appliedDiscount=null;
+
         window.addEventListener('beforeunload',function(e){
             if(paymentInProgress){e.preventDefault();e.returnValue='Payment is in progress. Are you sure you want to leave?';}
         });
+
+        async function applyDiscount(){
+            const code=document.getElementById('discountCode').value.trim().toUpperCase();
+            const resultDiv=document.getElementById('discountResult');
+
+            if(!code){
+                resultDiv.style.display='block';
+                resultDiv.style.color='var(--red)';
+                resultDiv.textContent=t('pricing_enter_code')||'Lutfen bir kod girin';
+                appliedDiscount=null;
+                return;
+            }
+
+            try{
+                const r=await fetch(API+'/packages.php?action=validate_discount',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+                    body:JSON.stringify({code:code})
+                });
+                const d=await r.json();
+
+                resultDiv.style.display='block';
+                if(d.success&&d.data.valid){
+                    appliedDiscount=d.data;
+                    const discountText=d.data.discount_type==='percent'
+                        ? '%'+d.data.discount_value+' indirim'
+                        : '$'+parseFloat(d.data.discount_value).toFixed(2)+' indirim';
+                    resultDiv.style.color='var(--green)';
+                    resultDiv.innerHTML='✓ <strong>'+code+'</strong> - '+discountText+' uygulanacak!';
+                }else{
+                    appliedDiscount=null;
+                    resultDiv.style.color='var(--red)';
+                    resultDiv.textContent='✗ '+(d.message||'Gecersiz kod');
+                }
+            }catch(e){
+                appliedDiscount=null;
+                resultDiv.style.display='block';
+                resultDiv.style.color='var(--red)';
+                resultDiv.textContent='Baglanti hatasi';
+            }
+        }
 
         async function buyPackage(id){
             const msg=document.getElementById('message');
@@ -150,10 +205,15 @@
                 overlay.classList.add('active');
                 paymentInProgress=true;
 
+                const body={package_id:id};
+                if(appliedDiscount&&appliedDiscount.code){
+                    body.discount_code=appliedDiscount.code;
+                }
+
                 const r=await fetch(API+'/packages.php?action=checkout',{
                     method:'POST',
                     headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-                    body:JSON.stringify({package_id:id})
+                    body:JSON.stringify(body)
                 });
                 const d=await r.json();
                 if(d.success&&d.data.checkout_url){

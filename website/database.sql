@@ -112,6 +112,9 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `stripe_payment_id` varchar(100) DEFAULT NULL,
   `stripe_session_id` varchar(100) DEFAULT NULL,
   `amount` decimal(10,2) NOT NULL,
+  `original_amount` decimal(10,2) DEFAULT NULL COMMENT 'İndirim öncesi tutar',
+  `discount_code` varchar(50) DEFAULT NULL COMMENT 'Kullanılan indirim kodu',
+  `discount_amount` decimal(10,2) DEFAULT 0.00 COMMENT 'İndirim tutarı',
   `currency` varchar(3) DEFAULT 'USD',
   `status` enum('pending','completed','failed','refunded') DEFAULT 'pending',
   `affiliate_id` int(11) DEFAULT NULL COMMENT 'Affiliate ID',
@@ -289,6 +292,9 @@ CREATE TABLE IF NOT EXISTS `affiliate_earnings` (
 -- ALTER TABLE `users` ADD COLUMN `last_scan_date` date DEFAULT NULL COMMENT 'Son tarama tarihi' AFTER `daily_scans_used`;
 -- ALTER TABLE `users` ADD COLUMN `referred_by` int(11) DEFAULT NULL COMMENT 'Affiliate ID' AFTER `last_scan_date`;
 -- ALTER TABLE `orders` ADD COLUMN `affiliate_id` int(11) DEFAULT NULL COMMENT 'Affiliate ID' AFTER `status`;
+-- ALTER TABLE `orders` ADD COLUMN `discount_code` varchar(50) DEFAULT NULL COMMENT 'Kullanılan indirim kodu' AFTER `affiliate_id`;
+-- ALTER TABLE `orders` ADD COLUMN `discount_amount` decimal(10,2) DEFAULT 0.00 COMMENT 'İndirim tutarı' AFTER `discount_code`;
+-- ALTER TABLE `orders` ADD COLUMN `original_amount` decimal(10,2) DEFAULT NULL COMMENT 'Orijinal tutar' AFTER `discount_amount`;
 
 -- --------------------------------------------------------
 -- Testimonials tablosu (Müşteri yorumları)
@@ -312,6 +318,25 @@ INSERT INTO `testimonials` (`name`, `role`, `avatar`, `text`, `rating`, `is_acti
 ('Sarah L.', 'Product Researcher', 'S', 'The spider crawl feature is amazing! It found products I would have never discovered manually.', 5, 1, 2),
 ('David K.', 'Dropshipper', 'D', 'Best ASIN scraper I''ve used. Fast, reliable, and the pricing is very fair.', 5, 1, 3)
 ON DUPLICATE KEY UPDATE `name` = `name`;
+
+-- --------------------------------------------------------
+-- Discount Codes tablosu (İndirim Kodları)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `discount_codes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL COMMENT 'İndirim kodu',
+  `discount_type` enum('percent','fixed') NOT NULL DEFAULT 'percent' COMMENT 'Yüzde veya sabit tutar',
+  `discount_value` decimal(10,2) NOT NULL COMMENT 'İndirim değeri',
+  `min_amount` decimal(10,2) DEFAULT 0.00 COMMENT 'Minimum sipariş tutarı',
+  `max_uses` int(11) DEFAULT NULL COMMENT 'Maksimum kullanım (NULL = sınırsız)',
+  `used_count` int(11) DEFAULT 0 COMMENT 'Kullanım sayısı',
+  `valid_from` datetime DEFAULT NULL COMMENT 'Geçerlilik başlangıcı',
+  `valid_until` datetime DEFAULT NULL COMMENT 'Geçerlilik bitişi',
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

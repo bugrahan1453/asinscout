@@ -241,6 +241,49 @@ try {
             Api::success(null, 'Package deleted');
             break;
 
+        // ================== DISCOUNT CODES ==================
+        case 'discounts':
+            $discounts = $db->fetchAll("SELECT * FROM discount_codes ORDER BY created_at DESC") ?: [];
+            Api::success(['discounts' => $discounts]);
+            break;
+
+        case 'discount_save':
+            $data = Api::getPostData();
+            Api::required($data, ['code', 'discount_type', 'discount_value']);
+
+            $discountData = [
+                'code' => strtoupper(trim($data['code'])),
+                'discount_type' => $data['discount_type'],
+                'discount_value' => (float)$data['discount_value'],
+                'min_amount' => (float)($data['min_amount'] ?? 0),
+                'max_uses' => isset($data['max_uses']) && $data['max_uses'] !== '' ? (int)$data['max_uses'] : null,
+                'valid_from' => !empty($data['valid_from']) ? $data['valid_from'] : null,
+                'valid_until' => !empty($data['valid_until']) ? $data['valid_until'] : null,
+                'is_active' => (int)($data['is_active'] ?? 1)
+            ];
+
+            // Kod zaten var mı kontrol et (güncelleme hariç)
+            $existing = $db->fetch("SELECT id FROM discount_codes WHERE code = ?", [$discountData['code']]);
+            if ($existing && (!isset($data['id']) || $existing['id'] != $data['id'])) {
+                Api::error('Bu indirim kodu zaten mevcut');
+            }
+
+            if (isset($data['id']) && $data['id']) {
+                $db->update('discount_codes', $discountData, 'id = :id', ['id' => (int)$data['id']]);
+            } else {
+                $db->insert('discount_codes', $discountData);
+            }
+
+            Api::success(null, 'Discount code saved');
+            break;
+
+        case 'discount_delete':
+            $data = Api::getPostData();
+            Api::required($data, ['id']);
+            $db->query("DELETE FROM discount_codes WHERE id = ?", [(int)$data['id']]);
+            Api::success(null, 'Discount code deleted');
+            break;
+
         case 'orders':
             $page = max(1, (int)($_GET['page'] ?? 1));
             $limit = 50;

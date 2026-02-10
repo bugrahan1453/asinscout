@@ -45,7 +45,45 @@ switch ($action) {
         
         Api::success(['packages' => $packages]);
         break;
-    
+
+    case 'validate_discount':
+        $user = Auth::requireAuth();
+        $data = Api::getPostData();
+        Api::required($data, ['code']);
+
+        $code = strtoupper(trim($data['code']));
+        $discount = $db->fetch(
+            "SELECT * FROM discount_codes WHERE code = ? AND is_active = 1",
+            [$code]
+        );
+
+        if (!$discount) {
+            Api::error('Gecersiz indirim kodu');
+        }
+
+        // Geçerlilik tarihi kontrolü
+        $now = date('Y-m-d H:i:s');
+        if ($discount['valid_from'] && $discount['valid_from'] > $now) {
+            Api::error('Bu indirim kodu henuz aktif degil');
+        }
+        if ($discount['valid_until'] && $discount['valid_until'] < $now) {
+            Api::error('Bu indirim kodunun suresi dolmus');
+        }
+
+        // Kullanım limiti kontrolü
+        if ($discount['max_uses'] !== null && $discount['used_count'] >= $discount['max_uses']) {
+            Api::error('Bu indirim kodu kullanim limitine ulasmis');
+        }
+
+        Api::success([
+            'valid' => true,
+            'code' => $discount['code'],
+            'discount_type' => $discount['discount_type'],
+            'discount_value' => (float)$discount['discount_value'],
+            'min_amount' => (float)$discount['min_amount']
+        ]);
+        break;
+
     case 'checkout':
         $user = Auth::requireAuth();
         $data = Api::getPostData();
@@ -54,6 +92,46 @@ switch ($action) {
         $package = $db->fetch("SELECT * FROM packages WHERE id = ? AND is_active = 1", [$data['package_id']]);
         if (!$package) {
             Api::error('Package not found', 404);
+        }
+
+        // İndirim kodu kontrolü
+        $discountCode = null;
+        $discountAmount = 0;
+        $originalPrice = (float)$package['price'];
+        $finalPrice = $originalPrice;
+
+        if (!empty($data['discount_code'])) {
+            $code = strtoupper(trim($data['discount_code']));
+            $discount = $db->fetch(
+                "SELECT * FROM discount_codes WHERE code = ? AND is_active = 1",
+                [$code]
+            );
+
+            if ($discount) {
+                $now = date('Y-m-d H:i:s');
+                $isValid = true;
+
+                // Geçerlilik kontrolü
+                if ($discount['valid_from'] && $discount['valid_from'] > $now) $isValid = false;
+                if ($discount['valid_until'] && $discount['valid_until'] < $now) $isValid = false;
+                if ($discount['max_uses'] !== null && $discount['used_count'] >= $discount['max_uses']) $isValid = false;
+                if ($discount['min_amount'] > $originalPrice) $isValid = false;
+
+                if ($isValid) {
+                    $discountCode = $discount['code'];
+
+                    if ($discount['discount_type'] === 'percent') {
+                        $discountAmount = round($originalPrice * ((float)$discount['discount_value'] / 100), 2);
+                    } else {
+                        $discountAmount = min((float)$discount['discount_value'], $originalPrice);
+                    }
+
+                    $finalPrice = max(0, $originalPrice - $discountAmount);
+
+                    // Kullanım sayısını artır
+                    $db->query("UPDATE discount_codes SET used_count = used_count + 1 WHERE id = ?", [$discount['id']]);
+                }
+            }
         }
 
         // Stripe key'i veritabanından al (admin panelden ayarlanır)
@@ -73,6 +151,12 @@ switch ($action) {
         \Stripe\Stripe::setApiKey($stripeSecretKey);
 
         try {
+            // Ürün açıklaması
+            $productDesc = 'Up to ' . number_format($package['scan_limit']) . ' ASINs per scan - ' . $package['duration_days'] . ' days';
+            if ($discountCode) {
+                $productDesc .= ' (Discount: ' . $discountCode . ')';
+            }
+
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
                 'customer_email' => $user['email'],
@@ -81,9 +165,9 @@ switch ($action) {
                         'currency' => strtolower($package['currency'] ?: 'usd'),
                         'product_data' => [
                             'name' => $package['name'] . ' Package',
-                            'description' => 'Up to ' . number_format($package['scan_limit']) . ' ASINs per scan - ' . $package['duration_days'] . ' days',
+                            'description' => $productDesc,
                         ],
-                        'unit_amount' => (int)($package['price'] * 100),
+                        'unit_amount' => (int)($finalPrice * 100),
                     ],
                     'quantity' => 1,
                 ]],
@@ -92,10 +176,12 @@ switch ($action) {
                 'cancel_url' => SITE_URL . '/pricing.html',
                 'metadata' => [
                     'user_id' => $user['id'],
-                    'package_id' => $package['id']
+                    'package_id' => $package['id'],
+                    'discount_code' => $discountCode ?: '',
+                    'discount_amount' => $discountAmount
                 ]
             ]);
-            
+
             // Kullanıcının affiliate referansını kontrol et
             $userFull = $db->fetch("SELECT referred_by FROM users WHERE id = ?", [$user['id']]);
             $affiliateId = $userFull ? $userFull['referred_by'] : null;
@@ -104,7 +190,10 @@ switch ($action) {
                 'user_id' => $user['id'],
                 'package_id' => $package['id'],
                 'stripe_session_id' => $session->id,
-                'amount' => $package['price'],
+                'amount' => $finalPrice,
+                'original_amount' => $originalPrice,
+                'discount_code' => $discountCode,
+                'discount_amount' => $discountAmount,
                 'currency' => $package['currency'] ?: 'USD',
                 'status' => 'pending',
                 'affiliate_id' => $affiliateId

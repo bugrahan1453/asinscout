@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discount Codes - ASIN Scout Pro Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a25; --text: #f0f0f5; --text2: #9898a8; --text3: #5a5a6e; --orange: #ff6b2c; --pink: #ff2c6b; --green: #22c97a; --blue: #4d8eff; --red: #ff4d5e; --border: #2a2a35; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: var(--bg2); border-right: 1px solid var(--border); padding: 20px; }
+        .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text); text-decoration: none; }
+        .sidebar-logo span { color: var(--orange); }
+        .sidebar-logo .icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--pink), var(--orange)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .admin-badge { font-size: 10px; background: var(--red); color: #fff; padding: 2px 8px; border-radius: 4px; margin-bottom: 30px; display: inline-block; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text2); text-decoration: none; border-radius: 10px; margin-bottom: 4px; font-size: 14px; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--bg3); color: var(--text); }
+        .sidebar-menu a.active { background: linear-gradient(135deg, rgba(255,107,44,0.2), rgba(255,44,107,0.1)); color: var(--orange); }
+        .main { margin-left: 260px; padding: 30px; }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .page-subtitle { font-size: 14px; color: var(--text2); margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+        .stat-card .label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+        .stat-card .value { font-size: 28px; font-weight: 800; }
+        .stat-card .value.green { color: var(--green); }
+        .stat-card .value.orange { color: var(--orange); }
+        .stat-card .value.blue { color: var(--blue); }
+        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 18px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        th { color: var(--text2); font-weight: 500; font-size: 11px; text-transform: uppercase; }
+        tr:hover { background: var(--bg3); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge.green { background: rgba(34,201,122,0.15); color: var(--green); }
+        .badge.red { background: rgba(255,77,94,0.15); color: var(--red); }
+        .badge.orange { background: rgba(255,107,44,0.15); color: var(--orange); }
+        .badge.blue { background: rgba(77,142,255,0.15); color: var(--blue); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--orange), var(--pink)); color: #fff; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,107,44,0.3); }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+        .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+        .btn-danger { background: rgba(255,77,94,0.15); color: var(--red); border: 1px solid rgba(255,77,94,0.3); }
+        .btn-danger:hover { background: rgba(255,77,94,0.25); }
+        .code-text { font-family: monospace; background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 600; color: var(--orange); }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; width: 100%; max-width: 500px; }
+        .modal h2 { font-size: 22px; margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text2); }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; font-family: inherit; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--orange); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .modal-actions .btn { flex: 1; padding: 12px; }
+        .form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
+        .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:18px;cursor:pointer}
+        .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
+        @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}.form-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    </style>
+</head>
+<body>
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('active')">&#9776;</button>
+<div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
+    <aside class="sidebar">
+        <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <div class="admin-badge">ADMIN PANEL</div>
+        <ul class="sidebar-menu">
+            <a href="index.html">📊 Dashboard</a>
+            <a href="users.html">👥 Users</a>
+            <a href="packages.html">📦 Packages</a>
+            <a href="orders.html">💳 Orders</a>
+            <a href="discounts.html" class="active">🏷️ Discounts</a>
+            <a href="affiliates.html">🤝 Affiliates</a>
+            <a href="testimonials.html">💬 Testimonials</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <h1 class="page-title">Discount Codes</h1>
+        <p class="page-subtitle">Indirim kodlarini olusturun ve yonetin</p>
+
+        <div class="stats-grid" id="discountStats">
+            <div class="stat-card">
+                <div class="label">Toplam Kod</div>
+                <div class="value orange" id="statTotal">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Aktif Kod</div>
+                <div class="value green" id="statActive">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Toplam Kullanim</div>
+                <div class="value blue" id="statUsed">0</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Tum Indirim Kodlari</div>
+                <button class="btn btn-primary" onclick="openModal()">+ Yeni Kod</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kod</th>
+                        <th>Indirim</th>
+                        <th>Min. Tutar</th>
+                        <th>Kullanim</th>
+                        <th>Gecerlilik</th>
+                        <th>Durum</th>
+                        <th>Islemler</th>
+                    </tr>
+                </thead>
+                <tbody id="discountsTable">
+                    <tr><td colspan="7" class="empty-state">Yukleniyor...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="discountModal">
+        <div class="modal">
+            <h2 id="modalTitle">Yeni Indirim Kodu</h2>
+            <form id="discountForm" onsubmit="saveDiscount(event)">
+                <input type="hidden" id="discountId">
+
+                <div class="form-group">
+                    <label>Indirim Kodu *</label>
+                    <input type="text" id="discountCode" placeholder="YENI2024" required style="text-transform:uppercase">
+                    <div class="form-hint">Musterilerin girecegi kod (buyuk harf)</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Indirim Tipi *</label>
+                        <select id="discountType" required>
+                            <option value="percent">Yuzde (%)</option>
+                            <option value="fixed">Sabit Tutar ($)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Indirim Degeri *</label>
+                        <input type="number" id="discountValue" step="0.01" min="0" placeholder="10" required>
+                        <div class="form-hint">Yuzde icin 10 = %10, sabit icin 10 = $10</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min. Siparis Tutari ($)</label>
+                        <input type="number" id="minAmount" step="0.01" min="0" value="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Max. Kullanim</label>
+                        <input type="number" id="maxUses" min="0" placeholder="Sinirsiz icin bos">
+                        <div class="form-hint">Bos = sinirsiz</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Gecerlilik Baslangici</label>
+                        <input type="datetime-local" id="validFrom">
+                    </div>
+                    <div class="form-group">
+                        <label>Gecerlilik Bitisi</label>
+                        <input type="datetime-local" id="validUntil">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                        <input type="checkbox" id="isActive" checked style="width:auto">
+                        <span>Aktif</span>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Iptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token || user.role !== 'admin') {
+            window.location.href = '../login.html';
+        }
+
+        let discountsData = [];
+
+        async function loadDiscounts() {
+            try {
+                const r = await fetch(API + '/admin.php?action=discounts', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await r.json();
+
+                if (data.success && data.data.discounts) {
+                    discountsData = data.data.discounts;
+                    renderDiscounts();
+                    updateStats();
+                }
+            } catch (e) {
+                console.error('Load error:', e);
+                document.getElementById('discountsTable').innerHTML =
+                    '<tr><td colspan="7" class="empty-state">Yukleme hatasi</td></tr>';
+            }
+        }
+
+        function renderDiscounts() {
+            if (discountsData.length === 0) {
+                document.getElementById('discountsTable').innerHTML =
+                    '<tr><td colspan="7" class="empty-state">Henuz indirim kodu yok</td></tr>';
+                return;
+            }
+
+            let html = '';
+            for (const d of discountsData) {
+                const discountText = d.discount_type === 'percent'
+                    ? '%' + parseFloat(d.discount_value)
+                    : '$' + parseFloat(d.discount_value).toFixed(2);
+
+                const usageText = d.max_uses
+                    ? `${d.used_count} / ${d.max_uses}`
+                    : `${d.used_count} (sinirsiz)`;
+
+                let validityText = '-';
+                if (d.valid_from || d.valid_until) {
+                    const from = d.valid_from ? new Date(d.valid_from).toLocaleDateString('tr-TR') : '';
+                    const until = d.valid_until ? new Date(d.valid_until).toLocaleDateString('tr-TR') : '';
+                    validityText = from + (from && until ? ' - ' : '') + until;
+                }
+
+                const isExpired = d.valid_until && new Date(d.valid_until) < new Date();
+                const statusClass = d.is_active && !isExpired ? 'green' : 'red';
+                const statusText = d.is_active ? (isExpired ? 'Suresi Doldu' : 'Aktif') : 'Pasif';
+
+                html += `
+                    <tr>
+                        <td><span class="code-text">${esc(d.code)}</span></td>
+                        <td><strong>${discountText}</strong></td>
+                        <td>${d.min_amount > 0 ? '$' + parseFloat(d.min_amount).toFixed(2) : '-'}</td>
+                        <td>${usageText}</td>
+                        <td style="font-size:11px">${validityText}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" onclick="editDiscount(${d.id})">Duzenle</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteDiscount(${d.id}, '${esc(d.code)}')">Sil</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            document.getElementById('discountsTable').innerHTML = html;
+        }
+
+        function updateStats() {
+            const total = discountsData.length;
+            const active = discountsData.filter(d => d.is_active && (!d.valid_until || new Date(d.valid_until) >= new Date())).length;
+            const used = discountsData.reduce((sum, d) => sum + parseInt(d.used_count || 0), 0);
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statActive').textContent = active;
+            document.getElementById('statUsed').textContent = used;
+        }
+
+        function openModal() {
+            document.getElementById('modalTitle').textContent = 'Yeni Indirim Kodu';
+            document.getElementById('discountForm').reset();
+            document.getElementById('discountId').value = '';
+            document.getElementById('isActive').checked = true;
+            document.getElementById('discountModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('discountModal').classList.remove('active');
+        }
+
+        function editDiscount(id) {
+            const d = discountsData.find(x => x.id == id);
+            if (!d) return;
+
+            document.getElementById('modalTitle').textContent = 'Indirim Kodunu Duzenle';
+            document.getElementById('discountId').value = d.id;
+            document.getElementById('discountCode').value = d.code;
+            document.getElementById('discountType').value = d.discount_type;
+            document.getElementById('discountValue').value = d.discount_value;
+            document.getElementById('minAmount').value = d.min_amount || 0;
+            document.getElementById('maxUses').value = d.max_uses || '';
+            document.getElementById('validFrom').value = d.valid_from ? d.valid_from.slice(0, 16) : '';
+            document.getElementById('validUntil').value = d.valid_until ? d.valid_until.slice(0, 16) : '';
+            document.getElementById('isActive').checked = d.is_active == 1;
+
+            document.getElementById('discountModal').classList.add('active');
+        }
+
+        async function saveDiscount(e) {
+            e.preventDefault();
+
+            const data = {
+                id: document.getElementById('discountId').value || null,
+                code: document.getElementById('discountCode').value.toUpperCase().trim(),
+                discount_type: document.getElementById('discountType').value,
+                discount_value: parseFloat(document.getElementById('discountValue').value),
+                min_amount: parseFloat(document.getElementById('minAmount').value) || 0,
+                max_uses: document.getElementById('maxUses').value ? parseInt(document.getElementById('maxUses').value) : null,
+                valid_from: document.getElementById('validFrom').value || null,
+                valid_until: document.getElementById('validUntil').value || null,
+                is_active: document.getElementById('isActive').checked ? 1 : 0
+            };
+
+            try {
+                const r = await fetch(API + '/admin.php?action=discount_save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await r.json();
+
+                if (result.success) {
+                    closeModal();
+                    loadDiscounts();
+                    alert('Indirim kodu kaydedildi!');
+                } else {
+                    alert('Hata: ' + (result.message || 'Kayit basarisiz'));
+                }
+            } catch (e) {
+                console.error('Save error:', e);
+                alert('Baglanti hatasi: ' + e.message);
+            }
+        }
+
+        async function deleteDiscount(id, code) {
+            if (!confirm(`"${code}" kodunu silmek istediginize emin misiniz?`)) return;
+
+            try {
+                const r = await fetch(API + '/admin.php?action=discount_delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ id })
+                });
+
+                const result = await r.json();
+
+                if (result.success) {
+                    loadDiscounts();
+                    alert('Indirim kodu silindi!');
+                } else {
+                    alert('Hata: ' + (result.message || 'Silme basarisiz'));
+                }
+            } catch (e) {
+                console.error('Delete error:', e);
+                alert('Baglanti hatasi: ' + e.message);
+            }
+        }
+
+        function esc(s) {
+            return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../login.html';
+        }
+
+        // Close modal on outside click
+        document.getElementById('discountModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Load on start
+        loadDiscounts();
+    </script>
+</body>
+</html>
