@@ -1,3 +1,27 @@
+// ===== ERROR LOGGING =====
+function logError(errorType, errorMessage, extra = {}) {
+  try {
+    chrome.runtime.sendMessage({
+      action: 'logError',
+      errorType,
+      errorMessage: String(errorMessage).substring(0, 2000),
+      stack: extra.stack,
+      url: location.href,
+      source: 'popup',
+      data: extra.data
+    });
+  } catch(e) { /* ignore */ }
+}
+
+// Global hata yakalama
+window.addEventListener('error', (e) => {
+  logError('js_error', e.message, { stack: e.error?.stack, data: { line: e.lineno, file: e.filename } });
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  logError('promise_error', e.reason?.message || String(e.reason), { stack: e.reason?.stack });
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
   const $ = id => document.getElementById(id);
   let allAsins = [], storeName = '', tabId = null, scanLimit = 0, currentMarketplace = 'amazon.com';
@@ -101,7 +125,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (chrome.runtime.lastError || !info?.isAmazon) { showNA(); return; }
         setup(info, tab.url);
       });
-    } catch(e) { showNA(); }
+    } catch(e) {
+      logError('init_error', 'initApp failed: ' + e.message, { stack: e.stack });
+      showNA();
+    }
   }
 
   function applyState(st) {

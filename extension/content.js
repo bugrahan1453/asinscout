@@ -5,6 +5,32 @@
   if (window.__asinScoutV11) return;
   window.__asinScoutV11 = true;
 
+  // ===== ERROR LOGGING =====
+  function logError(errorType, errorMessage, extra = {}) {
+    try {
+      chrome.runtime.sendMessage({
+        action: 'logError',
+        errorType,
+        errorMessage: String(errorMessage).substring(0, 2000),
+        stack: extra.stack,
+        url: location.href,
+        source: 'content',
+        data: extra.data
+      });
+    } catch(e) { /* ignore */ }
+  }
+
+  // Global hata yakalama
+  window.addEventListener('error', (e) => {
+    if (e.filename?.includes('content.js')) {
+      logError('js_error', e.message, { stack: e.error?.stack, data: { line: e.lineno } });
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    logError('promise_error', e.reason?.message || String(e.reason), { stack: e.reason?.stack });
+  });
+
   let scanning = false, stopRequested = false;
   const SORTS = ['', 'price-asc-rank', 'price-desc-rank', 'review-rank', 'date-desc-rank'];
 
@@ -394,7 +420,10 @@
         while ((m = p.exec(html)) !== null) if (/^[A-Z0-9]{10}$/.test(m[1])) found.add(m[1]);
       }
       found.delete(asin);
-    } catch(e) { throttle.onEmpty(); }
+    } catch(e) {
+      logError('fetch_error', 'fetchRelated failed: ' + e.message, { stack: e.stack, data: { asin } });
+      throttle.onEmpty();
+    }
     return Array.from(found);
   }
 
@@ -443,7 +472,11 @@
       const result = { asins: extractAsins(html), titles: extractTitles(html), brands: extractBrands(html), captcha: false };
       if (result.asins.length > 0) throttle.onSuccess(); else throttle.onEmpty();
       return result;
-    } catch(e) { throttle.onEmpty(); return { asins: [], titles: [], brands: [], captcha: false }; }
+    } catch(e) {
+      logError('fetch_error', 'fetchPage failed: ' + e.message, { stack: e.stack, data: { url } });
+      throttle.onEmpty();
+      return { asins: [], titles: [], brands: [], captcha: false };
+    }
   }
 
   // Fetch multiple pages concurrently (2 at a time)

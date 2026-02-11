@@ -1,5 +1,50 @@
 // ASIN Scout Pro v3 - Multi-tab destekli
 const API_BASE = 'https://asinscout.com/api';
+const EXT_VERSION = '12.1.0';
+
+// ===== ERROR LOGGING SYSTEM =====
+async function logError(errorType, errorMessage, extra = {}) {
+  try {
+    const payload = {
+      error_type: errorType,
+      error_message: String(errorMessage).substring(0, 5000),
+      error_stack: extra.stack || null,
+      source: 'background',
+      url: extra.url || null,
+      browser_info: navigator.userAgent,
+      extension_version: EXT_VERSION,
+      user_email: user?.email || null,
+      extra_data: extra.data || null
+    };
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    await fetch(API_BASE + '/logs.php?action=report', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    // Log gonderme hatasi - sessizce devam et
+    console.error('[LogError] Failed to send:', e);
+  }
+}
+
+// Global hata yakalama
+self.addEventListener('error', (e) => {
+  logError('js_error', e.message, {
+    stack: e.error?.stack,
+    url: e.filename,
+    data: { line: e.lineno, col: e.colno }
+  });
+});
+
+self.addEventListener('unhandledrejection', (e) => {
+  logError('promise_error', e.reason?.message || String(e.reason), {
+    stack: e.reason?.stack
+  });
+});
 
 // Her tab icin ayri state
 const tabStates = {};
@@ -63,6 +108,17 @@ function getTabState(tabId) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, send) => {
+  // Log islemleri - diger script'lerden gelen hatalar
+  if (msg.action === 'logError') {
+    logError(msg.errorType || 'unknown', msg.errorMessage, {
+      stack: msg.stack,
+      url: msg.url || sender.tab?.url,
+      data: { ...msg.data, source: msg.source }
+    });
+    send({ ok: true });
+    return true;
+  }
+
   // Auth islemleri
   if (msg.action === 'login') { handleLogin(msg.email, msg.password).then(send); return true; }
   if (msg.action === 'register') { handleRegister(msg.email, msg.password, msg.name).then(send); return true; }
@@ -360,7 +416,10 @@ async function handleLogin(email, password) {
       return { ok: true, user };
     }
     return { error: d.message };
-  } catch(e) { return { error: 'Baglanti hatasi' }; }
+  } catch(e) {
+    logError('network_error', 'Login failed: ' + e.message, { stack: e.stack });
+    return { error: 'Baglanti hatasi' };
+  }
 }
 
 async function handleRegister(email, password, name) {
@@ -379,7 +438,10 @@ async function handleRegister(email, password, name) {
       return { ok: true, user, message: d.message };
     }
     return { error: d.message };
-  } catch(e) { return { error: 'Baglanti hatasi' }; }
+  } catch(e) {
+    logError('network_error', 'Register failed: ' + e.message, { stack: e.stack });
+    return { error: 'Baglanti hatasi' };
+  }
 }
 
 async function refreshProfile() {
@@ -395,7 +457,10 @@ async function refreshProfile() {
       return { ok: true, user };
     }
     return { error: d.message };
-  } catch(e) { return { error: 'Baglanti hatasi' }; }
+  } catch(e) {
+    logError('network_error', 'Profile refresh failed: ' + e.message, { stack: e.stack });
+    return { error: 'Baglanti hatasi' };
+  }
 }
 
 async function startScanApi(url, name) {
@@ -408,7 +473,10 @@ async function startScanApi(url, name) {
     });
     const d = await r.json();
     return d.success ? { scan_id: d.data.scan_id } : { error: d.message };
-  } catch(e) { return { error: 'Baglanti hatasi' }; }
+  } catch(e) {
+    logError('network_error', 'Start scan API failed: ' + e.message, { stack: e.stack, url: url });
+    return { error: 'Baglanti hatasi' };
+  }
 }
 
 async function completeScanApi(scanId, asins, pages, duration) {
@@ -419,7 +487,9 @@ async function completeScanApi(scanId, asins, pages, duration) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages, duration })
     });
-  } catch(e) {}
+  } catch(e) {
+    logError('network_error', 'Complete scan API failed: ' + e.message, { stack: e.stack, data: { scanId, asinCount: asins?.length } });
+  }
 }
 
 // Ara kayit - tarama sirasinda periyodik guncelleme
@@ -431,7 +501,9 @@ async function updateScanApi(scanId, asins, pages) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages })
     });
-  } catch(e) {}
+  } catch(e) {
+    logError('network_error', 'Update scan API failed: ' + e.message, { stack: e.stack, data: { scanId, asinCount: asins?.length } });
+  }
 }
 
 async function injectAndStart(tabId, baseUrl, scanLimit) {
@@ -440,6 +512,8 @@ async function injectAndStart(tabId, baseUrl, scanLimit) {
     await new Promise(r => setTimeout(r, 500));
     chrome.tabs.sendMessage(tabId, { action: 'startFetchScan', baseUrl, scanLimit, mode: 'full' }, r => {
       if (chrome.runtime.lastError && tabStates[tabId]) {
+        const errMsg = chrome.runtime.lastError.message || 'Unknown error';
+        logError('scan_error', 'Content script message failed: ' + errMsg, { url: baseUrl, data: { tabId } });
         tabStates[tabId].scanning = false;
         tabStates[tabId].lastUpdate = 'Hata: Sayfayi yenileyin';
         saveTabStates();
@@ -447,6 +521,7 @@ async function injectAndStart(tabId, baseUrl, scanLimit) {
       }
     });
   } catch(e) {
+    logError('scan_error', 'Script injection failed: ' + e.message, { stack: e.stack, url: baseUrl, data: { tabId } });
     if (tabStates[tabId]) {
       tabStates[tabId].scanning = false;
       tabStates[tabId].lastUpdate = 'Hata: ' + e.message;

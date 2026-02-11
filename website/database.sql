@@ -338,6 +338,35 @@ CREATE TABLE IF NOT EXISTS `discount_codes` (
   UNIQUE KEY `code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Error Logs tablosu (Hata Takip Sistemi)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `error_logs` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL COMMENT 'Kullanıcı ID (giriş yapmışsa)',
+  `user_email` varchar(255) DEFAULT NULL COMMENT 'Kullanıcı email',
+  `error_type` varchar(50) NOT NULL COMMENT 'Hata tipi: js_error, api_error, scan_error, network_error',
+  `error_message` text NOT NULL COMMENT 'Hata mesajı',
+  `error_stack` text DEFAULT NULL COMMENT 'Stack trace',
+  `source` varchar(50) NOT NULL COMMENT 'Kaynak: extension, popup, content, background, website',
+  `url` text DEFAULT NULL COMMENT 'Hata oluşan URL',
+  `browser_info` varchar(255) DEFAULT NULL COMMENT 'Tarayıcı bilgisi',
+  `extension_version` varchar(20) DEFAULT NULL COMMENT 'Extension versiyonu',
+  `extra_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`extra_data`)) COMMENT 'Ekstra JSON veri',
+  `ip_address` varchar(45) DEFAULT NULL,
+  `is_resolved` tinyint(1) DEFAULT 0 COMMENT 'Çözüldü mü?',
+  `resolved_at` datetime DEFAULT NULL,
+  `resolved_by` int(11) DEFAULT NULL COMMENT 'Çözen admin ID',
+  `notes` text DEFAULT NULL COMMENT 'Admin notları',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_type` (`error_type`),
+  KEY `idx_source` (`source`),
+  KEY `idx_created` (`created_at`),
+  KEY `idx_resolved` (`is_resolved`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

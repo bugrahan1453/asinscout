@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Logs - Admin - ASIN Scout Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;--text:#f0f0f5;--text2:#9898a8;--text3:#5a5a6e;--orange:#ff6b2c;--pink:#ff2c6b;--green:#22c97a;--blue:#4d8eff;--red:#ff4d5e;--yellow:#ffb84d;--border:#2a2a35}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+        .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--bg2);border-right:1px solid var(--border);padding:20px}
+        .sidebar-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;margin-bottom:10px;color:var(--text);text-decoration:none}
+        .sidebar-logo span{color:var(--orange)}
+        .sidebar-logo .icon{width:36px;height:36px;background:linear-gradient(135deg,var(--pink),var(--orange));border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .admin-badge{font-size:10px;background:var(--red);color:#fff;padding:2px 8px;border-radius:4px;margin-bottom:30px;display:inline-block}
+        .sidebar-menu{list-style:none}
+        .sidebar-menu a{display:block;padding:12px 16px;color:var(--text2);text-decoration:none;border-radius:10px;margin-bottom:4px;font-size:14px}
+        .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--bg3);color:var(--text)}
+        .sidebar-menu a.active{background:linear-gradient(135deg,rgba(255,107,44,0.2),rgba(255,44,107,0.1));color:var(--orange)}
+        .main{margin-left:260px;padding:30px}
+        .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:15px}
+        .page-title{font-size:28px;font-weight:700}
+        .stats-row{display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap}
+        .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;min-width:140px}
+        .stat-card .label{font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
+        .stat-card .value{font-size:24px;font-weight:700}
+        .stat-card .value.red{color:var(--red)}
+        .stat-card .value.orange{color:var(--orange)}
+        .stat-card .value.green{color:var(--green)}
+        .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+        .filters select,.filters input{padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px}
+        .filters select:focus,.filters input:focus{outline:none;border-color:var(--orange)}
+        .filters button{padding:8px 16px;background:var(--orange);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:600;font-size:13px}
+        .filters button.secondary{background:var(--bg3);color:var(--text2)}
+        .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
+        table{width:100%;border-collapse:collapse}
+        th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--border);font-size:12px}
+        th{color:var(--text2);font-size:10px;text-transform:uppercase}
+        tr:hover{background:var(--bg3)}
+        tr.resolved{opacity:0.6}
+        .badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600;white-space:nowrap}
+        .badge.red{background:rgba(255,77,94,0.15);color:var(--red)}
+        .badge.orange{background:rgba(255,107,44,0.15);color:var(--orange)}
+        .badge.green{background:rgba(34,201,122,0.15);color:var(--green)}
+        .badge.blue{background:rgba(77,142,255,0.15);color:var(--blue)}
+        .badge.yellow{background:rgba(255,184,77,0.15);color:var(--yellow)}
+        .error-msg{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font-family:monospace;font-size:11px}
+        .error-msg:hover{white-space:normal;word-break:break-all}
+        .btn{padding:5px 10px;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer}
+        .btn-sm{padding:4px 8px;font-size:10px}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+        .btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+        .btn-green{background:rgba(34,201,122,0.2);color:var(--green);border:1px solid rgba(34,201,122,0.3)}
+        .btn-red{background:rgba(255,77,94,0.15);color:var(--red);border:1px solid rgba(255,77,94,0.3)}
+        .pagination{display:flex;justify-content:center;gap:8px;margin-top:20px}
+        .pagination button{padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;font-size:12px}
+        .pagination button:disabled{opacity:0.5;cursor:not-allowed}
+        .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;z-index:100}
+        .modal.show{display:flex}
+        .modal-content{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto}
+        .modal-title{font-size:18px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+        .modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer}
+        .detail-row{display:flex;gap:10px;margin-bottom:12px;font-size:13px}
+        .detail-row .label{color:var(--text3);min-width:100px}
+        .detail-row .value{color:var(--text);word-break:break-all}
+        .stack-trace{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;margin-top:10px}
+        .notes-input{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;min-height:60px;margin-top:10px}
+        .modal-actions{display:flex;gap:10px;margin-top:20px}
+        .mobile-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1001;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:18px;cursor:pointer}
+        .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999}
+        @media(max-width:768px){.mobile-toggle{display:block}.sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.sidebar-overlay.active{display:block}.filters{flex-direction:column}.stats-row{flex-direction:column}}
+        .lang-switch{position:absolute;top:20px;right:20px;display:flex;gap:6px}
+        .lang-btn{padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text2);cursor:pointer;font-size:12px}
+        .lang-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+        .top-errors{margin-top:20px}
+        .top-errors h3{font-size:14px;color:var(--text2);margin-bottom:10px}
+        .top-error-item{background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+        .top-error-item .msg{font-family:monospace;font-size:11px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .top-error-item .count{background:var(--red);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+    </style>
+</head>
+<body>
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('active')">&#9776;</button>
+<div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('active')"></div>
+    <aside class="sidebar">
+        <a href="../index.html" class="sidebar-logo"><div class="icon">A</div>ASIN<span>Scout</span></a>
+        <div class="admin-badge">ADMIN</div>
+        <ul class="sidebar-menu">
+            <a href="index.html">📊 Dashboard</a>
+            <a href="users.html">👥 Users</a>
+            <a href="packages.html">📦 Packages</a>
+            <a href="orders.html">💳 Orders</a>
+            <a href="discounts.html">🏷️ Discounts</a>
+            <a href="affiliates.html">🤝 Affiliates</a>
+            <a href="testimonials.html">💬 Testimonials</a>
+            <a href="logs.html" class="active">🐛 Error Logs</a>
+            <a href="settings.html">⚙️ Settings</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </ul>
+        <div class="lang-switch">
+            <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" data-lang="tr" onclick="setLanguage('tr')">TR</button>
+        </div>
+    </aside>
+    <main class="main">
+        <div class="page-header">
+            <h1 class="page-title">🐛 Error Logs</h1>
+            <div>
+                <button class="btn btn-red" onclick="deleteOldLogs()">🗑️ Delete 30+ Days</button>
+                <button class="btn btn-green" onclick="deleteResolvedLogs()">✓ Delete Resolved</button>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="label">Total Errors</div>
+                <div class="value" id="totalErrors">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Today</div>
+                <div class="value orange" id="todayErrors">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Unresolved</div>
+                <div class="value red" id="unresolvedErrors">0</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <select id="filterType">
+                <option value="">All Types</option>
+                <option value="js_error">JS Error</option>
+                <option value="promise_error">Promise Error</option>
+                <option value="network_error">Network Error</option>
+                <option value="scan_error">Scan Error</option>
+                <option value="fetch_error">Fetch Error</option>
+                <option value="api_error">API Error</option>
+                <option value="init_error">Init Error</option>
+            </select>
+            <select id="filterSource">
+                <option value="">All Sources</option>
+                <option value="background">Background</option>
+                <option value="content">Content Script</option>
+                <option value="popup">Popup</option>
+                <option value="website">Website</option>
+            </select>
+            <select id="filterResolved">
+                <option value="">All Status</option>
+                <option value="no">Unresolved</option>
+                <option value="yes">Resolved</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Search errors..." style="width:200px">
+            <input type="date" id="dateFrom" title="From Date">
+            <input type="date" id="dateTo" title="To Date">
+            <button onclick="applyFilters()">🔍 Filter</button>
+            <button class="secondary" onclick="resetFilters()">↺ Reset</button>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Source</th>
+                        <th>Error Message</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTable">
+                    <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text2)">Loading...</td></tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+        <div class="top-errors" id="topErrorsSection">
+            <h3>🔥 Most Frequent Errors (Last 7 Days)</h3>
+            <div id="topErrors"></div>
+        </div>
+    </main>
+
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <span>🐛 Error Details</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeModal()">Close</button>
+                <button class="btn btn-green" id="resolveBtn" onclick="toggleResolved()">✓ Mark Resolved</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/i18n.js"></script>
+    <script>
+        const API = '/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token || user.role !== 'admin') window.location.href = '../login.html';
+
+        let currentPage = 1, currentLog = null;
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const r = await fetch(API + '/logs.php?action=stats', {headers:{'Authorization':'Bearer '+token}});
+                const d = await r.json();
+                if (d.success) {
+                    document.getElementById('totalErrors').textContent = fmtNum(d.data.total_errors);
+                    document.getElementById('todayErrors').textContent = fmtNum(d.data.today_errors);
+                    document.getElementById('unresolvedErrors').textContent = fmtNum(d.data.unresolved_errors);
+
+                    // Top errors
+                    if (d.data.top_errors && d.data.top_errors.length > 0) {
+                        let html = '';
+                        for (const e of d.data.top_errors.slice(0, 5)) {
+                            html += `<div class="top-error-item">
+                                <span class="msg" title="${esc(e.error_message)}">${esc(e.error_message.substring(0, 80))}</span>
+                                <span class="count">${e.count}x</span>
+                            </div>`;
+                        }
+                        document.getElementById('topErrors').innerHTML = html;
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // Load logs
+        async function loadLogs(page = 1) {
+            try {
+                let url = API + `/logs.php?action=list&page=${page}`;
+
+                const type = document.getElementById('filterType').value;
+                const source = document.getElementById('filterSource').value;
+                const resolved = document.getElementById('filterResolved').value;
+                const search = document.getElementById('searchInput').value;
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+
+                if (type) url += `&error_type=${type}`;
+                if (source) url += `&source=${source}`;
+                if (resolved) url += `&resolved=${resolved}`;
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                if (dateFrom) url += `&date_from=${dateFrom}`;
+                if (dateTo) url += `&date_to=${dateTo}`;
+
+                const r = await fetch(url, {headers:{'Authorization':'Bearer '+token}});
+                const d = await r.json();
+
+                if (d.success) {
+                    let html = '';
+                    for (const log of d.data.logs) {
+                        const typeBadge = getTypeBadge(log.error_type);
+                        const sourceBadge = getSourceBadge(log.source);
+                        const statusBadge = log.is_resolved ? '<span class="badge green">Resolved</span>' : '<span class="badge red">Open</span>';
+                        const rowClass = log.is_resolved ? 'resolved' : '';
+
+                        html += `
+                            <tr class="${rowClass}">
+                                <td style="white-space:nowrap">${fmtDateTime(log.created_at)}</td>
+                                <td>${typeBadge}</td>
+                                <td>${sourceBadge}</td>
+                                <td class="error-msg" title="${esc(log.error_message)}">${esc(log.error_message)}</td>
+                                <td style="font-size:11px">${esc(log.user_email || '-')}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline" onclick="viewDetail(${log.id})">👁️</button>
+                                    ${!log.is_resolved ? `<button class="btn btn-sm btn-green" onclick="quickResolve(${log.id})">✓</button>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    document.getElementById('logsTable').innerHTML = html || '<tr><td colspan="7" style="text-align:center;padding:40px">No errors found</td></tr>';
+
+                    // Pagination
+                    const p = d.data;
+                    let pagHtml = `<button onclick="loadLogs(${p.page-1})" ${p.page<=1?'disabled':''}>← Prev</button>`;
+                    pagHtml += `<span style="padding:8px 14px;color:var(--text2)">Page ${p.page} of ${p.pages || 1}</span>`;
+                    pagHtml += `<button onclick="loadLogs(${p.page+1})" ${p.page>=(p.pages||1)?'disabled':''}>Next →</button>`;
+                    document.getElementById('pagination').innerHTML = pagHtml;
+                    currentPage = p.page;
+                }
+            } catch(e) {
+                console.error(e);
+                document.getElementById('logsTable').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--red)">Error loading logs</td></tr>';
+            }
+        }
+
+        function getTypeBadge(type) {
+            const colors = {
+                'js_error': 'red', 'promise_error': 'orange', 'network_error': 'yellow',
+                'scan_error': 'blue', 'fetch_error': 'yellow', 'api_error': 'red', 'init_error': 'orange'
+            };
+            return `<span class="badge ${colors[type] || 'blue'}">${type}</span>`;
+        }
+
+        function getSourceBadge(source) {
+            const colors = {'background': 'blue', 'content': 'orange', 'popup': 'green', 'website': 'yellow'};
+            return `<span class="badge ${colors[source] || 'blue'}">${source}</span>`;
+        }
+
+        async function viewDetail(id) {
+            try {
+                const r = await fetch(API + `/logs.php?action=detail&id=${id}`, {headers:{'Authorization':'Bearer '+token}});
+                const d = await r.json();
+                if (d.success) {
+                    currentLog = d.data.log;
+                    let html = `
+                        <div class="detail-row"><span class="label">ID:</span><span class="value">#${currentLog.id}</span></div>
+                        <div class="detail-row"><span class="label">Date:</span><span class="value">${fmtDateTime(currentLog.created_at)}</span></div>
+                        <div class="detail-row"><span class="label">Type:</span><span class="value">${getTypeBadge(currentLog.error_type)}</span></div>
+                        <div class="detail-row"><span class="label">Source:</span><span class="value">${getSourceBadge(currentLog.source)}</span></div>
+                        <div class="detail-row"><span class="label">User:</span><span class="value">${esc(currentLog.user_email || 'Anonymous')}</span></div>
+                        <div class="detail-row"><span class="label">URL:</span><span class="value" style="font-size:11px">${esc(currentLog.url || '-')}</span></div>
+                        <div class="detail-row"><span class="label">Browser:</span><span class="value" style="font-size:10px">${esc(currentLog.browser_info || '-')}</span></div>
+                        <div class="detail-row"><span class="label">Ext Version:</span><span class="value">${esc(currentLog.extension_version || '-')}</span></div>
+                        <div class="detail-row"><span class="label">IP:</span><span class="value">${esc(currentLog.ip_address || '-')}</span></div>
+                        <div class="detail-row" style="flex-direction:column">
+                            <span class="label">Error Message:</span>
+                            <div class="stack-trace" style="margin-top:5px;color:var(--red)">${esc(currentLog.error_message)}</div>
+                        </div>
+                    `;
+                    if (currentLog.error_stack) {
+                        html += `<div class="detail-row" style="flex-direction:column">
+                            <span class="label">Stack Trace:</span>
+                            <div class="stack-trace">${esc(currentLog.error_stack)}</div>
+                        </div>`;
+                    }
+                    if (currentLog.extra_data) {
+                        html += `<div class="detail-row" style="flex-direction:column">
+                            <span class="label">Extra Data:</span>
+                            <div class="stack-trace">${esc(JSON.stringify(currentLog.extra_data, null, 2))}</div>
+                        </div>`;
+                    }
+                    html += `<div class="detail-row" style="flex-direction:column">
+                        <span class="label">Admin Notes:</span>
+                        <textarea class="notes-input" id="notesInput" placeholder="Add notes...">${esc(currentLog.notes || '')}</textarea>
+                    </div>`;
+
+                    document.getElementById('modalContent').innerHTML = html;
+                    document.getElementById('resolveBtn').textContent = currentLog.is_resolved ? '↺ Reopen' : '✓ Mark Resolved';
+                    document.getElementById('detailModal').classList.add('show');
+                }
+            } catch(e) { console.error(e); alert('Error loading details'); }
+        }
+
+        async function toggleResolved() {
+            if (!currentLog) return;
+            const notes = document.getElementById('notesInput')?.value || '';
+            try {
+                const r = await fetch(API + '/logs.php?action=update', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+                    body: JSON.stringify({ id: currentLog.id, is_resolved: currentLog.is_resolved ? 0 : 1, notes })
+                });
+                const d = await r.json();
+                if (d.success) {
+                    closeModal();
+                    loadLogs(currentPage);
+                    loadStats();
+                } else {
+                    alert('Error: ' + (d.message || 'Failed'));
+                }
+            } catch(e) { console.error(e); alert('Error'); }
+        }
+
+        async function quickResolve(id) {
+            try {
+                const r = await fetch(API + '/logs.php?action=update', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+                    body: JSON.stringify({ id, is_resolved: 1 })
+                });
+                const d = await r.json();
+                if (d.success) {
+                    loadLogs(currentPage);
+                    loadStats();
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function deleteOldLogs() {
+            if (!confirm('Delete all logs older than 30 days? This cannot be undone.')) return;
+            try {
+                const r = await fetch(API + '/logs.php?action=delete', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+                    body: JSON.stringify({ older_than_days: 30 })
+                });
+                const d = await r.json();
+                if (d.success) {
+                    alert('Old logs deleted!');
+                    loadLogs(1);
+                    loadStats();
+                }
+            } catch(e) { console.error(e); alert('Error'); }
+        }
+
+        async function deleteResolvedLogs() {
+            if (!confirm('Delete all resolved logs? This cannot be undone.')) return;
+            try {
+                const r = await fetch(API + '/logs.php?action=delete', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+                    body: JSON.stringify({ resolved_only: true })
+                });
+                const d = await r.json();
+                if (d.success) {
+                    alert('Resolved logs deleted!');
+                    loadLogs(1);
+                    loadStats();
+                }
+            } catch(e) { console.error(e); alert('Error'); }
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+            currentLog = null;
+        }
+
+        function applyFilters() { loadLogs(1); }
+        function resetFilters() {
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterSource').value = '';
+            document.getElementById('filterResolved').value = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            loadLogs(1);
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '../login.html'; }
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function fmtNum(n) { return new Intl.NumberFormat().format(n || 0); }
+        function fmtDateTime(d) {
+            if (!d) return '-';
+            const dt = new Date(d);
+            return dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        }
+
+        // Enter key for search
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') applyFilters();
+        });
+
+        // Init
+        loadStats();
+        loadLogs();
+    </script>
+</body>
+</html>
