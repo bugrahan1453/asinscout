@@ -106,6 +106,74 @@ switch ($action) {
         ], 'Scan started');
         break;
     
+    case 'update':
+        // Periyodik ara kayıt - tarama devam ederken ASIN'leri güncelle
+        $data = Api::getPostData();
+        Api::required($data, ['scan_id', 'asins']);
+
+        $scan = $db->fetch(
+            "SELECT id, user_id, status FROM scans WHERE id = ? AND user_id = ?",
+            [$data['scan_id'], $user['id']]
+        );
+
+        if (!$scan) {
+            Api::error('Scan not found', 404);
+        }
+
+        $asins = $data['asins'];
+        if (is_string($asins)) {
+            $asins = json_decode($asins, true) ?: explode("\n", $asins);
+        }
+
+        // Paket limitine göre kes
+        $fullUser = $db->fetch("SELECT scan_limit, package_expires FROM users WHERE id = ?", [$user['id']]);
+        $hasActivePackage = $fullUser['package_expires'] && strtotime($fullUser['package_expires']) > time();
+        $limit = $hasActivePackage ? (int)$fullUser['scan_limit'] : 999999;
+
+        if (count($asins) > $limit) {
+            $asins = array_slice($asins, 0, $limit);
+        }
+
+        $asinCount = count($asins);
+
+        // Taramayı güncelle (status running kalacak)
+        $db->query(
+            "UPDATE scans SET asin_count = ?, pages_scanned = ?, updated_at = NOW() WHERE id = ?",
+            [$asinCount, $data['pages_scanned'] ?? 0, $data['scan_id']]
+        );
+
+        // Mevcut ASIN'leri sil ve yenilerini ekle
+        $db->query("DELETE FROM scan_asins WHERE scan_id = ?", [$data['scan_id']]);
+
+        if (!empty($asins)) {
+            $values = [];
+            $params = [];
+            foreach ($asins as $asin) {
+                $asin = trim($asin);
+                if (preg_match('/^[A-Z0-9]{10}$/', $asin)) {
+                    $values[] = "(?, ?)";
+                    $params[] = $data['scan_id'];
+                    $params[] = $asin;
+                }
+            }
+
+            if (!empty($values)) {
+                $chunks = array_chunk($values, 1000);
+                $paramChunks = array_chunk($params, 2000);
+
+                for ($i = 0; $i < count($chunks); $i++) {
+                    $sql = "INSERT INTO scan_asins (scan_id, asin) VALUES " . implode(', ', $chunks[$i]);
+                    $db->query($sql, $paramChunks[$i]);
+                }
+            }
+        }
+
+        Api::success([
+            'scan_id' => $data['scan_id'],
+            'asin_count' => $asinCount
+        ], 'Scan updated');
+        break;
+
     case 'complete':
         $data = Api::getPostData();
         Api::required($data, ['scan_id', 'asins']);

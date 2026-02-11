@@ -3,7 +3,7 @@
   "name": "ASIN Scout Pro",
   "version": "12.1.0",
   "description": "Amazon Store ASIN Scanner",
-  "permissions": ["activeTab", "scripting", "downloads", "storage", "tabs"],
+  "permissions": ["activeTab", "scripting", "downloads", "storage", "tabs", "webNavigation"],
   "host_permissions": [
     "https://*.amazon.com/*", "https://*.amazon.co.uk/*", "https://*.amazon.de/*",
     "https://*.amazon.fr/*", "https://*.amazon.it/*", "https://*.amazon.es/*",

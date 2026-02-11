@@ -33,6 +33,30 @@ chrome.storage.local.get(['token', 'user', 'scanHistory'], (d) => {
   }
 });
 
+// Periyodik kayit icin son kayit zamani
+let lastSaveTime = 0;
+
+// Tab kapandığında ASIN'leri kaydet
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (S.tabId === tabId && S.scanning && S.scanId && S.asins.length > 0) {
+    completeScanApi(S.scanId, S.asins, S.scanned, Math.round((Date.now() - (S.startTime || Date.now())) / 1000));
+    S.scanning = false;
+    S.lastUpdate = 'Tab kapandı: ' + S.asins.length + ' ASIN kaydedildi';
+    save();
+  }
+});
+
+// Sayfa değiştiğinde ASIN'leri kaydet
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+  if (details.frameId !== 0) return;
+  if (S.tabId === details.tabId && S.scanning && S.scanId && S.asins.length > 0) {
+    completeScanApi(S.scanId, S.asins, S.scanned, Math.round((Date.now() - (S.startTime || Date.now())) / 1000));
+    S.scanning = false;
+    S.lastUpdate = 'Sayfa değişti: ' + S.asins.length + ' ASIN kaydedildi';
+    save();
+  }
+});
+
 chrome.runtime.onMessage.addListener((msg, sender, send) => {
   if (msg.action === 'login') { handleLogin(msg.email, msg.password).then(send); return true; }
   if (msg.action === 'register') { handleRegister(msg.email, msg.password, msg.name).then(send); return true; }
@@ -175,6 +199,21 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     S.lastUpdate = msg.status || S.lastUpdate;
     save();
     badge(fmtNum(S.asins.length), '#ff6b2c');
+
+    // Periyodik sunucu kaydı - her 500 ASIN'de veya 60 saniyede bir
+    const now = Date.now();
+    const timeSinceLastSave = now - lastSaveTime;
+    const asinThreshold = 500;
+    const timeThreshold = 60000; // 60 saniye
+
+    if (S.scanId && S.asins.length > 0) {
+      if (S.asins.length % asinThreshold < 50 || timeSinceLastSave > timeThreshold) {
+        if (timeSinceLastSave > 10000) { // En az 10 saniye ara ver
+          updateScanApi(S.scanId, S.asins, S.scanned);
+          lastSaveTime = now;
+        }
+      }
+    }
   }
 
   // Tarama tamamlandı
@@ -361,6 +400,18 @@ async function completeScanApi(scanId, asins, pages, duration) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.token },
       body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages, duration })
+    });
+  } catch(e) {}
+}
+
+// Ara kayit - tarama sirasinda periyodik guncelleme
+async function updateScanApi(scanId, asins, pages) {
+  if (!S.token) return;
+  try {
+    await fetch(API_BASE + '/scans.php?action=update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.token },
+      body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages })
     });
   } catch(e) {}
 }

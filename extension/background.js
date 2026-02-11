@@ -11,13 +11,36 @@ chrome.storage.local.get(['token', 'user', 'tabStates'], (d) => {
   if (d.tabStates) Object.assign(tabStates, d.tabStates);
 });
 
-// Tab kapandiginda state'i temizle
+// Tab kapandiginda ASIN'leri kaydet, sonra state'i temizle
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (tabStates[tabId]) {
+    const state = tabStates[tabId];
+    // Eger tarama varsa ve ASIN bulunmussa, sunucuya kaydet
+    if (state.scanId && state.asins.length > 0) {
+      completeScanApi(state.scanId, state.asins, state.scanned, 0);
+    }
     delete tabStates[tabId];
     saveTabStates();
   }
 });
+
+// Sayfa degistiginde (navigate) ASIN'leri kaydet
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+  if (details.frameId !== 0) return; // Sadece ana frame
+  const tabId = details.tabId;
+  if (tabStates[tabId] && tabStates[tabId].scanning) {
+    const state = tabStates[tabId];
+    if (state.scanId && state.asins.length > 0) {
+      completeScanApi(state.scanId, state.asins, state.scanned, 0);
+    }
+    state.scanning = false;
+    state.lastUpdate = 'Sayfa degisti: ' + state.asins.length + ' ASIN kaydedildi';
+    saveTabStates();
+  }
+});
+
+// Periyodik kayit icin son kayit zamani
+const lastSaveTime = {};
 
 function getTabState(tabId) {
   if (!tabStates[tabId]) {
@@ -117,6 +140,23 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     state.lastUpdate = state.asins.length + ' ASIN bulundu';
     saveTabStates();
     badge(fmtNum(state.asins.length), '#ff6b2c', tabId);
+
+    // Periyodik sunucu kaydı - her 500 ASIN'de veya 60 saniyede bir
+    const now = Date.now();
+    const lastSave = lastSaveTime[tabId] || 0;
+    const timeSinceLastSave = now - lastSave;
+    const asinThreshold = 500;
+    const timeThreshold = 60000; // 60 saniye
+
+    if (state.scanId && state.asins.length > 0) {
+      // Her 500 ASIN'de bir veya 60 saniye gectiyse kaydet
+      if (state.asins.length % asinThreshold < 50 || timeSinceLastSave > timeThreshold) {
+        if (timeSinceLastSave > 10000) { // En az 10 saniye ara ver
+          updateScanApi(state.scanId, state.asins, state.scanned);
+          lastSaveTime[tabId] = now;
+        }
+      }
+    }
   }
 
   else if (msg.action === 'scanComplete') {
@@ -378,6 +418,18 @@ async function completeScanApi(scanId, asins, pages, duration) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages, duration })
+    });
+  } catch(e) {}
+}
+
+// Ara kayit - tarama sirasinda periyodik guncelleme
+async function updateScanApi(scanId, asins, pages) {
+  if (!token) return;
+  try {
+    await fetch(API_BASE + '/scans.php?action=update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ scan_id: scanId, asins, pages_scanned: pages })
     });
   } catch(e) {}
 }
