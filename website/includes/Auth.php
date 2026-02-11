@@ -8,22 +8,26 @@ class Auth {
     
     /**
      * JWT Token oluştur
+     * @param bool $rememberMe - true ise 30 gün, false ise normal JWT_EXPIRY (7 gün)
      */
-    public static function createToken($userId, $email, $role = 'user') {
+    public static function createToken($userId, $email, $role = 'user', $rememberMe = false) {
         $header = self::base64UrlEncode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
-        
+
+        // Beni hatırla seçiliyse 30 gün, değilse normal süre
+        $expiry = $rememberMe ? (86400 * 30) : JWT_EXPIRY;
+
         $payload = self::base64UrlEncode(json_encode([
             'user_id' => $userId,
             'email' => $email,
             'role' => $role,
             'iat' => time(),
-            'exp' => time() + JWT_EXPIRY
+            'exp' => time() + $expiry
         ]));
-        
+
         $signature = self::base64UrlEncode(
             hash_hmac('sha256', "$header.$payload", JWT_SECRET, true)
         );
-        
+
         return "$header.$payload.$signature";
     }
     

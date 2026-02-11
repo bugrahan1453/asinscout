@@ -101,8 +101,9 @@ switch ($action) {
         }
         
         $db->query("UPDATE users SET last_login = NOW() WHERE id = ?", [$user['id']]);
-        $token = Auth::createToken($user['id'], $user['email'], $user['role']);
-        Api::log($user['id'], 'login', ['ip' => Api::getIp()]);
+        $rememberMe = !empty($data['remember_me']);
+        $token = Auth::createToken($user['id'], $user['email'], $user['role'], $rememberMe);
+        Api::log($user['id'], 'login', ['ip' => Api::getIp(), 'remember_me' => $rememberMe]);
 
         // Paket süresi kontrolü
         $hasActivePackage = $user['package_id'] && $user['package_expires'] && strtotime($user['package_expires']) > time();
