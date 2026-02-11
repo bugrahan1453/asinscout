@@ -122,7 +122,11 @@
             const s=d.data.scan;
             allAsins=s.asins||[];
 
-            document.getElementById('storeName').textContent=s.store_name||'Unknown Store';
+            if(s.store_url){
+                document.getElementById('storeName').innerHTML='<a href="'+esc(s.store_url)+'" target="_blank" style="color:var(--orange);text-decoration:none">'+esc(s.store_name||'Unknown Store')+' ↗</a>';
+            }else{
+                document.getElementById('storeName').textContent=s.store_name||'Unknown Store';
+            }
             document.getElementById('scanInfo').textContent=`${s.marketplace||'Amazon'} • ${t('scan_scanned_on')} ${new Date(s.created_at).toLocaleString()}`;
             document.getElementById('asinCount').textContent=fmt(s.asin_count);
             document.getElementById('pagesScanned').textContent=s.pages_scanned||0;
@@ -182,6 +186,7 @@
 
         function logout(){localStorage.clear();location.href='login.html';}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
+        function esc(s){return String(s||'').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
         // Re-render on language change
         window.addEventListener('languageChanged',()=>{loadScan();});
         loadScan();

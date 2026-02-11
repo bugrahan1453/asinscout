@@ -137,7 +137,7 @@
                 let h='<table><thead><tr><th>'+t('scans_store')+'</th><th>'+t('scans_marketplace')+'</th><th>'+t('scans_asins_col')+'</th><th>'+t('scans_pages_col')+'</th><th>'+t('scans_status')+'</th><th>'+t('scans_date')+'</th><th>'+t('scans_actions')+'</th></tr></thead><tbody>';
                 for(const s of scans){
                     h+=`<tr>
-                        <td><strong>${esc(s.store_name||'Unknown')}</strong></td>
+                        <td><strong>${s.store_url ? '<a href="'+esc(s.store_url)+'" target="_blank" style="color:var(--orange);text-decoration:none" title="'+esc(s.store_url)+'">'+esc(s.store_name||'Unknown')+' ↗</a>' : esc(s.store_name||'Unknown')}</strong></td>
                         <td>${esc(s.marketplace||'-')}</td>
                         <td><strong style="color:var(--green)">${fmt(s.asin_count)}</strong></td>
                         <td>${fmt(s.pages_scanned)}</td>
