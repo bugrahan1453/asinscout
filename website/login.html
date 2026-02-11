@@ -86,6 +86,30 @@
     <script>
         const API_BASE = '/api';
 
+        // Sayfa yüklendiğinde: token varsa ve geçerliyse dashboard'a yönlendir
+        (async function checkExistingLogin() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const resp = await fetch(API_BASE + '/auth.php?action=profile', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await resp.json();
+
+                if (data.success && data.data.user) {
+                    // Token geçerli, kullanıcıyı yönlendir
+                    if (data.data.user.role === 'admin') {
+                        window.location.href = 'admin/';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                }
+            } catch (e) {
+                // Token geçersiz veya hata, kullanıcı login sayfasında kalsın
+            }
+        })();
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
