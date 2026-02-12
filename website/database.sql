@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `scans` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
+  `user_package_id` int(11) DEFAULT NULL COMMENT 'Hangi paketten kullanıldı',
   `store_name` varchar(255) DEFAULT NULL,
   `store_url` text DEFAULT NULL,
   `marketplace` varchar(20) DEFAULT NULL,
@@ -337,6 +338,37 @@ CREATE TABLE IF NOT EXISTS `discount_codes` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- User Packages tablosu (Çoklu Paket Sistemi)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `user_packages` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `package_id` int(11) NOT NULL,
+  `package_name` varchar(100) NOT NULL COMMENT 'Satın alındığı andaki paket adı',
+  `scan_limit` int(11) NOT NULL COMMENT 'Tarama başına max ASIN (örn: 5000, 25000)',
+  `daily_scan_limit` int(11) NOT NULL DEFAULT 0 COMMENT 'Günlük tarama hakkı (örn: 5 = günde 5 tarama, 0 = sınırsız)',
+  `daily_scans_used` int(11) NOT NULL DEFAULT 0 COMMENT 'Bugün bu paketten kullanılan tarama sayısı',
+  `last_scan_date` date DEFAULT NULL COMMENT 'Bu paketteki son tarama tarihi (günlük reset için)',
+  `order_id` int(11) DEFAULT NULL COMMENT 'İlgili sipariş',
+  `purchased_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `expires_at` datetime NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_package` (`package_id`),
+  KEY `idx_active` (`is_active`),
+  KEY `idx_expires` (`expires_at`),
+  CONSTRAINT `user_packages_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `user_packages_ibfk_2` FOREIGN KEY (`package_id`) REFERENCES `packages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Scan'lere hangi paketten kullanıldığını takip etmek için
+-- --------------------------------------------------------
+-- ALTER TABLE `scans` ADD COLUMN `user_package_id` int(11) DEFAULT NULL COMMENT 'Hangi paketten kullanıldı' AFTER `user_id`;
 
 -- --------------------------------------------------------
 -- Error Logs tablosu (Hata Takip Sistemi)

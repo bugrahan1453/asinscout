@@ -33,7 +33,7 @@ switch ($action) {
             "SELECT id, name, slug, scan_limit, daily_scan_limit, duration_days, price, currency, description, features, is_popular
              FROM packages WHERE is_active = 1 ORDER BY sort_order"
         );
-        
+
         foreach ($packages as &$pkg) {
             $pkg['features'] = json_decode($pkg['features'], true) ?: [];
             $pkg['price'] = (float)$pkg['price'];
@@ -42,8 +42,52 @@ switch ($action) {
             $pkg['duration_days'] = (int)$pkg['duration_days'];
             $pkg['is_popular'] = (bool)$pkg['is_popular'];
         }
-        
+
         Api::success(['packages' => $packages]);
+        break;
+
+    case 'my_packages':
+        // Kullanıcının aktif paketlerini listele
+        $user = Auth::requireAuth();
+
+        // Süresi dolmuş paketleri pasife çek
+        $db->query(
+            "UPDATE user_packages SET is_active = 0 WHERE user_id = ? AND expires_at < NOW() AND is_active = 1",
+            [$user['id']]
+        );
+
+        $today = date('Y-m-d');
+
+        // Aktif paketleri getir
+        $userPackages = $db->fetchAll(
+            "SELECT up.id, up.package_id, up.package_name, up.scan_limit,
+                    up.daily_scan_limit, up.daily_scans_used, up.last_scan_date,
+                    up.purchased_at, up.expires_at, up.is_active,
+                    p.slug as package_slug
+             FROM user_packages up
+             LEFT JOIN packages p ON up.package_id = p.id
+             WHERE up.user_id = ? AND up.is_active = 1 AND up.expires_at > NOW()
+             ORDER BY up.expires_at ASC",
+            [$user['id']]
+        ) ?: [];
+
+        foreach ($userPackages as &$up) {
+            $up['scan_limit'] = (int)$up['scan_limit'];
+            $up['daily_scan_limit'] = (int)$up['daily_scan_limit'];
+
+            // Gün değiştiyse kullanım sıfırlanır
+            $dailyUsed = ($up['last_scan_date'] === $today) ? (int)$up['daily_scans_used'] : 0;
+            $up['daily_scans_used'] = $dailyUsed;
+
+            // Kalan günlük hak
+            $up['daily_remaining'] = $up['daily_scan_limit'] > 0
+                ? max(0, $up['daily_scan_limit'] - $dailyUsed)
+                : -1; // -1 = sınırsız
+
+            $up['days_remaining'] = max(0, (int)((strtotime($up['expires_at']) - time()) / 86400));
+        }
+
+        Api::success(['user_packages' => $userPackages]);
         break;
 
     case 'validate_discount':
@@ -250,11 +294,27 @@ switch ($action) {
             if ($session->payment_status === 'paid') {
                 // Kullanıcıya paketi ata
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+' . $order['duration_days'] . ' days'));
-                
+
+                // Eski sistem için (geriye uyumluluk)
                 $db->query(
                     "UPDATE users SET package_id = ?, scan_limit = ?, package_expires = ? WHERE id = ?",
                     [$order['package_id'], $order['scan_limit'], $expiresAt, $order['user_id']]
                 );
+
+                // Yeni çoklu paket sistemi - user_packages tablosuna ekle
+                $pkg = $db->fetch("SELECT name, scan_limit, daily_scan_limit FROM packages WHERE id = ?", [$order['package_id']]);
+                $db->insert('user_packages', [
+                    'user_id' => $order['user_id'],
+                    'package_id' => $order['package_id'],
+                    'package_name' => $pkg['name'] ?? $order['package_name'],
+                    'scan_limit' => (int)$order['scan_limit'],
+                    'daily_scan_limit' => (int)($pkg['daily_scan_limit'] ?? 0),
+                    'daily_scans_used' => 0,
+                    'last_scan_date' => null,
+                    'order_id' => $order['id'],
+                    'expires_at' => $expiresAt,
+                    'is_active' => 1
+                ]);
                 
                 $db->query(
                     "UPDATE orders SET status = 'completed', stripe_payment_id = ?, completed_at = NOW() WHERE id = ?",

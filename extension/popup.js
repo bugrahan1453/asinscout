@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const $ = id => document.getElementById(id);
   let allAsins = [], storeName = '', tabId = null, scanLimit = 0, currentMarketplace = 'amazon.com';
   let pendingTabUrl = '';
+  let selectedUserPackageId = null; // Secilen paket ID'si
+  let userPackages = []; // Kullanicinin aktif paketleri
 
   // Auth state kontrolu
   chrome.runtime.sendMessage({ action: 'getAuthState' }, state => {
@@ -51,6 +53,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('userAvatar').textContent = (user.name || 'U')[0].toUpperCase();
     scanLimit = user.scan_limit || 0;
 
+    // Coklu paket sistemini yukle
+    loadUserPackages();
+
     if (user.package_name && scanLimit > 0) {
       $('pkgBadge').textContent = user.package_name;
       $('pkgBadge').className = 'pkg-badge';
@@ -66,6 +71,58 @@ document.addEventListener('DOMContentLoaded', async () => {
       $('limitInfo').innerHTML = '<a href="https://asinscout.com/pricing.html" target="_blank" style="color:var(--or)">Paket Satin Al →</a>';
     }
     initApp();
+  }
+
+  // Kullanicinin aktif paketlerini yukle
+  async function loadUserPackages() {
+    try {
+      const r = await fetch('https://asinscout.com/api/packages.php?action=my_packages', {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+      });
+      const d = await r.json();
+      if (d.success && d.data.user_packages) {
+        userPackages = d.data.user_packages;
+        updateLimitInfoWithPackages();
+      }
+    } catch(e) {
+      console.error('Paket yukleme hatasi:', e);
+    }
+  }
+
+  // Paket bilgilerini goster
+  function updateLimitInfoWithPackages() {
+    if (userPackages.length === 0) return;
+
+    if (userPackages.length === 1) {
+      // Tek paket
+      const pkg = userPackages[0];
+      scanLimit = pkg.scan_limit;
+      selectedUserPackageId = pkg.id;
+      $('pkgBadge').textContent = pkg.package_name;
+      $('pkgBadge').className = 'pkg-badge';
+      let limitText = 'Tarama limiti: <strong>' + fmtNum(pkg.scan_limit) + '</strong> ASIN';
+      if (pkg.daily_scan_limit > 0) {
+        const remaining = pkg.daily_remaining >= 0 ? pkg.daily_remaining : 0;
+        limitText += '<br><span style="color:' + (remaining > 0 ? '#22c97a' : '#ff4d5e') + '">Gunluk: ' + remaining + '/' + pkg.daily_scan_limit + ' tarama</span>';
+      }
+      $('limitInfo').innerHTML = limitText;
+    } else {
+      // Coklu paket
+      $('pkgBadge').textContent = userPackages.length + ' Paket';
+      $('pkgBadge').className = 'pkg-badge';
+
+      // En yuksek limiti varsayilan yap ama kullanici secmeli
+      let totalDaily = 0;
+      let maxLimit = 0;
+      for (const pkg of userPackages) {
+        if (pkg.scan_limit > maxLimit) maxLimit = pkg.scan_limit;
+        if (pkg.daily_remaining > 0 || pkg.daily_scan_limit === 0) {
+          totalDaily += pkg.daily_remaining >= 0 ? pkg.daily_remaining : 999;
+        }
+      }
+      scanLimit = maxLimit;
+      $('limitInfo').innerHTML = '<span style="color:var(--or)">' + userPackages.length + ' aktif paket</span> - Taramada secim yapacaksiniz';
+    }
   }
 
   // Login
@@ -195,8 +252,63 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    // Coklu paket kontrolu - kullanici secmeli
+    if (userPackages.length > 1 && !selectedUserPackageId) {
+      showPackageSelectModal();
+      return;
+    }
+
     // Onceki tarama kontrolu
     checkAndStartScan(tab);
+  };
+
+  // Paket secim modali
+  function showPackageSelectModal() {
+    const list = $('packageList');
+    list.innerHTML = '';
+
+    for (const pkg of userPackages) {
+      // Gunluk hakki bitenleri atla
+      if (pkg.daily_scan_limit > 0 && pkg.daily_remaining <= 0) continue;
+
+      const usagePercent = pkg.daily_scan_limit > 0
+        ? Math.round(((pkg.daily_scan_limit - (pkg.daily_remaining || 0)) / pkg.daily_scan_limit) * 100)
+        : 0;
+
+      const opt = document.createElement('div');
+      opt.className = 'pkg-option';
+      opt.dataset.pkgId = pkg.id;
+      opt.dataset.scanLimit = pkg.scan_limit;
+      opt.innerHTML = `
+        <div class="pkg-option-name">${pkg.package_name}</div>
+        <div class="pkg-option-info">
+          <span><span>Tarama basina:</span><strong>${fmtNum(pkg.scan_limit)} ASIN</strong></span>
+          <span><span>Gunluk hak:</span><strong>${pkg.daily_scan_limit > 0 ? (pkg.daily_remaining + '/' + pkg.daily_scan_limit + ' kaldi') : 'Sinirsiz'}</strong></span>
+          <span><span>Kalan sure:</span><strong>${pkg.days_remaining} gun</strong></span>
+        </div>
+        ${pkg.daily_scan_limit > 0 ? '<div class="pkg-option-bar"><div class="pkg-option-bar-fill" style="width:' + (100 - usagePercent) + '%"></div></div>' : ''}
+      `;
+      opt.onclick = () => {
+        selectedUserPackageId = parseInt(pkg.id);
+        scanLimit = parseInt(pkg.scan_limit);
+        $('packageModal').classList.remove('on');
+        // Secim yapildi, taramayi baslat
+        checkAndStartScan(pendingTab);
+      };
+      list.appendChild(opt);
+    }
+
+    // Hic kullanilabilir paket yoksa
+    if (list.children.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:var(--rd);padding:20px">Tum paketlerinizin gunluk hakki dolmus. Yarin tekrar deneyin.</div>';
+    }
+
+    $('packageModal').classList.add('on');
+  }
+
+  // Paket secim iptali
+  $('cancelPackageSelect').onclick = () => {
+    $('packageModal').classList.remove('on');
   };
 
   // Onceki tarama kontrolu yap
@@ -256,7 +368,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       tabId: tab.id,
       storeName,
       baseUrl: tab.url,
-      scanLimit
+      scanLimit,
+      userPackageId: selectedUserPackageId // Secilen paket ID'si
     });
     showScanningMode();
   }

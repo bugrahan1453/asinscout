@@ -154,13 +154,18 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     state.scanning = true;
     state.storeName = msg.storeName || '';
     state.lastUpdate = 'Baslatiliyor...';
+    state.userPackageId = msg.userPackageId || null; // Secilen paket ID'si
 
-    startScanApi(msg.baseUrl, msg.storeName).then(r => {
+    const effectiveScanLimit = msg.scanLimit || user.scan_limit;
+
+    startScanApi(msg.baseUrl, msg.storeName, msg.userPackageId).then(r => {
       if (r.scan_id) {
         state.scanId = r.scan_id;
+        // API'den donen scan_limit'i kullan (paket bazli)
+        const apiScanLimit = r.scan_limit || effectiveScanLimit;
         saveTabStates();
         badge('...', '#ff6b2c', tabId);
-        injectAndStart(tabId, msg.baseUrl, user.scan_limit);
+        injectAndStart(tabId, msg.baseUrl, apiScanLimit);
       } else {
         state.scanning = false;
         state.lastUpdate = r.error || 'Hata';
@@ -463,16 +468,27 @@ async function refreshProfile() {
   }
 }
 
-async function startScanApi(url, name) {
+async function startScanApi(url, name, userPackageId = null) {
   if (!token) return { error: 'Giris yapilmamis' };
   try {
+    const body = { store_url: url, store_name: name };
+    if (userPackageId) body.user_package_id = userPackageId;
+
     const r = await fetch(API_BASE + '/scans.php?action=start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ store_url: url, store_name: name })
+      body: JSON.stringify(body)
     });
     const d = await r.json();
-    return d.success ? { scan_id: d.data.scan_id } : { error: d.message };
+    if (d.success) {
+      return {
+        scan_id: d.data.scan_id,
+        scan_limit: d.data.scan_limit,
+        daily_remaining: d.data.daily_remaining,
+        user_package_id: d.data.user_package_id
+      };
+    }
+    return { error: d.message };
   } catch(e) {
     logError('network_error', 'Start scan API failed: ' + e.message, { stack: e.stack, url: url });
     return { error: 'Baglanti hatasi' };
