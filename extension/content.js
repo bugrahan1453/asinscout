@@ -34,6 +34,15 @@
   let scanning = false, stopRequested = false;
   const SORTS = ['', 'price-asc-rank', 'price-desc-rank', 'review-rank', 'date-desc-rank'];
 
+  // Tarama aktifken sayfadan çıkış uyarısı
+  window.addEventListener('beforeunload', function(e) {
+    if (scanning) {
+      e.preventDefault();
+      e.returnValue = 'Tarama devam ediyor! Sayfadan ayrılırsanız tarama duracaktır.';
+      return e.returnValue;
+    }
+  });
+
   // Adaptive throttle controller - starts fast, backs off on captcha
   const throttle = {
     delay: 50,

@@ -65,6 +65,24 @@
         .chunk-btn.copied{background:linear-gradient(135deg,#22c97a,#1db36a)}
         .copy-all-btn{width:100%;margin-top:12px;background:linear-gradient(135deg,#ff6b2c,#e55a1f);padding:12px;border-radius:8px;border:none;color:#fff;font-weight:600;cursor:pointer}
         .copy-all-btn:hover{box-shadow:0 4px 12px rgba(255,107,44,0.4)}
+        /* Extension Install Modal */
+        .ext-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:3000;align-items:center;justify-content:center}
+        .ext-modal.active{display:flex}
+        .ext-modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:30px;max-width:500px;width:90%;position:relative}
+        .ext-modal-close{position:absolute;top:12px;right:12px;background:var(--bg3);border:1px solid var(--border);width:32px;height:32px;border-radius:8px;color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .ext-modal-close:hover{background:var(--border);color:var(--text)}
+        .ext-modal-icon{width:70px;height:70px;background:linear-gradient(135deg,#ff2c6b,var(--orange));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px}
+        .ext-modal-title{text-align:center;font-size:22px;font-weight:700;margin-bottom:8px}
+        .ext-modal-subtitle{text-align:center;font-size:14px;color:var(--text2);margin-bottom:24px}
+        .ext-download-btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--orange),#ff2c6b);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;margin-bottom:20px}
+        .ext-download-btn:hover{box-shadow:0 4px 20px rgba(255,107,44,0.4);transform:translateY(-1px)}
+        .ext-steps{background:var(--bg3);border-radius:12px;padding:20px}
+        .ext-steps-title{font-size:14px;font-weight:600;color:var(--orange);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+        .ext-step{display:flex;gap:12px;margin-bottom:14px}
+        .ext-step:last-child{margin-bottom:0}
+        .ext-step-num{width:24px;height:24px;min-width:24px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+        .ext-step-text{font-size:13px;color:var(--text2);line-height:1.5}
+        .ext-step-text strong{color:var(--text)}
     </style>
 </head>
 <body data-i18n-title="scans_title">
@@ -108,6 +126,44 @@
             <button class="copy-modal-close" onclick="closeCopyModal()">&times;</button>
             <div class="chunk-grid" id="chunkGrid"></div>
             <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllAsins()">Tümünü Kopyala</button>
+        </div>
+    </div>
+
+    <!-- Extension Install Modal -->
+    <div class="ext-modal" id="extModal">
+        <div class="ext-modal-box">
+            <button class="ext-modal-close" onclick="closeExtModal()">&times;</button>
+            <div class="ext-modal-icon">A</div>
+            <div class="ext-modal-title" data-i18n="ext_modal_title">Eklenti Gerekli</div>
+            <div class="ext-modal-subtitle" data-i18n="ext_modal_subtitle">SR/SF'ye yüklemek için ASIN Scout eklentisini yüklemeniz gerekiyor</div>
+            <a href="#" class="ext-download-btn" onclick="downloadExtension(event)" data-i18n="ext_modal_download">⬇️ Eklentiyi İndir</a>
+            <div class="ext-steps">
+                <div class="ext-steps-title">📖 <span data-i18n="ext_modal_how_title">Nasıl Kurulur?</span></div>
+                <div class="ext-step">
+                    <div class="ext-step-num">1</div>
+                    <div class="ext-step-text" data-i18n="ext_modal_step1">Yukarıdaki butona tıklayarak <strong>extension.zip</strong> dosyasını indirin</div>
+                </div>
+                <div class="ext-step">
+                    <div class="ext-step-num">2</div>
+                    <div class="ext-step-text" data-i18n="ext_modal_step2">ZIP dosyasını açın ve bir klasöre çıkartın</div>
+                </div>
+                <div class="ext-step">
+                    <div class="ext-step-num">3</div>
+                    <div class="ext-step-text" data-i18n="ext_modal_step3">Chrome'da <strong>chrome://extensions</strong> adresine gidin</div>
+                </div>
+                <div class="ext-step">
+                    <div class="ext-step-num">4</div>
+                    <div class="ext-step-text" data-i18n="ext_modal_step4">Sağ üstten <strong>"Geliştirici modu"</strong>nu açın</div>
+                </div>
+                <div class="ext-step">
+                    <div class="ext-step-num">5</div>
+                    <div class="ext-step-text" data-i18n="ext_modal_step5"><strong>"Paketlenmemiş öğe yükle"</strong> butonuna tıklayıp çıkarttığınız klasörü seçin</div>
+                </div>
+                <div class="ext-step">
+                    <div class="ext-step-num">6</div>
+                    <div class="ext-step-text" data-i18n="ext_modal_step6">Kurulum tamamlandı! Şimdi <strong>sayfayı yenileyin</strong> ve tekrar deneyin</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -253,12 +309,42 @@
 
         function fmtRange(n){ return n.toLocaleString('tr-TR'); }
 
+        // Extension modal fonksiyonlari
+        function showExtModal() {
+            document.getElementById('extModal').classList.add('active');
+        }
+        function closeExtModal() {
+            document.getElementById('extModal').classList.remove('active');
+        }
+        // Modal disina tiklaninca kapat
+        document.getElementById('extModal').addEventListener('click', function(e) {
+            if (e.target === this) closeExtModal();
+        });
+
+        // Extension download
+        async function downloadExtension(e) {
+            if (e) e.preventDefault();
+            try {
+                const r = await fetch('/api/packages.php?action=extension_url');
+                const d = await r.json();
+                if (d.success && d.data.url) {
+                    window.location.href = d.data.url;
+                } else if (d.data.chrome_store) {
+                    window.open(d.data.chrome_store, '_blank');
+                } else {
+                    window.location.href = '/downloads/extension.zip';
+                }
+            } catch(err) {
+                window.location.href = '/downloads/extension.zip';
+            }
+        }
+
         // Seller Running'e yukle
         async function loadToSR(scanId, storeName, btn) {
             // Extension yuklu mu kontrol et
             const hasExtension = document.documentElement.hasAttribute('data-asinscout-extension');
             if (!hasExtension) {
-                alert('ASIN Scout eklentisi yuklü degil!\n\nOnce eklentiyi yukleyin, sonra sayfayi yenileyin.');
+                showExtModal();
                 return;
             }
 
@@ -300,7 +386,7 @@
             // Extension yuklu mu kontrol et
             const hasExtension = document.documentElement.hasAttribute('data-asinscout-extension');
             if (!hasExtension) {
-                alert('ASIN Scout eklentisi yuklü degil!\n\nOnce eklentiyi yukleyin, sonra sayfayi yenileyin.');
+                showExtModal();
                 return;
             }
 

@@ -229,6 +229,18 @@ const translations = {
         scans_loading: "Loading...",
         scans_no_scans: "No scans yet. Install the Chrome extension to start!",
 
+        // Extension Modal
+        ext_modal_title: "Extension Required",
+        ext_modal_subtitle: "You need to install ASIN Scout extension to load to SR/SF",
+        ext_modal_download: "⬇️ Download Extension",
+        ext_modal_how_title: "How to Install?",
+        ext_modal_step1: "Click the button above to download <strong>extension.zip</strong> file",
+        ext_modal_step2: "Extract the ZIP file to a folder",
+        ext_modal_step3: "In Chrome, go to <strong>chrome://extensions</strong>",
+        ext_modal_step4: "Enable <strong>\"Developer mode\"</strong> in the top right",
+        ext_modal_step5: "Click <strong>\"Load unpacked\"</strong> button and select the extracted folder",
+        ext_modal_step6: "Installation complete! Now <strong>refresh the page</strong> and try again",
+
         // Scan Detail
         scan_back: "\u2190 Back to Scans",
         scan_total_asins: "Total ASINs",
@@ -750,6 +762,18 @@ const translations = {
         scans_confirm_delete: "Bu taramayı silmek istediğinize emin misiniz?",
         scans_loading: "Yükleniyor...",
         scans_no_scans: "Henüz tarama yok. Başlamak için Chrome eklentisini yükleyin!",
+
+        // Extension Modal
+        ext_modal_title: "Eklenti Gerekli",
+        ext_modal_subtitle: "SR/SF'ye yüklemek için ASIN Scout eklentisini yüklemeniz gerekiyor",
+        ext_modal_download: "⬇️ Eklentiyi İndir",
+        ext_modal_how_title: "Nasıl Kurulur?",
+        ext_modal_step1: "Yukarıdaki butona tıklayarak <strong>extension.zip</strong> dosyasını indirin",
+        ext_modal_step2: "ZIP dosyasını açın ve bir klasöre çıkartın",
+        ext_modal_step3: "Chrome'da <strong>chrome://extensions</strong> adresine gidin",
+        ext_modal_step4: "Sağ üstten <strong>\"Geliştirici modu\"</strong>nu açın",
+        ext_modal_step5: "<strong>\"Paketlenmemiş öğe yükle\"</strong> butonuna tıklayıp çıkarttığınız klasörü seçin",
+        ext_modal_step6: "Kurulum tamamlandı! Şimdi <strong>sayfayı yenileyin</strong> ve tekrar deneyin",
 
         // Scan Detail
         scan_back: "\u2190 Taramalara Dön",
