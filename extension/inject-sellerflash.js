@@ -831,10 +831,7 @@
   }
 
   function formatNumber(n) {
-    if (n >= 1000) {
-      return Math.round(n / 1000) + 'K';
-    }
-    return String(n);
+    return Number(n || 0).toLocaleString('tr-TR');
   }
 
   function showToast(msg, isError) {

@@ -136,6 +136,9 @@ const translations = {
         dash_chrome_store: "Chrome Web Store",
         dash_guide_loading: "Loading guide...",
         dash_no_guide: "User guide not available yet.",
+        dash_user_guide: "ASIN Scout Pro User Guide",
+        dash_guide_hide: "Hide",
+        dash_guide_show: "Show",
 
         // Sidebar
         sidebar_dashboard: "\ud83d\udcca Dashboard",
@@ -679,6 +682,9 @@ const translations = {
         dash_chrome_store: "Chrome Web Store",
         dash_guide_loading: "Kılavuz yükleniyor...",
         dash_no_guide: "Kullanım kılavuzu henüz mevcut değil.",
+        dash_user_guide: "ASIN Scout Pro Kullanım Kılavuzu",
+        dash_guide_hide: "Gizle",
+        dash_guide_show: "Göster",
 
         // Sidebar
         sidebar_dashboard: "\ud83d\udcca Kontrol Paneli",

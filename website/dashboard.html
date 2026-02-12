@@ -55,6 +55,17 @@
         .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.5}
         .empty-title{font-size:18px;color:var(--text);margin-bottom:8px}
         .packages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+        .btn-download{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,var(--orange),#ff2c6b);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s}
+        .btn-download:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,107,44,0.3)}
+        .btn-download span{font-size:18px}
+        .guide-section{background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+        .guide-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;cursor:pointer;transition:background 0.2s}
+        .guide-header:hover{background:var(--bg3)}
+        .guide-header h4{margin:0;font-size:15px;color:var(--orange);display:flex;align-items:center;gap:8px}
+        .guide-toggle{background:transparent;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.2s}
+        .guide-toggle:hover{border-color:var(--orange);color:var(--orange)}
+        .guide-content{padding:0 20px 20px;line-height:1.8;font-size:14px;color:var(--text2);display:block}
+        .guide-content.collapsed{display:none}
         .user-package{background:linear-gradient(135deg,rgba(255,107,44,0.1),rgba(255,44,107,0.1));border:1px solid rgba(255,107,44,0.3);border-radius:16px;padding:20px;position:relative}
         .user-package.expiring-soon{border-color:rgba(255,193,7,0.5);background:linear-gradient(135deg,rgba(255,193,7,0.1),rgba(255,107,44,0.1))}
         .user-package h4{font-size:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
@@ -116,17 +127,23 @@
         <div class="card" style="margin-bottom:24px">
             <div class="card-title"><span>🧩</span> <span data-i18n="dash_extension">Chrome Extension</span></div>
             <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
-                <a href="#" id="downloadExtBtn" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,var(--orange),#ff2c6b);text-decoration:none">
-                    <span style="font-size:20px">⬇️</span> <span data-i18n="dash_download_ext">Download Extension</span>
+                <a href="#" id="downloadExtBtn" class="btn-download">
+                    <span>⬇️</span> <span data-i18n="dash_download_ext">Eklentiyi İndir</span>
                 </a>
                 <a href="#" id="chromeStoreBtn" class="btn btn-outline" style="display:none;align-items:center;gap:8px;padding:12px 24px;text-decoration:none">
                     <span style="font-size:20px">🌐</span> <span data-i18n="dash_chrome_store">Chrome Web Store</span>
                 </a>
             </div>
-            <div id="userGuideContent" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;line-height:1.8;font-size:14px;color:var(--text2)">
-                <div style="text-align:center;padding:20px;color:var(--text3)">
-                    <span style="font-size:24px">📖</span><br>
-                    <span data-i18n="dash_guide_loading">Loading guide...</span>
+            <div class="guide-section" id="guideSection">
+                <div class="guide-header" onclick="toggleGuide()">
+                    <h4><span>📖</span> <span data-i18n="dash_user_guide">ASIN Scout Pro Kullanım Kılavuzu</span></h4>
+                    <button class="guide-toggle" id="guideToggleBtn" data-i18n="dash_guide_hide">Gizle</button>
+                </div>
+                <div id="userGuideContent" class="guide-content">
+                    <div style="text-align:center;padding:20px;color:var(--text3)">
+                        <span style="font-size:24px">📖</span><br>
+                        <span data-i18n="dash_guide_loading">Loading guide...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -341,6 +358,28 @@
         }
         function fmtNum(n){return Number(n||0).toLocaleString();}
         function esc(s){return String(s||'').replace(/</g,'&lt;');}
+
+        // Guide toggle
+        function toggleGuide(){
+            const content=document.getElementById('userGuideContent');
+            const btn=document.getElementById('guideToggleBtn');
+            const isCollapsed=content.classList.toggle('collapsed');
+            btn.textContent=isCollapsed?(localStorage.getItem('asin_lang')==='en'?'Show':'Göster'):(localStorage.getItem('asin_lang')==='en'?'Hide':'Gizle');
+            localStorage.setItem('asin_guide_collapsed',isCollapsed?'1':'0');
+        }
+        // Load guide state
+        function loadGuideState(){
+            const collapsed=localStorage.getItem('asin_guide_collapsed')==='1';
+            const content=document.getElementById('userGuideContent');
+            const btn=document.getElementById('guideToggleBtn');
+            if(collapsed){
+                content.classList.add('collapsed');
+                btn.textContent=localStorage.getItem('asin_lang')==='en'?'Show':'Göster';
+            }else{
+                content.classList.remove('collapsed');
+                btn.textContent=localStorage.getItem('asin_lang')==='en'?'Hide':'Gizle';
+            }
+        }
         async function copyAsins(scanId,btn){
             btn.textContent='...';
             try{
@@ -358,8 +397,9 @@
             }catch(e){btn.textContent='!';setTimeout(()=>{btn.textContent='📋';},2000);}
         }
         // Re-render on language change
-        window.addEventListener('languageChanged',()=>{load();});
+        window.addEventListener('languageChanged',()=>{load();loadGuideState();});
         load();
+        loadGuideState();
     </script>
 </body>
 </html>

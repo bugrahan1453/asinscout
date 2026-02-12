@@ -526,9 +526,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function fmtNum(n) {
-    if (n >= 1000000) return Math.round(n/1000000) + 'M';
-    if (n >= 1000) return Math.round(n/1000) + 'K';
-    return String(n);
+    return Number(n || 0).toLocaleString('tr-TR');
   }
 
   function toast(m) {
