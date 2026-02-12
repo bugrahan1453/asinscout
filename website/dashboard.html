@@ -111,6 +111,26 @@
             <div class="stat-card"><div class="label" data-i18n="dash_total_scans">Total Scans</div><div class="value orange" id="totalScans">0</div></div>
             <div class="stat-card"><div class="label" data-i18n="dash_total_asins">Total ASINs</div><div class="value blue" id="totalAsins">0</div></div>
         </div>
+
+        <!-- Extension Download & User Guide -->
+        <div class="card" style="margin-bottom:24px">
+            <div class="card-title"><span>🧩</span> <span data-i18n="dash_extension">Chrome Extension</span></div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+                <a href="#" id="downloadExtBtn" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,var(--orange),#ff2c6b);text-decoration:none">
+                    <span style="font-size:20px">⬇️</span> <span data-i18n="dash_download_ext">Download Extension</span>
+                </a>
+                <a href="#" id="chromeStoreBtn" class="btn btn-outline" style="display:none;align-items:center;gap:8px;padding:12px 24px;text-decoration:none">
+                    <span style="font-size:20px">🌐</span> <span data-i18n="dash_chrome_store">Chrome Web Store</span>
+                </a>
+            </div>
+            <div id="userGuideContent" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;line-height:1.8;font-size:14px;color:var(--text2)">
+                <div style="text-align:center;padding:20px;color:var(--text3)">
+                    <span style="font-size:24px">📖</span><br>
+                    <span data-i18n="dash_guide_loading">Loading guide...</span>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-title"><span data-i18n="dash_recent_scans">Recent Scans</span><a href="scans.html" class="btn btn-outline btn-sm" data-i18n="dash_view_all">View All</a></div>
             <div id="recentScans"><div class="empty"><div class="empty-icon">📁</div><div class="empty-title" data-i18n="dash_no_scans">No scans yet</div></div></div>
@@ -130,6 +150,39 @@
         document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
         
         async function load(){
+            // Load settings (extension URLs, user guide)
+            try{
+                const sr=await fetch(API+'/settings.php?action=public');
+                const sd=await sr.json();
+                if(sd.success && sd.data){
+                    const settings=sd.data;
+                    // Extension download URL
+                    const extBtn=document.getElementById('downloadExtBtn');
+                    if(settings.extension_url){
+                        extBtn.href=settings.extension_url;
+                    }else{
+                        extBtn.style.display='none';
+                    }
+                    // Chrome Web Store URL
+                    const chromeBtn=document.getElementById('chromeStoreBtn');
+                    if(settings.chrome_store_url){
+                        chromeBtn.href=settings.chrome_store_url;
+                        chromeBtn.style.display='inline-flex';
+                    }
+                    // User Guide (language-based)
+                    const lang=localStorage.getItem('asin_lang')||'tr';
+                    const guideKey=lang==='tr'?'user_guide_tr':'user_guide_en';
+                    const guide=settings[guideKey]||settings.user_guide_tr||'';
+                    const guideEl=document.getElementById('userGuideContent');
+                    if(guide){
+                        guideEl.innerHTML=guide;
+                    }else{
+                        // Default guide
+                        guideEl.innerHTML=getDefaultGuide(lang);
+                    }
+                }
+            }catch(e){console.error('Settings load error:', e);}
+
             try{
                 const r=await fetch(API+'/auth.php?action=profile',{headers:{'Authorization':'Bearer '+token}});
                 const d=await r.json();
@@ -221,6 +274,71 @@
         }
         function logout(){AuthHelper.logout();}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
+        function getDefaultGuide(lang){
+            if(lang==='tr'){
+                return `<h3 style="color:var(--orange);margin-bottom:16px">📖 ASIN Scout Pro Kullanım Kılavuzu</h3>
+<h4 style="margin:16px 0 8px;color:var(--text)">🔧 Eklenti Kurulumu</h4>
+<ol style="margin-left:20px;margin-bottom:16px">
+<li>Yukarıdaki <strong>"Eklentiyi İndir"</strong> butonuna tıklayın</li>
+<li>İndirilen ZIP dosyasını bilgisayarınızda bir klasöre çıkartın</li>
+<li>Chrome tarayıcınızda <strong>chrome://extensions</strong> adresine gidin</li>
+<li>Sağ üst köşeden <strong>"Geliştirici modu"</strong>nu açın</li>
+<li><strong>"Paketlenmemiş öğe yükle"</strong> butonuna tıklayın</li>
+<li>ZIP'ten çıkarttığınız klasörü seçin - Kurulum tamamlandı!</li>
+</ol>
+
+<h4 style="margin:16px 0 8px;color:var(--text)">🚀 Tarama Nasıl Yapılır?</h4>
+<ol style="margin-left:20px;margin-bottom:16px">
+<li>Amazon'da bir satıcı mağazasına gidin (örn: amazon.com/s?me=SELLERID)</li>
+<li>Tarayıcınızın sağ üstündeki <strong>ASIN Scout Pro</strong> eklenti ikonuna tıklayın</li>
+<li><strong>"Taramayı Başlat"</strong> butonuna tıklayın</li>
+<li>Tarama otomatik olarak tüm sayfaları gezer ve ASIN'leri toplar</li>
+<li>Tarama bittiğinde sonuçları TXT, Excel olarak indirebilir veya kopyalayabilirsiniz</li>
+</ol>
+
+<h4 style="margin:16px 0 8px;color:var(--text)">💡 İpuçları</h4>
+<ul style="margin-left:20px;margin-bottom:16px">
+<li>Tarama sırasında sayfayı kapatmayın veya başka sekmeye geçmeyin</li>
+<li>Büyük mağazalarda tarama birkaç dakika sürebilir</li>
+<li>Günlük tarama limitinizi "Taramalarım" sayfasından takip edebilirsiniz</li>
+<li>Tüm Amazon pazaryerleri desteklenir (US, UK, DE, FR, IT, ES, JP, CA, AU...)</li>
+</ul>
+
+<h4 style="margin:16px 0 8px;color:var(--text)">❓ Sorun mu Yaşıyorsunuz?</h4>
+<p>Herhangi bir sorunla karşılaşırsanız <a href="contact.html" style="color:var(--orange)">İletişim</a> sayfasından bize ulaşabilirsiniz.</p>`;
+            }else{
+                return `<h3 style="color:var(--orange);margin-bottom:16px">📖 ASIN Scout Pro User Guide</h3>
+<h4 style="margin:16px 0 8px;color:var(--text)">🔧 Extension Installation</h4>
+<ol style="margin-left:20px;margin-bottom:16px">
+<li>Click the <strong>"Download Extension"</strong> button above</li>
+<li>Extract the downloaded ZIP file to a folder on your computer</li>
+<li>In Chrome browser, go to <strong>chrome://extensions</strong></li>
+<li>Enable <strong>"Developer mode"</strong> in the top right corner</li>
+<li>Click <strong>"Load unpacked"</strong> button</li>
+<li>Select the folder you extracted from the ZIP - Installation complete!</li>
+</ol>
+
+<h4 style="margin:16px 0 8px;color:var(--text)">🚀 How to Scan?</h4>
+<ol style="margin-left:20px;margin-bottom:16px">
+<li>Go to an Amazon seller store (e.g., amazon.com/s?me=SELLERID)</li>
+<li>Click the <strong>ASIN Scout Pro</strong> extension icon in the top right of your browser</li>
+<li>Click <strong>"Start Scan"</strong> button</li>
+<li>The scan will automatically browse all pages and collect ASINs</li>
+<li>When done, you can download results as TXT, Excel, or copy them</li>
+</ol>
+
+<h4 style="margin:16px 0 8px;color:var(--text)">💡 Tips</h4>
+<ul style="margin-left:20px;margin-bottom:16px">
+<li>Don't close the page or switch to another tab during scanning</li>
+<li>Large stores may take a few minutes to scan</li>
+<li>Track your daily scan limit from the "My Scans" page</li>
+<li>All Amazon marketplaces are supported (US, UK, DE, FR, IT, ES, JP, CA, AU...)</li>
+</ul>
+
+<h4 style="margin:16px 0 8px;color:var(--text)">❓ Having Issues?</h4>
+<p>If you encounter any problems, contact us through the <a href="contact.html" style="color:var(--orange)">Contact</a> page.</p>`;
+            }
+        }
         function fmtNum(n){return Number(n||0).toLocaleString();}
         function esc(s){return String(s||'').replace(/</g,'&lt;');}
         async function copyAsins(scanId,btn){

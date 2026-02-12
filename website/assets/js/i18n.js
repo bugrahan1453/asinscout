@@ -131,6 +131,11 @@ const translations = {
         dash_view: "View",
         dash_loading: "Loading...",
         dash_package_word: "Package",
+        dash_extension: "Chrome Extension",
+        dash_download_ext: "Download Extension",
+        dash_chrome_store: "Chrome Web Store",
+        dash_guide_loading: "Loading guide...",
+        dash_no_guide: "User guide not available yet.",
 
         // Sidebar
         sidebar_dashboard: "\ud83d\udcca Dashboard",
@@ -535,7 +540,11 @@ const translations = {
         admin_settings_maint_hint: "When enabled, only admins can access the site",
         admin_settings_save_all: "Save All Settings",
         admin_settings_saved: "Settings saved successfully!",
-        admin_settings_error: "Error saving settings"
+        admin_settings_error: "Error saving settings",
+        admin_settings_guide: "User Guide",
+        admin_settings_guide_tr: "User Guide (Turkish)",
+        admin_settings_guide_en: "User Guide (English)",
+        admin_settings_guide_hint: "HTML supported. Displayed on user dashboard."
     },
     tr: {
         // Navigation
@@ -665,6 +674,11 @@ const translations = {
         dash_view: "Görüntüle",
         dash_loading: "Yükleniyor...",
         dash_package_word: "Paketi",
+        dash_extension: "Chrome Eklentisi",
+        dash_download_ext: "Eklentiyi İndir",
+        dash_chrome_store: "Chrome Web Store",
+        dash_guide_loading: "Kılavuz yükleniyor...",
+        dash_no_guide: "Kullanım kılavuzu henüz mevcut değil.",
 
         // Sidebar
         sidebar_dashboard: "\ud83d\udcca Kontrol Paneli",
@@ -1069,7 +1083,11 @@ const translations = {
         admin_settings_maint_hint: "Etkinleştirildiğinde sadece adminler siteye erişebilir",
         admin_settings_save_all: "Tüm Ayarları Kaydet",
         admin_settings_saved: "Ayarlar başarıyla kaydedildi!",
-        admin_settings_error: "Ayarlar kaydedilirken hata oluştu"
+        admin_settings_error: "Ayarlar kaydedilirken hata oluştu",
+        admin_settings_guide: "Kullanım Kılavuzu",
+        admin_settings_guide_tr: "Kullanım Kılavuzu (Türkçe)",
+        admin_settings_guide_en: "Kullanım Kılavuzu (İngilizce)",
+        admin_settings_guide_hint: "HTML desteklenir. Kullanıcı kontrol panelinde gösterilir."
     }
 };
 
