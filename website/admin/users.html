@@ -99,13 +99,14 @@
                         <th data-i18n="admin_users_user">User</th>
                         <th data-i18n="admin_users_package">Package</th>
                         <th data-i18n="admin_users_scan_limit">Scan Limit</th>
+                        <th data-i18n="admin_users_daily_limit">Daily Limit</th>
                         <th data-i18n="admin_users_total_scans">Total Scans</th>
                         <th data-i18n="admin_status">Status</th>
                         <th data-i18n="admin_users_joined">Joined</th>
                         <th data-i18n="admin_actions">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="usersTable"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text2)" data-i18n="admin_loading">Loading...</td></tr></tbody>
+                <tbody id="usersTable"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text2)" data-i18n="admin_loading">Loading...</td></tr></tbody>
             </table>
             <div class="pagination" id="pagination"></div>
         </div>
@@ -126,8 +127,13 @@
                 </select>
             </div>
             <div class="form-group">
-                <label data-i18n="admin_users_custom_limit">Or Set Custom Scan Limit</label>
+                <label data-i18n="admin_users_custom_limit">Or Set Custom Scan Limit (ASIN per scan)</label>
                 <input type="number" id="customLimit" placeholder="e.g. 50000">
+            </div>
+            <div class="form-group">
+                <label data-i18n="admin_users_daily_limit">Custom Daily Scan Limit (scans per day)</label>
+                <input type="number" id="customDailyLimit" placeholder="e.g. 10 (0 = unlimited)">
+                <small style="color:var(--text3);font-size:11px;margin-top:4px;display:block">Leave empty to use package default, set 0 for unlimited</small>
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()" data-i18n="admin_cancel">Cancel</button>
@@ -180,12 +186,14 @@
                         const pkgName = u.package_name || t('admin_users_no_package');
                         const pkgCls = u.package_name ? 'blue' : 'red';
                         const limit = u.scan_limit >= 1000 ? (u.scan_limit/1000)+'K' : (u.scan_limit || 0);
+                        const dailyLimit = u.daily_scan_limit == 0 ? '∞' : (u.daily_scan_limit || '∞');
 
                         html += `
                             <tr>
                                 <td><strong>${esc(u.name || 'No Name')}</strong><br><span style="color:var(--text3);font-size:11px">${esc(u.email)}</span></td>
                                 <td><span class="badge ${pkgCls}">${pkgName}</span></td>
                                 <td><strong style="color:var(--green)">${limit}</strong> ASIN</td>
+                                <td><strong style="color:var(--blue)">${dailyLimit}</strong> /day</td>
                                 <td>${u.total_scans || 0}</td>
                                 <td><span class="badge ${statusCls}">${statusText}</span></td>
                                 <td>${fmtDate(u.created_at)}</td>
@@ -196,7 +204,7 @@
                             </tr>
                         `;
                     }
-                    document.getElementById('usersTable').innerHTML = html || `<tr><td colspan="7" style="text-align:center;padding:40px">${t('admin_users_no_users')}</td></tr>`;
+                    document.getElementById('usersTable').innerHTML = html || `<tr><td colspan="8" style="text-align:center;padding:40px">${t('admin_users_no_users')}</td></tr>`;
 
                     const p = d.data;
                     let pagHtml = `<button onclick="loadUsers(${p.page-1}, '${currentSearch}')" ${p.page<=1?'disabled':''}>${t('admin_prev')}</button>`;
@@ -205,11 +213,11 @@
                     document.getElementById('pagination').innerHTML = pagHtml;
                     currentPage = p.page;
                 } else {
-                    document.getElementById('usersTable').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--red)">Error: ${d.message || 'Unknown error'}</td></tr>`;
+                    document.getElementById('usersTable').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">Error: ${d.message || 'Unknown error'}</td></tr>`;
                 }
             } catch(e) {
                 console.error(e);
-                document.getElementById('usersTable').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--red)">Connection error: ${e.message}</td></tr>`;
+                document.getElementById('usersTable').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">Connection error: ${e.message}</td></tr>`;
             }
         }
 
@@ -227,6 +235,7 @@
             document.getElementById('modalUserEmail').value = email;
             document.getElementById('packageSelect').value = '';
             document.getElementById('customLimit').value = '';
+            document.getElementById('customDailyLimit').value = '';
             document.getElementById('packageModal').classList.add('show');
         }
 
@@ -237,6 +246,7 @@
         async function assignPackage() {
             const packageId = document.getElementById('packageSelect').value;
             const customLimit = document.getElementById('customLimit').value;
+            const customDailyLimit = document.getElementById('customDailyLimit').value;
 
             if (!packageId && !customLimit) {
                 alert(t('admin_users_assign_error'));
@@ -249,6 +259,11 @@
                     body.package_id = parseInt(packageId);
                 } else if (customLimit) {
                     body.scan_limit = parseInt(customLimit);
+                }
+
+                // Özel günlük tarama limiti belirtildiyse ekle
+                if (customDailyLimit !== '') {
+                    body.daily_scan_limit = parseInt(customDailyLimit);
                 }
 
                 const r = await fetch(API + '/admin.php?action=assign_package', {

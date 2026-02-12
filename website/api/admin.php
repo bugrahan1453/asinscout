@@ -164,6 +164,9 @@ try {
 
             $userId = (int)$data['user_id'];
 
+            // Özel günlük tarama limiti belirtilmiş mi?
+            $customDailyLimit = isset($data['daily_scan_limit']) ? (int)$data['daily_scan_limit'] : null;
+
             if (isset($data['package_id']) && $data['package_id']) {
                 $pkg = $db->fetch("SELECT * FROM packages WHERE id = ?", [$data['package_id']]);
                 if (!$pkg) {
@@ -172,17 +175,23 @@ try {
 
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+' . $pkg['duration_days'] . ' days'));
 
+                // Özel günlük limit belirtildiyse onu kullan, yoksa paketin default'unu
+                $dailyLimit = ($customDailyLimit !== null) ? $customDailyLimit : ($pkg['daily_scan_limit'] ?? 0);
+
                 $db->query(
                     "UPDATE users SET package_id = ?, scan_limit = ?, daily_scan_limit = ?, package_expires = ? WHERE id = ?",
-                    [$pkg['id'], $pkg['scan_limit'], $pkg['daily_scan_limit'] ?? 0, $expiresAt, $userId]
+                    [$pkg['id'], $pkg['scan_limit'], $dailyLimit, $expiresAt, $userId]
                 );
             } elseif (isset($data['scan_limit']) && $data['scan_limit']) {
                 $scanLimit = (int)$data['scan_limit'];
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+30 days'));
 
+                // Özel günlük limit belirtildiyse onu kullan, yoksa 0 (sınırsız)
+                $dailyLimit = ($customDailyLimit !== null) ? $customDailyLimit : 0;
+
                 $db->query(
-                    "UPDATE users SET package_id = NULL, scan_limit = ?, package_expires = ? WHERE id = ?",
-                    [$scanLimit, $expiresAt, $userId]
+                    "UPDATE users SET package_id = NULL, scan_limit = ?, daily_scan_limit = ?, package_expires = ? WHERE id = ?",
+                    [$scanLimit, $dailyLimit, $expiresAt, $userId]
                 );
             } else {
                 Api::error('Package ID or scan limit required');
