@@ -53,6 +53,7 @@ const translations = {
         // Pricing (index page)
         pricing_title: "Simple Pricing",
         pricing_subtitle: "Choose your scan limit. Unlimited usage.",
+        pricing_scroll_hint: "← Swipe to see more plans →",
         pricing_popular: "MOST POPULAR",
         pricing_starter: "Starter",
         pricing_pro: "Pro",
@@ -599,6 +600,7 @@ const translations = {
         // Pricing (index page)
         pricing_title: "Basit Fiyatlandırma",
         pricing_subtitle: "Tarama limitinizi seçin. Sınırsız kullanım.",
+        pricing_scroll_hint: "← Diğer planları görmek için kaydırın →",
         pricing_popular: "EN POPÜLER",
         pricing_starter: "Başlangıç",
         pricing_pro: "Profesyonel",
