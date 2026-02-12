@@ -300,14 +300,20 @@ switch ($action) {
                 'status' => 'pending',
                 'affiliate_id' => $affiliateId
             ]);
-            
+
             Api::success([
                 'checkout_url' => $session->url,
                 'session_id' => $session->id
             ]);
-            
+
         } catch (\Stripe\Exception\ApiErrorException $e) {
             Api::error('Payment error: ' . $e->getMessage(), 500);
+        } catch (PDOException $e) {
+            error_log('Checkout DB error: ' . $e->getMessage());
+            Api::error('Database error occurred. Please try again.', 500);
+        } catch (Exception $e) {
+            error_log('Checkout error: ' . $e->getMessage());
+            Api::error('An error occurred: ' . $e->getMessage(), 500);
         }
         break;
     
