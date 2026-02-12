@@ -220,6 +220,7 @@
                 });
                 const d=await r.json();
                 if(d.success&&d.data.checkout_url){
+                    paymentInProgress=false; // Uyarı çıkmasın
                     location.href=d.data.checkout_url;
                 }else{
                     overlay.classList.remove('active');
