@@ -199,14 +199,16 @@
         </div>
     </div>
 
+    <script src="../assets/js/auth.js"></script>
     <script>
         const API = '/api';
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = AuthHelper.getToken();
+        const user = AuthHelper.getUser() || {};
 
         if (!token || user.role !== 'admin') {
-            window.location.href = '../login.html';
+            window.location.href = '/login.html';
         }
+        AuthHelper.startTokenRefresh();
 
         let discountsData = [];
 
@@ -386,10 +388,7 @@
             return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = '../login.html';
-        }
+        function logout() { AuthHelper.logout(); }
 
         // Close modal on outside click
         document.getElementById('discountModal').addEventListener('click', function(e) {

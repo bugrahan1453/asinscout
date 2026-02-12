@@ -88,10 +88,13 @@
         </div>
     </main>
 
+    <script src="assets/js/auth.js"></script>
     <script>
-        const API = '/api', token = localStorage.getItem('token');
+        const API = '/api';
+        const token = AuthHelper.getToken();
         if (!token) location.href = 'login.html';
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const user = AuthHelper.getUser() || {};
+        AuthHelper.startTokenRefresh();
         document.getElementById('userName').textContent = user.name || 'User';
         document.getElementById('userEmail').textContent = user.email || '';
         document.getElementById('userAvatar').textContent = (user.name || 'U')[0].toUpperCase();
@@ -221,7 +224,7 @@
             });
         }
 
-        function logout() { localStorage.clear(); location.href = 'login.html'; }
+        function logout() { AuthHelper.logout(); }
         function esc(s) { return String(s || '').replace(/</g, '&lt;'); }
         function fmtDate(d) { return d ? new Date(d).toLocaleDateString('tr-TR') : '-'; }
 

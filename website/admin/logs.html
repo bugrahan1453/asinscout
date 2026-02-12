@@ -199,11 +199,13 @@
     </div>
 
     <script src="../assets/js/i18n.js"></script>
+    <script src="../assets/js/auth.js"></script>
     <script>
         const API = '/api';
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!token || user.role !== 'admin') window.location.href = '../login.html';
+        const token = AuthHelper.getToken();
+        const user = AuthHelper.getUser() || {};
+        if (!token || user.role !== 'admin') window.location.href = '/login.html';
+        AuthHelper.startTokenRefresh();
 
         let currentPage = 1, currentLog = null;
 
@@ -436,7 +438,7 @@
             loadLogs(1);
         }
 
-        function logout() { localStorage.clear(); window.location.href = '../login.html'; }
+        function logout() { AuthHelper.logout(); }
         function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
         function fmtNum(n) { return new Intl.NumberFormat().format(n || 0); }
         function fmtDateTime(d) {

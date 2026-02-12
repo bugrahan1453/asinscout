@@ -117,10 +117,14 @@
         </div>
     </main>
     <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/auth.js"></script>
     <script>
-        const API='/api',token=localStorage.getItem('token');
+        const API='/api';
+        const token=AuthHelper.getToken();
         if(!token)location.href='login.html';
-        const user=JSON.parse(localStorage.getItem('user')||'{}');
+        const user=AuthHelper.getUser()||{};
+        // Token yenileme başlat
+        AuthHelper.startTokenRefresh();
         document.getElementById('userName').textContent=user.name||'User';
         document.getElementById('userEmail').textContent=user.email||'';
         document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
@@ -215,7 +219,7 @@
                 }
             }catch(e){}
         }
-        function logout(){localStorage.clear();location.href='login.html';}
+        function logout(){AuthHelper.logout();}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         function fmtNum(n){return Number(n||0).toLocaleString();}
         function esc(s){return String(s||'').replace(/</g,'&lt;');}

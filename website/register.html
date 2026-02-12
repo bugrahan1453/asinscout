@@ -82,6 +82,7 @@
     </div>
 
     <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/auth.js"></script>
     <script>
         const API_BASE = '/api';
 
@@ -117,8 +118,8 @@
                 const data = await resp.json();
 
                 if (data.success) {
-                    localStorage.setItem('token', data.data.token);
-                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    // Yeni kayıtta "beni hatırla" aktif (kalıcı oturum)
+                    AuthHelper.saveAuth(data.data.token, data.data.user, true);
                     sessionStorage.removeItem('asin_ref');
 
                     msg.className = 'message success';

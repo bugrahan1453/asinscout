@@ -92,11 +92,14 @@
         </div>
     </main>
     <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/auth.js"></script>
     <script>
         const API_BASE = '/api';
-        const token = localStorage.getItem('token');
+        const token = AuthHelper.getToken();
         if (!token) window.location.href = 'login.html';
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const user = AuthHelper.getUser() || {};
+        // Token yenileme başlat
+        AuthHelper.startTokenRefresh();
         document.getElementById('userName').textContent = user.name || 'User';
         document.getElementById('userEmail').textContent = user.email || '';
         document.getElementById('userAvatar').textContent = (user.name || 'U')[0].toUpperCase();
@@ -115,7 +118,8 @@
                 showMsg(data.success ? 'success' : 'error', data.success ? t('settings_saved') : data.message);
                 if (data.success) {
                     user.name = name;
-                    localStorage.setItem('user', JSON.stringify(user));
+                    // Doğru storage'a kaydet
+                    AuthHelper.getStorage().setItem('user', JSON.stringify(user));
                     document.getElementById('userName').textContent = name;
                     document.getElementById('userAvatar').textContent = name[0].toUpperCase();
                 }
@@ -145,7 +149,7 @@
             m.textContent = text;
             setTimeout(() => m.className = 'message', 3000);
         }
-        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        function logout() { AuthHelper.logout(); }
     </script>
 </body>
 </html>

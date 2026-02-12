@@ -171,11 +171,13 @@
     </main>
 
     <script src="../assets/js/i18n.js"></script>
+    <script src="../assets/js/auth.js"></script>
     <script>
         const API_BASE = '/api';
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!token || user.role !== 'admin') { window.location.href = '../login.html'; }
+        const token = AuthHelper.getToken();
+        const user = AuthHelper.getUser() || {};
+        if (!token || user.role !== 'admin') { window.location.href = '/login.html'; }
+        AuthHelper.startTokenRefresh();
 
         const settingFields = ['site_name', 'site_url', 'extension_url', 'chrome_store_url', 'extension_version',
             'stripe_public_key', 'stripe_secret_key',
@@ -263,7 +265,7 @@
             btn.innerHTML = '📤 <span data-i18n="admin_settings_test_email">Test E-postası Gönder</span>';
         }
 
-        function logout() { localStorage.clear(); window.location.href = '../login.html'; }
+        function logout() { AuthHelper.logout(); }
         loadSettings();
     </script>
 </body>

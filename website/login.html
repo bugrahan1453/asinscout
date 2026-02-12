@@ -86,9 +86,26 @@
     <script>
         const API_BASE = '/api';
 
+        // Storage helper - "beni hatırla" seçimine göre doğru storage'ı kullan
+        function getStorage() {
+            // rememberMe flag'i localStorage'da saklanır
+            return localStorage.getItem('rememberMe') === 'true' ? localStorage : sessionStorage;
+        }
+
+        function getToken() {
+            // Önce localStorage kontrol et (beni hatırla seçiliyse)
+            // Sonra sessionStorage kontrol et (beni hatırla seçili değilse)
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        function getUser() {
+            const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+            return userStr ? JSON.parse(userStr) : null;
+        }
+
         // Sayfa yüklendiğinde: token varsa ve geçerliyse dashboard'a yönlendir
         (async function checkExistingLogin() {
-            const token = localStorage.getItem('token');
+            const token = getToken();
             if (!token) return;
 
             try {
@@ -104,6 +121,13 @@
                     } else {
                         window.location.href = 'dashboard.html';
                     }
+                } else {
+                    // Token geçersiz, temizle
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('rememberMe');
+                    sessionStorage.removeItem('token');
+                    sessionStorage.removeItem('user');
                 }
             } catch (e) {
                 // Token geçersiz veya hata, kullanıcı login sayfasında kalsın
@@ -133,8 +157,24 @@
                 const data = await resp.json();
 
                 if (data.success) {
-                    localStorage.setItem('token', data.data.token);
-                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    // Önce eski verileri temizle
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    sessionStorage.removeItem('token');
+                    sessionStorage.removeItem('user');
+
+                    // "Beni hatırla" seçimine göre storage seç
+                    if (rememberMe) {
+                        // Beni hatırla seçili: localStorage kullan (kalıcı)
+                        localStorage.setItem('rememberMe', 'true');
+                        localStorage.setItem('token', data.data.token);
+                        localStorage.setItem('user', JSON.stringify(data.data.user));
+                    } else {
+                        // Beni hatırla seçili değil: sessionStorage kullan (tarayıcı kapanınca silinir)
+                        localStorage.setItem('rememberMe', 'false');
+                        sessionStorage.setItem('token', data.data.token);
+                        sessionStorage.setItem('user', JSON.stringify(data.data.user));
+                    }
 
                     msg.className = 'message success';
                     msg.textContent = t('login_success');

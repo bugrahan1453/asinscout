@@ -258,6 +258,20 @@ switch ($action) {
         Api::success(null, 'Profile updated successfully');
         break;
     
+    case 'refresh':
+        // Token yenileme - geçerli token ile yeni token al
+        $user = Auth::requireAuth();
+        $data = Api::getPostData();
+        $rememberMe = !empty($data['remember_me']);
+
+        // Yeni token oluştur
+        $token = Auth::createToken($user['id'], $user['email'], $user['role'], $rememberMe);
+
+        Api::success([
+            'token' => $token
+        ], 'Token refreshed successfully');
+        break;
+
     case 'contact':
         Api::rateLimit('contact_' . Api::getIp(), 3, 600); // 3 messages per 10 min
         $data = Api::getPostData();
