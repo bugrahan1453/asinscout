@@ -250,6 +250,7 @@ CREATE TABLE IF NOT EXISTS `affiliates` (
   `code` varchar(50) NOT NULL COMMENT 'Referans kodu (link için)',
   `user_id` int(11) DEFAULT NULL COMMENT 'Bağlı kullanıcı ID',
   `commission_rate` decimal(5,2) NOT NULL DEFAULT 5.00 COMMENT 'Komisyon oranı (%)',
+  `user_discount` decimal(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Kullanıcı indirim oranı (%) - Bu affiliate linki ile gelen kullanıcılara uygulanır',
   `total_earnings` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Toplam kazanç',
   `total_referrals` int(11) NOT NULL DEFAULT 0 COMMENT 'Toplam yönlendirilen kullanıcı',
   `total_orders` int(11) NOT NULL DEFAULT 0 COMMENT 'Toplam sipariş',
@@ -296,6 +297,7 @@ CREATE TABLE IF NOT EXISTS `affiliate_earnings` (
 -- ALTER TABLE `orders` ADD COLUMN `discount_code` varchar(50) DEFAULT NULL COMMENT 'Kullanılan indirim kodu' AFTER `affiliate_id`;
 -- ALTER TABLE `orders` ADD COLUMN `discount_amount` decimal(10,2) DEFAULT 0.00 COMMENT 'İndirim tutarı' AFTER `discount_code`;
 -- ALTER TABLE `orders` ADD COLUMN `original_amount` decimal(10,2) DEFAULT NULL COMMENT 'Orijinal tutar' AFTER `discount_amount`;
+-- ALTER TABLE `affiliates` ADD COLUMN `user_discount` decimal(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Kullanıcı indirim oranı (%)' AFTER `commission_rate`;
 
 -- --------------------------------------------------------
 -- Testimonials tablosu (Müşteri yorumları)

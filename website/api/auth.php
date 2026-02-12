@@ -346,6 +346,7 @@ switch ($action) {
                 'name' => $affiliate['name'],
                 'code' => $affiliate['code'],
                 'commission_rate' => $affiliate['commission_rate'],
+                'user_discount' => $affiliate['user_discount'] ?? 0,
                 'link' => SITE_URL . '/register.html?ref=' . $affiliate['code']
             ],
             'stats' => [

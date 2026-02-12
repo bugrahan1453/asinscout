@@ -347,11 +347,13 @@ try {
             }
 
             $rate = max(0, min(100, (float)$data['commission_rate']));
+            $userDiscount = max(0, min(100, (float)($data['user_discount'] ?? 0)));
 
             $affiliateData = [
                 'name' => trim($data['name']),
                 'code' => $code,
                 'commission_rate' => $rate,
+                'user_discount' => $userDiscount,
                 'is_active' => (int)($data['is_active'] ?? 1),
                 'user_id' => isset($data['user_id']) && $data['user_id'] ? (int)$data['user_id'] : null,
                 'notes' => trim($data['notes'] ?? '')

@@ -90,6 +90,35 @@ switch ($action) {
         Api::success(['user_packages' => $userPackages]);
         break;
 
+    case 'my_discount':
+        // Kullanıcının affiliate indirimi var mı kontrol et
+        $user = Auth::requireAuth();
+
+        $affiliateDiscount = 0;
+        $affiliateName = null;
+        $affiliateCode = null;
+
+        $userFull = $db->fetch("SELECT referred_by FROM users WHERE id = ?", [$user['id']]);
+        if ($userFull && $userFull['referred_by']) {
+            $referrerAffiliate = $db->fetch(
+                "SELECT id, name, code, user_discount FROM affiliates WHERE id = ? AND is_active = 1",
+                [$userFull['referred_by']]
+            );
+            if ($referrerAffiliate && (float)$referrerAffiliate['user_discount'] > 0) {
+                $affiliateDiscount = (float)$referrerAffiliate['user_discount'];
+                $affiliateName = $referrerAffiliate['name'];
+                $affiliateCode = $referrerAffiliate['code'];
+            }
+        }
+
+        Api::success([
+            'has_discount' => $affiliateDiscount > 0,
+            'discount_percent' => $affiliateDiscount,
+            'affiliate_name' => $affiliateName,
+            'affiliate_code' => $affiliateCode
+        ]);
+        break;
+
     case 'validate_discount':
         $user = Auth::requireAuth();
         $data = Api::getPostData();
@@ -144,6 +173,30 @@ switch ($action) {
         $originalPrice = (float)$package['price'];
         $finalPrice = $originalPrice;
 
+        // Affiliate özel indirimi kontrol et
+        $affiliateDiscount = 0;
+        $affiliateDiscountSource = null;
+        $userFull = $db->fetch("SELECT referred_by FROM users WHERE id = ?", [$user['id']]);
+        if ($userFull && $userFull['referred_by']) {
+            $referrerAffiliate = $db->fetch(
+                "SELECT id, code, user_discount FROM affiliates WHERE id = ? AND is_active = 1",
+                [$userFull['referred_by']]
+            );
+            if ($referrerAffiliate && (float)$referrerAffiliate['user_discount'] > 0) {
+                $affiliateDiscount = (float)$referrerAffiliate['user_discount'];
+                $affiliateDiscountSource = 'aff_' . $referrerAffiliate['code'];
+            }
+        }
+
+        // Affiliate indirimi uygula
+        if ($affiliateDiscount > 0) {
+            $affiliateDiscountAmount = round($originalPrice * ($affiliateDiscount / 100), 2);
+            $discountAmount = $affiliateDiscountAmount;
+            $discountCode = $affiliateDiscountSource;
+            $finalPrice = max(0, $originalPrice - $discountAmount);
+        }
+
+        // Ek indirim kodu kontrolü (hangisi daha yüksek indirim sağlıyorsa o uygulanır)
         if (!empty($data['discount_code'])) {
             $code = strtoupper(trim($data['discount_code']));
             $discount = $db->fetch(
@@ -162,18 +215,23 @@ switch ($action) {
                 if ($discount['min_amount'] > $originalPrice) $isValid = false;
 
                 if ($isValid) {
-                    $discountCode = $discount['code'];
-
+                    // İndirim tutarını hesapla
+                    $codeDiscountAmount = 0;
                     if ($discount['discount_type'] === 'percent') {
-                        $discountAmount = round($originalPrice * ((float)$discount['discount_value'] / 100), 2);
+                        $codeDiscountAmount = round($originalPrice * ((float)$discount['discount_value'] / 100), 2);
                     } else {
-                        $discountAmount = min((float)$discount['discount_value'], $originalPrice);
+                        $codeDiscountAmount = min((float)$discount['discount_value'], $originalPrice);
                     }
 
-                    $finalPrice = max(0, $originalPrice - $discountAmount);
+                    // Hangisi daha yüksek indirim sağlıyorsa onu kullan
+                    if ($codeDiscountAmount > $discountAmount) {
+                        $discountCode = $discount['code'];
+                        $discountAmount = $codeDiscountAmount;
+                        $finalPrice = max(0, $originalPrice - $discountAmount);
 
-                    // Kullanım sayısını artır
-                    $db->query("UPDATE discount_codes SET used_count = used_count + 1 WHERE id = ?", [$discount['id']]);
+                        // Kullanım sayısını artır
+                        $db->query("UPDATE discount_codes SET used_count = used_count + 1 WHERE id = ?", [$discount['id']]);
+                    }
                 }
             }
         }

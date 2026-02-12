@@ -132,7 +132,11 @@
                         <code id="affLink">${esc(affiliate.link)}</code>
                         <button onclick="copyLink()">Kopyala</button>
                     </div>
-                    <p style="font-size:12px;color:var(--text2)">Komisyon Oranınız: <strong style="color:var(--green)">${affiliate.commission_rate}%</strong></p>
+                    <p style="font-size:12px;color:var(--text2);margin-top:8px">
+                        Komisyon Oranınız: <strong style="color:var(--green)">${affiliate.commission_rate}%</strong>
+                        ${parseFloat(affiliate.user_discount || 0) > 0 ? ' | Kullanıcı İndirimi: <strong style="color:var(--blue)">' + parseFloat(affiliate.user_discount).toFixed(1) + '%</strong>' : ''}
+                    </p>
+                    ${parseFloat(affiliate.user_discount || 0) > 0 ? '<p style="font-size:11px;color:var(--text3);margin-top:4px">Linkiniz ile kayıt olan kullanıcılar %' + parseFloat(affiliate.user_discount).toFixed(1) + ' indirim kazanır.</p>' : ''}
                 </div>
 
                 <div class="stats-grid">

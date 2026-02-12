@@ -114,10 +114,13 @@
         <div class="pricing-grid" id="pricingGrid"></div>
     </main>
     <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/auth.js"></script>
     <script>
-        const API='/api',token=localStorage.getItem('token');
+        const API='/api';
+        const token=AuthHelper.getToken();
         if(!token)location.href='login.html';
-        const user=JSON.parse(localStorage.getItem('user')||'{}');
+        const user=AuthHelper.getUser()||{};
+        AuthHelper.startTokenRefresh();
         document.getElementById('userName').textContent=user.name||'User';
         document.getElementById('userEmail').textContent=user.email||'';
         document.getElementById('userAvatar').textContent=(user.name||'U')[0].toUpperCase();
@@ -232,7 +235,7 @@
             }
         }
 
-        function logout(){localStorage.clear();location.href='login.html';}
+        function logout(){AuthHelper.logout();}
         function fmt(n){return n>=1000?Math.round(n/1000)+'K':String(n||0);}
         function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
         function updateCurrentPkg(){
@@ -242,9 +245,35 @@
                 document.getElementById('pkgExpires').textContent=t('pricing_expires_label')+': '+new Date(user.package_expires).toLocaleDateString();
             }
         }
+
+        // Affiliate indirimi kontrolü
+        let affiliateDiscountInfo = null;
+        async function checkAffiliateDiscount() {
+            try {
+                const r = await fetch(API + '/packages.php?action=my_discount', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const d = await r.json();
+                if (d.success && d.data.has_discount) {
+                    affiliateDiscountInfo = d.data;
+                    showAffiliateDiscount(d.data);
+                }
+            } catch (e) {
+                console.error('Affiliate discount check failed:', e);
+            }
+        }
+
+        function showAffiliateDiscount(data) {
+            const resultDiv = document.getElementById('discountResult');
+            resultDiv.style.display = 'block';
+            resultDiv.style.color = 'var(--green)';
+            resultDiv.innerHTML = '🎁 <strong>Affiliate İndirimi!</strong> ' + data.affiliate_name + ' sayesinde tüm paketlerde <strong>%' + data.discount_percent + ' indirim</strong> kazandınız. Otomatik uygulanacaktır.';
+        }
+
         // Re-render on language change
         window.addEventListener('languageChanged',()=>{loadPackages();updateCurrentPkg();});
         loadPackages();
+        checkAffiliateDiscount();
     </script>
 </body>
 </html>
