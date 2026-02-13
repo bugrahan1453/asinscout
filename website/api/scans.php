@@ -200,7 +200,14 @@ switch ($action) {
             }
         } else {
             // Eski sistem - users tablosundaki sayacı güncelle
-            $db->query("UPDATE users SET daily_scans_used = daily_scans_used + 1, last_scan_date = ? WHERE id = ?", [$today, $user['id']]);
+            $lastScanDateOld = $fullUser['last_scan_date'] ?? null;
+            if ($lastScanDateOld !== $today) {
+                // Gün değişti, sayacı sıfırla ve 1 yap
+                $db->query("UPDATE users SET daily_scans_used = 1, last_scan_date = ? WHERE id = ?", [$today, $user['id']]);
+            } else {
+                // Aynı gün, sayacı artır
+                $db->query("UPDATE users SET daily_scans_used = daily_scans_used + 1, last_scan_date = ? WHERE id = ?", [$today, $user['id']]);
+            }
         }
 
         Api::log($user['id'], 'scan_start', [

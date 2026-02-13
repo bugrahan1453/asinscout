@@ -108,11 +108,33 @@ switch ($action) {
         // Paket süresi kontrolü
         $hasActivePackage = $user['package_id'] && $user['package_expires'] && strtotime($user['package_expires']) > time();
 
-        // Günlük tarama bilgisi (paketten al)
-        $dailyLimit = (int)($user['pkg_daily_limit'] ?? 0);
-        $dailyUsed = (int)($user['daily_scans_used'] ?? 0);
-        if (($user['last_scan_date'] ?? '') !== date('Y-m-d')) {
-            $dailyUsed = 0;
+        // Günlük tarama bilgisi - önce user_packages'dan kontrol et (yeni sistem)
+        $today = date('Y-m-d');
+        $dailyLimit = 0;
+        $dailyUsed = 0;
+
+        $activeUserPackages = $db->fetchAll(
+            "SELECT daily_scan_limit, daily_scans_used, last_scan_date
+             FROM user_packages
+             WHERE user_id = ? AND is_active = 1 AND expires_at > NOW()",
+            [$user['id']]
+        ) ?: [];
+
+        if (!empty($activeUserPackages)) {
+            // Yeni sistem - user_packages'dan topla
+            foreach ($activeUserPackages as $up) {
+                $upDailyLimit = (int)$up['daily_scan_limit'];
+                $upDailyUsed = ($up['last_scan_date'] === $today) ? (int)$up['daily_scans_used'] : 0;
+                $dailyLimit += $upDailyLimit;
+                $dailyUsed += $upDailyUsed;
+            }
+        } else {
+            // Eski sistem - users/packages tablosundan
+            $dailyLimit = (int)($user['pkg_daily_limit'] ?? 0);
+            $dailyUsed = (int)($user['daily_scans_used'] ?? 0);
+            if (($user['last_scan_date'] ?? '') !== $today) {
+                $dailyUsed = 0;
+            }
         }
 
         Api::success([
@@ -151,11 +173,33 @@ switch ($action) {
         
         $hasActivePackage = $fullUser['package_id'] && $fullUser['package_expires'] && strtotime($fullUser['package_expires']) > time();
         
-        // Günlük tarama bilgisi
-        $dailyLimit = (int)($fullUser['pkg_daily_limit'] ?? 0);
-        $dailyUsed = (int)($fullUser['daily_scans_used'] ?? 0);
-        if (($fullUser['last_scan_date'] ?? '') !== date('Y-m-d')) {
-            $dailyUsed = 0;
+        // Günlük tarama bilgisi - önce user_packages'dan kontrol et (yeni sistem)
+        $today = date('Y-m-d');
+        $dailyLimit = 0;
+        $dailyUsed = 0;
+
+        $activeUserPackages = $db->fetchAll(
+            "SELECT daily_scan_limit, daily_scans_used, last_scan_date
+             FROM user_packages
+             WHERE user_id = ? AND is_active = 1 AND expires_at > NOW()",
+            [$user['id']]
+        ) ?: [];
+
+        if (!empty($activeUserPackages)) {
+            // Yeni sistem - user_packages'dan topla
+            foreach ($activeUserPackages as $up) {
+                $upDailyLimit = (int)$up['daily_scan_limit'];
+                $upDailyUsed = ($up['last_scan_date'] === $today) ? (int)$up['daily_scans_used'] : 0;
+                $dailyLimit += $upDailyLimit;
+                $dailyUsed += $upDailyUsed;
+            }
+        } else {
+            // Eski sistem - users/packages tablosundan
+            $dailyLimit = (int)($fullUser['pkg_daily_limit'] ?? 0);
+            $dailyUsed = (int)($fullUser['daily_scans_used'] ?? 0);
+            if (($fullUser['last_scan_date'] ?? '') !== $today) {
+                $dailyUsed = 0;
+            }
         }
 
         // Kullanıcı affiliate mi kontrol et

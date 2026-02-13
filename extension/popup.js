@@ -76,8 +76,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Kullanicinin aktif paketlerini yukle
   async function loadUserPackages() {
     try {
+      // Token'i chrome.storage.local'dan al (localStorage'da degil)
+      const storageData = await new Promise(resolve => {
+        chrome.storage.local.get(['token'], resolve);
+      });
+      const authToken = storageData.token;
+      if (!authToken) return;
+
       const r = await fetch('https://asinscout.com/api/packages.php?action=my_packages', {
-        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+        headers: { 'Authorization': 'Bearer ' + authToken }
       });
       const d = await r.json();
       if (d.success && d.data.user_packages) {
